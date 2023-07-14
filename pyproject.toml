@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "soso"
+version = "0.0.0"
+description = "For creating Science On Schema.Org (SOSO) markup in dataset landing pages to improve data discovery through search engines."
+authors = ["Colin Smith <colin.smith@wisc.edu>"]
+maintainers = ["Colin Smith <colin.smith@wisc.edu>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-cov = "^4.1.0"
+sphinx = "^7.0.1"
+sphinx-autoapi = "^2.1.1"
+myst-parser = "^2.0.0"
+pylint = "^2.17.4"
+black = "^23.7.0"
+python-semantic-release = "^7.34.6"
+
+[tool.semantic_release]
+version_variable = "pyproject.toml:version" # version location
+branch = "main"                             # branch to make releases of
+changelog_file = "docs/source/CHANGELOG.md" # changelog file
+build_command = "poetry build"              # build dists
+dist_path = "dist/"                         # where to put dists
+upload_to_release = true                    # auto-create GitHub release
+upload_to_pypi = false                      # don't auto-upload to PyPI
+remove_dist = false                         # don't remove dists
+patch_without_tag = false                    # patch release by default
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

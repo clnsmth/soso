@@ -1,0 +1,7 @@
+name: soso
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+prefix: /opt/miniconda3/envs/soso
