@@ -1,0 +1,1672 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eml:eml packageId="knb-lter-ble.1.7"
+  system="https://pasta.edirepository.org" xmlns:d1v1="NULL"
+  xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0"
+  xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://nis.lternet.edu/schemas/EML/eml-2.2.0/xsd/eml.xsd">
+  <access authSystem="https://pasta.edirepository.org/authentication"
+    order="allowFirst" scope="document" system="https://pasta.edirepository.org">
+    <allow>
+      <principal>uid=BLE,o=LTER,dc=ecoinformatics,dc=org</principal>
+      <permission>all</permission>
+    </allow>
+    <allow>
+      <principal>public</principal>
+      <permission>read</permission>
+    </allow>
+  </access>
+  <dataset id="d1">
+    <alternateIdentifier system="https://doi.org">doi:10.6073/pasta/e6c261fbd143e720af5a46a9a131a616</alternateIdentifier>
+    <title>Carbon flux from aquatic ecosystems of the Arctic Coastal Plain along the Beaufort Sea, Alaska, 2010-2018</title>
+    <creator>
+      <organizationName>Beaufort Lagoon Ecosystems LTER</organizationName>
+      <address>
+        <deliveryPoint>750 Channel View Dr.</deliveryPoint>
+        <city>Port Aransas</city>
+        <administrativeArea>TX</administrativeArea>
+        <postalCode>78373</postalCode>
+        <country>USA</country>
+      </address>
+      <electronicMailAddress>BLE-IM@utexas.edu</electronicMailAddress>
+      <onlineUrl>https://ble.lternet.edu/</onlineUrl>
+    </creator>
+    <creator>
+      <individualName>
+        <givenName>Vanessa L</givenName>
+        <surName>Lougheed</surName>
+      </individualName>
+      <organizationName>The University of Texas at El Paso</organizationName>
+      <address>
+        <deliveryPoint>500 W University Ave Department of Biological Sciences</deliveryPoint>
+        <city>El Paso</city>
+        <administrativeArea>TX</administrativeArea>
+        <postalCode>79902</postalCode>
+        <country>USA</country>
+      </address>
+      <phone>915-747-6887</phone>
+      <electronicMailAddress>vlougheed@utep.edu</electronicMailAddress>
+      <onlineUrl>https://expertise.utep.edu/node/26254&#xd;
+</onlineUrl>
+      <userId directory="ORCID">https://orcid.org/0000-0002-6091-1151</userId>
+    </creator>
+    <metadataProvider>
+      <organizationName>Beaufort Lagoon Ecosystems LTER</organizationName>
+      <address>
+        <deliveryPoint>750 Channel View Dr.</deliveryPoint>
+        <city>Port Aransas</city>
+        <administrativeArea>TX</administrativeArea>
+        <postalCode>78373</postalCode>
+        <country>USA</country>
+      </address>
+      <electronicMailAddress>BLE-IM@utexas.edu</electronicMailAddress>
+      <onlineUrl>https://ble.lternet.edu/</onlineUrl>
+    </metadataProvider>
+    <pubDate>2019</pubDate>
+    <language>English</language>
+    <abstract>Multiple aquatic ecosystems (pond, lake, river, lagoon, ocean) on the Arctic Coastal Plain (ACP) near Utqiaġvik, AK were visited to determine their relative contribution to landscape-level atmospheric CO2 flux and how this may have changed over time. pCO2 (partial pressure of carbon dioxide) was monitored in late summer (late July to mid-August) over a period of four years (2013, 2015, 2017, 2018) from open water areas and is related to habitat type, dissolved organic carbon (DOC) and environmental factors (temperature, radiation, rainfall). Data include both daily averages from most sites, as well as spatial representation of pCO2 in Elson Lagoon and diel cycles of pCO2 from a tundra pond. Pond NEP (net ecosystem production) is estimated by free water metabolism and presented as daily estimates over a four summer period.</abstract>
+    <keywordSet>
+      <keyword keywordType="theme">movement of inorganic matter</keyword>
+      <keyword keywordType="theme">movement of organic matter</keyword>
+      <keyword keywordType="theme">primary production</keyword>
+      <keywordThesaurus>LTER Core Research Areas</keywordThesaurus>
+    </keywordSet>
+    <keywordSet>
+      <keyword keywordType="theme">aquatic ecosystems</keyword>
+      <keyword keywordType="theme">biogeochemistry</keyword>
+      <keyword keywordType="theme">carbon cycling</keyword>
+      <keyword keywordType="theme">carbon flux</keyword>
+      <keyword keywordType="theme">estuaries</keyword>
+      <keyword keywordType="theme">lakes</keyword>
+      <keyword keywordType="theme">oceans</keyword>
+      <keyword keywordType="theme">ponds</keyword>
+      <keyword keywordType="theme">streams</keyword>
+      <keyword keywordType="theme">water column</keyword>
+      <keywordThesaurus>LTER Controlled Vocabulary v1</keywordThesaurus>
+    </keywordSet>
+    <keywordSet>
+      <keyword keywordType="place">Chukchi Sea</keyword>
+      <keyword keywordType="place">East Twin Lake</keyword>
+      <keyword keywordType="place">Elson Lagoon</keyword>
+      <keyword keywordType="place">Emaiksoun Lake</keyword>
+      <keyword keywordType="place">Footprint Lake</keyword>
+      <keyword keywordType="place">Ikroavik Lake</keyword>
+      <keyword keywordType="place">Mayoeak River</keyword>
+      <keywordThesaurus>Geographic Names Information System</keywordThesaurus>
+    </keywordSet>
+    <keywordSet>
+      <keyword keywordType="theme">Beaufort Lagoon Ecosystems LTER</keyword>
+      <keyword keywordType="theme">BLE</keyword>
+      <keyword keywordType="theme">LTER</keyword>
+      <keywordThesaurus>BLE LTER Controlled Vocabulary</keywordThesaurus>
+    </keywordSet>
+    <intellectualRights>
+      <para>
+  This data package is released to the “public domain” under Creative
+  Commons CC0 1.0 “No Rights Reserved”
+  (see: https://creativecommons.org/publicdomain/zero/1.0/). It is
+  considered professional etiquette to provide attribution of the
+  original work if this data package is shared or utilized in whole or
+  by individual components. A generic citation is provided for this data
+  package on the website of the repository where these data were
+  obtained in the summary metadata page.
+</para>
+      <para>
+  Communication (and collaboration) with the creators of this data
+  package is recommended to prevent duplicate research or publication.
+  The Data User is urged to contact the authors of these data if any
+  questions about methodology or results occur. The Data User should
+  realize that these data may be actively used by others for ongoing
+  research and that coordination may be necessary to prevent duplication
+  or inappropriate use. The Data User should realize that
+  misinterpretation may occur if data are used outside of the context of
+  the original study. The Data User should be aware that periodic
+  updates of this data package may be available from the website and it
+  is the responsibility of the Data User to check for new versions of
+  the data.
+</para>
+      <para>
+  While substantial efforts are made to ensure the accuracy of data and
+  associated documentation, complete accuracy cannot be guaranteed. This
+  data package (with its components) is made available “as is” and with
+  no warranty of accuracy or fitness for use. The creators of this data
+  package and the repository where these data were obtained shall not be
+  liable for any damages resulting from misinterpretation, use or misuse
+  of the data package or its components. Thank you.
+</para>
+      <para>This data package contains data sourced from the National Ecological Observatory Network (NEON) (solar radiation data, identified in attribute description and cited in method description). Use of this data should follow the NEON data policy, accessed 2020-04-06 and reproduced below.</para>
+      <para>
+Permission is hereby granted, free of charge, to any person or organization obtaining a copy of the NEON Project data, associated software and accompanying documentation covered by this license (the "NEON Data Products") to use, reproduce, display, distribute, publish, execute, and transmit the NEON Data Products, and to prepare derivative works of the NEON Data Products, and to permit third-parties to whom the NEON Data Products are furnished to do so, all subject to the following:</para>
+      <para>The copyright notices in the NEON Data Products and this entire statement, including the above copyright statement, license grant, this restriction and the following disclaimer, must be included in all copies of the NEON Data Products, in whole or in part, and all derivative works of the Data Products.</para>
+      <para>THE NEON DATA PRODUCTS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE NEON DATA PRODUCTS BE LIABLE FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE NEON DATA PRODUCTS.</para>
+    </intellectualRights>
+    <licensed>
+      <licenseName>Creative Commons Zero v1.0 Universal</licenseName>
+      <url>https://spdx.org/licenses/CC0-1.0.html</url>
+      <identifier>CC0-1.0</identifier>
+    </licensed>
+    <coverage>
+      <geographicCoverage>
+        <geographicDescription>Bounding box, knb-lter-ble.1: Located in North Slope, Alaska, USA, close to Utqiaġvik (formerly Barrow). Encompasses maximum extent of accompanying data, with 0.000001 degree buffer on each side. Note that many ponds and lakes in this area were sampled in Regional Survey, along with sites along the Chukchi coast. Coordinates based on WGS84 datum, as with others in dataset. </geographicDescription>
+        <boundingCoordinates>
+          <westBoundingCoordinate>-157.305763</westBoundingCoordinate>
+          <eastBoundingCoordinate>-155.926235</eastBoundingCoordinate>
+          <northBoundingCoordinate>71.383133</northBoundingCoordinate>
+          <southBoundingCoordinate>71.025905</southBoundingCoordinate>
+        </boundingCoordinates>
+      </geographicCoverage>
+      <geographicCoverage>
+        <geographicDescription>Elson Lagoon: Located in North Slope, Alaska, USA, close to Utqiaġvik (formerly Barrow). Extent determined from satellite imagery at 1:250000 scale, with roughly a few hundred meters buffer on each side. Coordinates based on WGS84 datum.</geographicDescription>
+        <boundingCoordinates>
+          <westBoundingCoordinate>-156.603000</westBoundingCoordinate>
+          <eastBoundingCoordinate>-155.914000</eastBoundingCoordinate>
+          <northBoundingCoordinate>71.395000</northBoundingCoordinate>
+          <southBoundingCoordinate>71.158000</southBoundingCoordinate>
+        </boundingCoordinates>
+      </geographicCoverage>
+      <geographicCoverage>
+        <geographicDescription>Elson West Lagoon Deep Station 1: Located in North Slope, Alaska, USA, close to Utqiaġvik (formerly Barrow). Coordinates based on WGS84 datum.</geographicDescription>
+        <boundingCoordinates>
+          <westBoundingCoordinate>-156.416500</westBoundingCoordinate>
+          <eastBoundingCoordinate>-156.416500</eastBoundingCoordinate>
+          <northBoundingCoordinate>71.337900</northBoundingCoordinate>
+          <southBoundingCoordinate>71.337900</southBoundingCoordinate>
+        </boundingCoordinates>
+      </geographicCoverage>
+      <geographicCoverage>
+        <geographicDescription>Elson West Lagoon Shallow Station 1: Coordinates based on WGS84 datum.</geographicDescription>
+        <boundingCoordinates>
+          <westBoundingCoordinate>-156.564790</westBoundingCoordinate>
+          <eastBoundingCoordinate>-156.564790</eastBoundingCoordinate>
+          <northBoundingCoordinate>71.328940</northBoundingCoordinate>
+          <southBoundingCoordinate>71.328940</southBoundingCoordinate>
+        </boundingCoordinates>
+      </geographicCoverage>
+      <geographicCoverage>
+        <geographicDescription>IBP-C: Tundra pond, close to Utqiaġvik (formerly Barrow), North Slope, Alaska, USA. Coordinates based on WGS84 datum.</geographicDescription>
+        <boundingCoordinates>
+          <westBoundingCoordinate>-156.702102</westBoundingCoordinate>
+          <eastBoundingCoordinate>-156.702102</eastBoundingCoordinate>
+          <northBoundingCoordinate>71.294626</northBoundingCoordinate>
+          <southBoundingCoordinate>71.294626</southBoundingCoordinate>
+        </boundingCoordinates>
+      </geographicCoverage>
+      <temporalCoverage>
+        <rangeOfDates>
+          <beginDate>
+            <calendarDate>2010-06-12</calendarDate>
+          </beginDate>
+          <endDate>
+            <calendarDate>2018-08-02</calendarDate>
+          </endDate>
+        </rangeOfDates>
+      </temporalCoverage>
+    </coverage>
+    <annotation>
+      <propertyURI label="isAbout">http://purl.obolibrary.org/obo/IAO_0000136</propertyURI>
+      <valueURI label="lagoon">http://purl.obolibrary.org/obo/ENVO_00000038</valueURI>
+    </annotation>
+    <maintenance>
+      <description>No regular updates scheduled.</description>
+      <maintenanceUpdateFrequency>notPlanned</maintenanceUpdateFrequency>
+      <changeHistory>
+        <changeScope>Metadata and data</changeScope>
+        <oldValue>No previous revision</oldValue>
+        <changeDate>2019-04-29</changeDate>
+        <comment>An Nguyen : First upload.</comment>
+      </changeHistory>
+      <changeHistory>
+        <changeScope>Metadata</changeScope>
+        <oldValue>See previous revision 1</oldValue>
+        <changeDate>2019-05-09</changeDate>
+        <comment>An Nguyen : Second upload: add Andy Mahoney's ORCID and change BLE-LTER from organization creator to personal.</comment>
+      </changeHistory>
+      <changeHistory>
+        <changeScope>Metadata</changeScope>
+        <oldValue>See previous revision 2</oldValue>
+        <changeDate>2019-05-15</changeDate>
+        <comment>An Nguyen : Edit metadata to comply with Arctic Data Center's requirements.</comment>
+      </changeHistory>
+      <changeHistory>
+        <changeScope>Metadata</changeScope>
+        <oldValue>See previous revision 3</oldValue>
+        <changeDate>2019-05-15</changeDate>
+        <comment>An Nguyen : Edit metadata to comply with Arctic Data Center's requirements.</comment>
+      </changeHistory>
+      <changeHistory>
+        <changeScope>Metadata</changeScope>
+        <oldValue>See previous revision 4</oldValue>
+        <changeDate>2019-05-15</changeDate>
+        <comment>An Nguyen : Minor edit to metadata to comply with Arctic Data Center's requirements.</comment>
+      </changeHistory>
+      <changeHistory>
+        <changeScope>Metadata</changeScope>
+        <oldValue>See previous revision 5</oldValue>
+        <changeDate>2020-02-11</changeDate>
+        <comment>An Nguyen : Change BLE creator to org instead of individual. Add semantic annotations.</comment>
+      </changeHistory>
+      <changeHistory>
+        <changeScope>Metadata and data</changeScope>
+        <oldValue>See previous revision 6</oldValue>
+        <changeDate>2020-04-06</changeDate>
+        <comment>An Nguyen : Append units to column names (new BLE practice), reproduce NEON data policy within intellectualRights</comment>
+      </changeHistory>
+    </maintenance>
+    <contact>
+      <organizationName>Beaufort Lagoon Ecosystems LTER</organizationName>
+      <positionName>Information Manager</positionName>
+      <address>
+        <deliveryPoint>MC R8000 The University of Texas at Austin</deliveryPoint>
+        <city>Austin</city>
+        <administrativeArea>TX</administrativeArea>
+        <postalCode>78712</postalCode>
+        <country>USA</country>
+      </address>
+      <electronicMailAddress>BLE-IM@utexas.edu</electronicMailAddress>
+      <onlineUrl>https://ble.lternet.edu/</onlineUrl>
+    </contact>
+    <publisher>
+      <organizationName>Beaufort Lagoon Ecosystems LTER</organizationName>
+      <address>
+        <deliveryPoint>750 Channel View Dr.</deliveryPoint>
+        <city>Port Aransas</city>
+        <administrativeArea>TX</administrativeArea>
+        <postalCode>78373</postalCode>
+        <country>USA</country>
+      </address>
+      <electronicMailAddress>BLE-IM@utexas.edu</electronicMailAddress>
+      <onlineUrl>https://ble.lternet.edu/</onlineUrl>
+    </publisher>
+    <methods>
+      <methodStep>
+        <description>
+          <para>
+  pCO2 (partial pressure of carbon dioxide) was monitored in late summer
+  (late July to mid-August) over a period of 4 years (2013, 2015, 2017,
+  2018) from open water areas of a variety of aquatic habitats. pCO2 was
+  monitored for a minimum of 30 minutes, to allow measurements to
+  stabilize, up to a maximum of nearly 3 weeks of diel monitoring,
+  depending on the site. At sites monitored on a diel basis, aquatic CO2
+  was logged every minute using an NDIR CO2 sensor (Vaisala GMM 222)
+  enclosed in a PFTE membrane (sensu (Hari et al. 2008, Johnson et al.
+  2010, Bass et al. 2012) linked to a Campbell Scientific CR1000
+  datalogger. At sites where continuous stations were not installed, a
+  portable NDIR CO2 sensor (Vaisala GMT220) was allowed to stabilize for
+  at least 30 minutes before a value was recorded. Data were converted
+  to pCO2 using water temperature and pressure logged with a HOBO U20
+  logger. CO2 flux (g C/m2/day) was calculated following corrections for
+  diffusive exchange with the atmosphere estimated using wind-derived
+  gas transfer co-efficients (k) (Wanninkhof 2014).
+</para>
+          <para>
+  DOC was measured on either a Lachat IL-550 or a Shimadzu TOC-V
+  analyzer. DOC was measured as non-purgeable organic carbon (NPOC) on
+  the Shimadzu instrument; data from the Lachat were converted to NPOC
+  based on samples run on both machines (n=86; range 1.9 to 68 mg/L
+  NPOC; r2=0.98).
+</para>
+          <para>
+  Downward total solar irradiance data were retrieved from Barrow
+  Atmospheric Baseline Observatory (NOAA ESRL) prior to 2017. Post-2017,
+  these data were acquired from NEON's Barrow Environmental Observatory
+  Site (National Ecological Observatory Network 2018). A comparison
+  between the 2 sites in 2017 was used to standardize the data among
+  years (r2=0.97). Photosynthetically active radiation (PAR), air
+  temperature and rain data were collected from a HOBO weather station
+  installed near IBP Pond C until 2013. Starting in 2015, rain data were
+  retrieved from the National Weather Service, Barrow Airport; air
+  temperatures and atmospheric CO2 were from NOAA ESRL. For
+  identification of unusual temperature and radiation conditions, we
+  calculated the 95th percentile of each of these based on all data from
+  July and August in the 4 study years (2013, 2015, 2017, 2018); as
+  such, this is not meant to be representative of a long-term analysis,
+  but rather represents the study period in general.
+</para>
+          <para>
+  A YSI 6920 V2 multiparameter water quality sonde was deployed into
+  IBP-C throughout the summers (early June- late August) of 2010-2013,
+  and also for 3 weeks in late summer 2015, to record temperature and
+  dissolved oxygen (DO) every 15 minutes. Data from the optical DO
+  sensor was used to continually estimate NEP at IBP-C using a
+  free-water metabolism (FWM) technique (Cole et al. 2000, Pace and
+  Prairie 2004, Staehr et al. 2010), where hourly NEP is expressed as a
+  function of the change in O2 minus diffusion. Diffusion and other
+  parameters were calculated using formulae and steps described in
+  detail elsewhere (Staehr et al. 2010). Even though there is no period
+  of darkness in June-July in Utqiaġvik, we assumed that PAR at 2am was
+  sufficiently low (Median = 35) to allow for estimation of respiration
+  (R), prior to the sun setting in early August; however, it is worth
+  noting that this assumption may be less robust at the beginning of the
+  summer when the sun does not set. Sensor-based DO was validated
+  against lab analyses using the Winkler method (Wetzel and Likens
+  2000).
+</para>
+          <para>
+  Bass, A. M., M. I. Bird, M. J. Morrison, and J. Gordon. 2012. CADICA:
+  Continuous Automated Dissolved Inorganic Carbon Analyzer with
+  application to aquatic carbon cycle science. Limnology and
+  Oceanography-Methods 10:10–19.
+</para>
+          <para>
+  Cole, J. J., M. L. Pace, S. R. Carpenter, and J. F. Kitchell. 2000.
+  Persistence of net heterotrophy in lakes during nutrient addition and
+  food web manipulations. Limnology and Oceanography 45:1718–1730.
+</para>
+          <para>
+  Hari, P., J. Pumpanen, J. Huotari, P. Kolari, J. Grace, T. Vesala, and
+  A. Ojala. 2008. High-frequency measurements of productivity of
+  planktonic algae using rugged nondispersive infrared carbon dioxide
+  probes. Limnology and Oceanography-Methods 6:347–354.
+</para>
+          <para>
+  Johnson, M. S., M. F. Billett, K. J. Dinsmore, M. Wallin, K. E. Dyson,
+  and R. S. Jassal. 2010. Direct and continuous measurement of dissolved
+  carbon dioxide in freshwater aquatic systems-method and applications.
+  Ecohydrology 3:68–78.
+</para>
+          <para>
+  National Ecological Observatory Network. 2020. Data Product DP1.00014.001, Shortwave radiation (direct and diffuse pyranometer). Provisional data downloaded from http://data.neonscience.org on April 6, 2020. Battelle, Boulder, CO, USA NEON. 2020.</para>
+          <para>
+  Pace, M. L., and Y. T. Prairie. 2004. Respiration in lakes. Pages
+  103–121 in P. J. le. B. Williams and P. A. del Giorgio, editors.
+  Respiration in Aquatic Ecosystems. Oxford University Press.
+</para>
+          <para>
+  Staehr, P. A., D. Bade, M. C. Van de Bogert, G. R. Koch, C.
+  Williamson, P. Hanson, J. J. Cole, and T. Kratz. 2010. Lake metabolism
+  and the diel oxygen technique: State of the science. Limnology and
+  Oceanography-Methods 8:628–644.
+</para>
+          <para>
+  Wanninkhof, R. 2014. Relationship between wind speed and gas exchange
+  over the ocean revisited. Limnology and Oceanography: Methods
+  12:351–362.
+</para>
+          <para>
+  Wetzel, R. G., and G. E. Likens. 2000. Limnological Analysis.
+  Springer-Verlag, New York.
+</para>
+        </description>
+      </methodStep>
+    </methods>
+    <project>
+      <title>LTER: Beaufort Sea Lagoons: An Arctic Coastal Ecosystem in Transition</title>
+      <personnel>
+        <individualName>
+          <givenName>Kenneth</givenName>
+          <surName>Dunton</surName>
+        </individualName>
+        <organizationName>The University of Texas at Austin, Marine Science Insitute</organizationName>
+        <phone phonetype="voice">361-749-6744</phone>
+        <electronicMailAddress>ken.dunton@utexas.edu</electronicMailAddress>
+        <userId directory="https://orcid.org/">https://orcid.org/0000-0003-3498-8021</userId>
+        <role>Lead Principal Investigator</role>
+      </personnel>
+      <personnel>
+        <individualName>
+          <givenName>James</givenName>
+          <surName>McClelland</surName>
+        </individualName>
+        <organizationName>The University of Texas at Austin, Marine Science Insitute</organizationName>
+        <phone phonetype="voice">361-749-6756</phone>
+        <electronicMailAddress>jimm@utexas.edu</electronicMailAddress>
+        <userId directory="https://orcid.org/">https://orcid.org/0000-0001-9619-8194</userId>
+        <role>Co-Lead Principal Investigator</role>
+      </personnel>
+      <personnel>
+        <individualName>
+          <givenName>Byron</givenName>
+          <surName>Crump</surName>
+        </individualName>
+        <organizationName>Oregon State University</organizationName>
+        <electronicMailAddress>bcrump@coas.oregonstate.edu</electronicMailAddress>
+        <userId directory="https://orcid.org/">https://orcid.org/0000-0001-7062-1273</userId>
+        <role>Co-Principal Investigator</role>
+      </personnel>
+      <personnel>
+        <individualName>
+          <givenName>Amber</givenName>
+          <surName>Hardison</surName>
+        </individualName>
+        <organizationName>Virginia Institute of Marine Science, College of William &amp; Mary</organizationName>
+        <electronicMailAddress>akhardison@vims.edu</electronicMailAddress>
+        <userId directory="https://orcid.org/">https://orcid.org/0000-0002-0891-3731</userId>
+        <role>Co-Principal Investigator</role>
+      </personnel>
+      <personnel>
+        <individualName>
+          <givenName>Katrin</givenName>
+          <surName>Iken</surName>
+        </individualName>
+        <organizationName>University of Alaska Fairbanks</organizationName>
+        <electronicMailAddress>kbiken@alaska.edu</electronicMailAddress>
+        <userId directory="https://orcid.org/">https://orcid.org/0000-0001-7961-1012</userId>
+        <role>Co-Principal Investigator</role>
+      </personnel>
+      <personnel>
+        <individualName>
+          <givenName>Jeremy</givenName>
+          <surName>Kasper</surName>
+        </individualName>
+        <organizationName>University of Alaska Fairbanks</organizationName>
+        <electronicMailAddress>jlkasper@alaska.edu</electronicMailAddress>
+        <userId directory="https://orcid.org/">https://orcid.org/0000-0003-0975-6114</userId>
+        <role>Co-Principal Investigator</role>
+      </personnel>
+      <personnel>
+        <individualName>
+          <givenName>Vanessa</givenName>
+          <surName>Lougheed</surName>
+        </individualName>
+        <organizationName>The University of Texas at El Paso</organizationName>
+        <electronicMailAddress>vlougheed@utep.edu</electronicMailAddress>
+        <userId directory="https://orcid.org/">https://orcid.org/0000-0002-6091-1151</userId>
+        <role>Co-Principal Investigator</role>
+      </personnel>
+      <personnel>
+        <individualName>
+          <givenName>Andrew</givenName>
+          <surName>Mahoney</surName>
+        </individualName>
+        <organizationName>University of Alaska Fairbanks</organizationName>
+        <electronicMailAddress>armahoney@alaska.edu</electronicMailAddress>
+        <userId directory="https://orcid.org/">https://orcid.org/0000-0002-8699-3175</userId>
+        <role>Co-Principal Investigator</role>
+      </personnel>
+      <personnel>
+        <individualName>
+          <givenName>Bailey</givenName>
+          <surName>McMeans</surName>
+        </individualName>
+        <organizationName>University of Toronto Missisauga</organizationName>
+        <electronicMailAddress>bailey.mcmeans@utoronto.ca</electronicMailAddress>
+        <userId directory="https://orcid.org/">https://orcid.org/0000-0002-9793-6811</userId>
+        <role>Co-Principal Investigator</role>
+      </personnel>
+      <personnel>
+        <individualName>
+          <givenName>Michael</givenName>
+          <surName>Rawlins</surName>
+        </individualName>
+        <organizationName>University of Massachusetts Amherst</organizationName>
+        <electronicMailAddress>rawlins@geo.umass.edu</electronicMailAddress>
+        <userId directory="https://orcid.org/">https://orcid.org/0000-0002-3323-8256</userId>
+        <role>Co-Principal Investigator</role>
+      </personnel>
+      <personnel>
+        <individualName>
+          <givenName>Yvette</givenName>
+          <surName>Spitz</surName>
+        </individualName>
+        <organizationName>Oregon State University</organizationName>
+        <electronicMailAddress>yspitz@coas.oregonstate.edu</electronicMailAddress>
+        <userId directory="https://orcid.org/">https://orcid.org/0000-0002-6026-4900</userId>
+        <role>Co-Principal Investigator</role>
+      </personnel>
+      <personnel>
+        <individualName>
+          <givenName>Craig</givenName>
+          <surName>Tweedie</surName>
+        </individualName>
+        <organizationName>The University of Texas at El Paso</organizationName>
+        <electronicMailAddress>ctweedie@utep.edu</electronicMailAddress>
+        <userId directory="https://orcid.org/">https://orcid.org/0000-0002-3409-8881</userId>
+        <role>Co-Principal Investigator</role>
+      </personnel>
+      <personnel>
+        <individualName>
+          <givenName>Christina</givenName>
+          <surName>Bonsell</surName>
+        </individualName>
+        <organizationName>The University of Texas at Austin</organizationName>
+        <electronicMailAddress>cbonsell@utexas.edu</electronicMailAddress>
+        <userId directory="https://orcid.org/">https://orcid.org/0000-0002-8564-0618</userId>
+        <role>Project Manager</role>
+      </personnel>
+      <personnel>
+        <individualName>
+          <givenName>Nathan</givenName>
+          <surName>McTigue</surName>
+        </individualName>
+        <organizationName>The University of Texas at Austin</organizationName>
+        <electronicMailAddress>mctigue@utexas.edu</electronicMailAddress>
+        <userId directory="https://orcid.org/">https://orcid.org/0000-0002-7686-7095</userId>
+        <role>Project Manager</role>
+      </personnel>
+      <personnel>
+        <individualName>
+          <givenName>Timothy</givenName>
+          <surName>Whiteaker</surName>
+        </individualName>
+        <organizationName>The University of Texas at Austin</organizationName>
+        <electronicMailAddress>whiteaker@utexas.edu</electronicMailAddress>
+        <userId directory="https://orcid.org/">https://orcid.org/0000-0002-1940-4158</userId>
+        <role>Information Manager</role>
+      </personnel>
+      <personnel>
+        <individualName>
+          <givenName>An T.</givenName>
+          <surName>Nguyen</surName>
+        </individualName>
+        <organizationName>The University of Texas at Austin</organizationName>
+        <electronicMailAddress>enthusiast@utexas.edu</electronicMailAddress>
+        <userId directory="https://orcid.org/">https://orcid.org/0000-0001-6519-0173</userId>
+        <role>Information Manager</role>
+      </personnel>
+      <abstract>
+        <section>
+          <para>
+This project established a new Long Term Ecological Research (LTER) site along the Alaskan Arctic coastline. Research based out of Utqiagvik (formerly Barrow), Deadhorse, and Kaktovik will address how changes in shoreline erosion and freshwater inflows to the coastal ocean over seasonal, annual, and longer timeframes influence near-shore food webs. Research will be conducted in collaboration with local stakeholder groups and the U.S. Fish and Wildlife Service. This research will advance our fundamental understanding of how input of materials from land and oceanographic conditions interact to influence coastal food webs. It will also allow us to track and understand: 1) how natural climate cycles influence coastal ecosystems in the Arctic, and 2) how climate change effects such as permafrost thaw, shifting precipitation regimes, and losses of sea ice alter coastal ecosystems. Near-shore food webs along the Alaskan Arctic coastline support large populations of migratory fish and waterfowl that are essential to the culture of Iñupiat communities of northern Alaska. The research at this LTER site will create a framework for anticipating the impacts of future changes on the coastal ecosystem that are of great concern to these communities. Results from this LTER program will also be of interest to a broader science community that is working to understand potential connections between Arctic change and global carbon cycling. Finally, this LTER project includes a strong commitment to education through graduate and undergraduate student involvement, post-doctoral mentoring, continuation of a very successful Summer Science K-12 Program in Kaktovik, and establishment of a parallel K-12 program in Utqiagvik. In addition, this project will employ native high school seniors or recently graduated students living in Utqiagvik and Kaktovik as field research assistants. 
+ </para>
+          <para>Recent studies suggest that the ecological framework for understanding what controls food web structure needs to be expanded to include temporal forcing. More specifically, there is mounting evidence that differential availability of seasonally-distinct resources is critical for defining trophic linkages and maintaining stability and resilience of food webs. This new LTER program will use lagoons along the Alaskan Beaufort Sea coast as experimental units to test this concept, and broaden it to include temporal variations over longer timeframes. The Beaufort lagoons are ideal for testing this concept because they experience extreme variability in seasonal cycles, which are now subject to rapid directional shifts driven by climate change. Our overarching question is: How do variations in terrestrial inputs, local production, and exchange between lagoon and ocean waters over seasonal, inter-annual, inter-decadal, and longer timeframes interact to control food web structure through effects on carbon and nitrogen cycling, microbial and metazoan community composition, and trophic linkages? Arctic lagoons provide a unique opportunity to study these interactions in the absence of fringing wetlands that often modulate land-ocean interactions in other lagoon systems. In addition, barrier island geomorphology, which exerts a strong control on water exchange between lagoons and the open ocean, is highly dynamic in the Arctic because sea-ice effects on coastal geomorphology are superimposed on the effects of currents, sea level, and waves. Thus, connections between inputs from land and lagoon ecosystems are more direct, and water exchanges between lagoons and the open ocean are more variable than is typical of lower latitude systems. Specific study sites will be located in Elson Lagoon (western Beaufort), Simpson Lagoon and Stefansson Sound (central Beaufort), and Kaktovik and Jago lagoons (eastern Beaufort). The LTER will include seasonal field work during ice covered, ice break-up, and open water periods and also include sensor deployments for continuous measurements of key biogeochemical and hydrographic parameters.</para>
+        </section>
+      </abstract>
+      <funding>
+        <section>
+          <para>BLE LTER is supported by the National Science Foundation under award #1656026 (2017-08-01 to 2022-07-31).</para>
+        </section>
+      </funding>
+      <award>
+        <funderName>National Science Foundation</funderName>
+        <funderIdentifier>http://dx.doi.org/10.13039/100000001</funderIdentifier>
+        <awardNumber>1656026</awardNumber>
+        <title>LTER: Beaufort Sea Lagoons: An Arctic Coastal Ecosystem in Transition</title>
+        <awardUrl>https://www.nsf.gov/awardsearch/showAward?AWD_ID=1656026</awardUrl>
+      </award>
+    </project>
+    <dataTable>
+      <entityName>Regional survey</entityName>
+      <entityDescription>Water chemistry from multiple aquatic ecosystems</entityDescription>
+      <physical>
+        <objectName>regional_survey.csv</objectName>
+        <size unit="byte">31626</size>
+        <authentication method="MD5">65c40c28f5373fd8ad5da428f4b2afeb</authentication>
+        <dataFormat>
+          <textFormat>
+            <numHeaderLines>1</numHeaderLines>
+            <numFooterLines>0</numFooterLines>
+            <recordDelimiter>\r\n</recordDelimiter>
+            <attributeOrientation>column</attributeOrientation>
+            <simpleDelimited>
+              <fieldDelimiter>,</fieldDelimiter>
+              <quoteCharacter>"</quoteCharacter>
+            </simpleDelimited>
+          </textFormat>
+        </dataFormat>
+        <distribution>
+          <online>
+            <url>https://pasta.lternet.edu/package/data/eml/knb-lter-ble/1/7/a1723e0e5f3c4881f1a7ede1b036aba6</url>
+          </online>
+        </distribution>
+      </physical>
+      <attributeList>
+        <attribute id="d1-e1-att1">
+          <attributeName>Year</attributeName>
+          <attributeLabel>Year</attributeLabel>
+          <attributeDefinition>Year data were collected</attributeDefinition>
+          <storageType>integer</storageType>
+          <measurementScale>
+            <dateTime>
+              <formatString>YYYY</formatString>
+              <dateTimePrecision>1</dateTimePrecision>
+              <dateTimeDomain/>
+            </dateTime>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e1-att2">
+          <attributeName>Habitat</attributeName>
+          <attributeLabel>Habitat</attributeLabel>
+          <attributeDefinition>Habitat type (pond, lake, river, lagoon, ocean)</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <enumeratedDomain>
+                  <codeDefinition>
+                    <code>Lagoon</code>
+                    <definition>Lagoon</definition>
+                  </codeDefinition>
+                  <codeDefinition>
+                    <code>LAKE</code>
+                    <definition>Lake</definition>
+                  </codeDefinition>
+                  <codeDefinition>
+                    <code>POND</code>
+                    <definition>Pond</definition>
+                  </codeDefinition>
+                  <codeDefinition>
+                    <code>Salt-River</code>
+                    <definition>River influenced by saltwater intrusion from lagoon</definition>
+                  </codeDefinition>
+                  <codeDefinition>
+                    <code>TK-POND</code>
+                    <definition>Thermokarst Pond</definition>
+                  </codeDefinition>
+                  <codeDefinition>
+                    <code>Ocean</code>
+                    <definition>Ocean</definition>
+                  </codeDefinition>
+                  <codeDefinition>
+                    <code>RIVER</code>
+                    <definition>Freshwater river</definition>
+                  </codeDefinition>
+                </enumeratedDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e1-att3">
+          <attributeName>FwSal</attributeName>
+          <attributeLabel>Freshwater or Saline</attributeLabel>
+          <attributeDefinition>Identifies freshwater or saline (incl. brackish) conditions</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <enumeratedDomain>
+                  <codeDefinition>
+                    <code>Saline</code>
+                    <definition>Saline or brackish water</definition>
+                  </codeDefinition>
+                  <codeDefinition>
+                    <code>FW</code>
+                    <definition>Freshwater</definition>
+                  </codeDefinition>
+                </enumeratedDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e1-att4">
+          <attributeName>Site</attributeName>
+          <attributeLabel>Site</attributeLabel>
+          <attributeDefinition>Site name. Not to be confused with a "site" defined in the EML element geographicCoverage</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>any text</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e1-att5">
+          <attributeName>Station</attributeName>
+          <attributeLabel>Station</attributeLabel>
+          <attributeDefinition>When multiple sites within a single site were sampled, they were assigned a different subsite name.</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>any text</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e1-att6">
+          <attributeName>Latitude</attributeName>
+          <attributeLabel>Latitude</attributeLabel>
+          <attributeDefinition>Latitude in decimal degrees</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <interval>
+              <unit>
+                <standardUnit>degree</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">-90</minimum>
+                  <maximum exclusive="false">90</maximum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Coordinates not collected for this location. See LocationNotes column in the same data table for  a description and bounding boxes.</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute id="d1-e1-att7">
+          <attributeName>Longitude</attributeName>
+          <attributeLabel>Longitude</attributeLabel>
+          <attributeDefinition>Longitude in decimal degrees</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <interval>
+              <unit>
+                <standardUnit>degree</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">-180</minimum>
+                  <maximum exclusive="false">180</maximum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Coordinates not collected for this location. See LocationNotes column in the same data table for  a description and bounding boxes.</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute id="d1-e1-att8">
+          <attributeName>WaterColumnPosition</attributeName>
+          <attributeLabel>Water Column Position</attributeLabel>
+          <attributeDefinition>Where sample was taken within a water column</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <enumeratedDomain>
+                  <codeDefinition>
+                    <code>mid-column</code>
+                    <definition>water collected from approximately middle of water column</definition>
+                  </codeDefinition>
+                  <codeDefinition>
+                    <code>surface</code>
+                    <definition>water collected from approximately 0-30 cm below the surface</definition>
+                  </codeDefinition>
+                  <codeDefinition>
+                    <code>bottom</code>
+                    <definition>water collected from approximately 30 cm above the bottom</definition>
+                  </codeDefinition>
+                </enumeratedDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e1-att9">
+          <attributeName>JulianDay</attributeName>
+          <attributeLabel>Julian Day</attributeLabel>
+          <attributeDefinition>Day of year starting from Jan 1st. AKDT time.</attributeDefinition>
+          <storageType>integer</storageType>
+          <measurementScale>
+            <dateTime>
+              <formatString>DDD</formatString>
+              <dateTimePrecision>1</dateTimePrecision>
+              <dateTimeDomain/>
+            </dateTime>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e1-att10">
+          <attributeName>WOY</attributeName>
+          <attributeLabel>Week of the Year</attributeLabel>
+          <attributeDefinition>Week of the year</attributeDefinition>
+          <storageType>integer</storageType>
+          <measurementScale>
+            <dateTime>
+              <formatString>ww</formatString>
+              <dateTimePrecision>1</dateTimePrecision>
+              <dateTimeDomain/>
+            </dateTime>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e1-att11">
+          <attributeName>DOC_ppm</attributeName>
+          <attributeLabel>Dissolved Organic Carbon</attributeLabel>
+          <attributeDefinition>Dissolved organic carbon determined by non-purgeable organic carbon method (ppm). Precision for Elson and Chukchi sites is 0.1, for all other sites 0.01.</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <customUnit>partsPerMillion</customUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Data not collected</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute id="d1-e1-att12">
+          <attributeName>WaterTemp_C</attributeName>
+          <attributeLabel>Water Temperature</attributeLabel>
+          <attributeDefinition>Water temperature in degrees Celsius</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <interval>
+              <unit>
+                <standardUnit>celsius</standardUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">-273.15</minimum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Data not collected</codeExplanation>
+          </missingValueCode>
+          <annotation>
+            <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
+            <valueURI label="Water Temperature">http://purl.dataone.org/odo/ECSO_00001227</valueURI>
+          </annotation>
+        </attribute>
+        <attribute id="d1-e1-att13">
+          <attributeName>pCO2_uatm</attributeName>
+          <attributeLabel>pCO2</attributeLabel>
+          <attributeDefinition>Partial pressure of CO2 (uatm)</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <customUnit>microatmosphere</customUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <annotation>
+            <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
+            <valueURI label="carbon dioxide partial pressure">http://purl.dataone.org/odo/ECSO_00000636</valueURI>
+          </annotation>
+        </attribute>
+        <attribute id="d1-e1-att14">
+          <attributeName>Wind_m_s</attributeName>
+          <attributeLabel>Wind Speed</attributeLabel>
+          <attributeDefinition>Wind speed in m/s</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <customUnit>meterPerSecond</customUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <annotation>
+            <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
+            <valueURI label="wind speed">http://purl.dataone.org/odo/ECSO_00001233</valueURI>
+          </annotation>
+        </attribute>
+        <attribute id="d1-e1-att15">
+          <attributeName>AirTemp_C</attributeName>
+          <attributeLabel>Air Temperature</attributeLabel>
+          <attributeDefinition>Air temperature in degrees Celsius</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <interval>
+              <unit>
+                <standardUnit>celsius</standardUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">-273.15</minimum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Data not collected</codeExplanation>
+          </missingValueCode>
+          <annotation>
+            <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
+            <valueURI label="air temperature">http://purl.dataone.org/odo/ECSO_00001225</valueURI>
+          </annotation>
+        </attribute>
+        <attribute id="d1-e1-att16">
+          <attributeName>k_cm_h</attributeName>
+          <attributeLabel>Gas transfer co-efficient</attributeLabel>
+          <attributeDefinition>Gas transfer co-efficient, calculated based on Wanninkhof 2014 (see methods document for full reference)</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <customUnit>centimeterPerHour</customUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Data not collected</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute id="d1-e1-att17">
+          <attributeName>Fmmol_mmol_m2_day</attributeName>
+          <attributeLabel>CO2 flux in mmol</attributeLabel>
+          <attributeDefinition>CO2 flux in mmol/m2/day</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <customUnit>millimolePerMeterSquaredPerDay</customUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Data not collected</codeExplanation>
+          </missingValueCode>
+          <annotation>
+            <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
+            <valueURI label="carbon dioxide flux">http://purl.dataone.org/odo/ECSO_00000536</valueURI>
+          </annotation>
+        </attribute>
+        <attribute id="d1-e1-att18">
+          <attributeName>Fgrams_g_m2_day</attributeName>
+          <attributeLabel>CO2 flux in grams</attributeLabel>
+          <attributeDefinition>CO2 flux in g/m2/day</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <customUnit>gramPerMeterSquaredPerDay</customUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Data not collected</codeExplanation>
+          </missingValueCode>
+          <annotation>
+            <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
+            <valueURI label="carbon dioxide flux">http://purl.dataone.org/odo/ECSO_00000536</valueURI>
+          </annotation>
+        </attribute>
+        <attribute id="d1-e1-att19">
+          <attributeName>LocationNotes</attributeName>
+          <attributeLabel>Site description and bounding boxes</attributeLabel>
+          <attributeDefinition>Site description and bounding boxes, only for locations without exact coordinates</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>any text</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Not applicable, exact coordinates already supplied</codeExplanation>
+          </missingValueCode>
+        </attribute>
+      </attributeList>
+      <numberOfRecords>231</numberOfRecords>
+    </dataTable>
+    <dataTable>
+      <entityName>Elson 2015 spatial survey</entityName>
+      <entityDescription>pCO2 survey of Elson Lagoon from 2015</entityDescription>
+      <physical>
+        <objectName>Elson_2015_spatial_survey.csv</objectName>
+        <size unit="byte">224030</size>
+        <authentication method="MD5">5d7d2753c65ee3eb921742d7d1e580b8</authentication>
+        <dataFormat>
+          <textFormat>
+            <numHeaderLines>1</numHeaderLines>
+            <numFooterLines>0</numFooterLines>
+            <recordDelimiter>\r\n</recordDelimiter>
+            <attributeOrientation>column</attributeOrientation>
+            <simpleDelimited>
+              <fieldDelimiter>,</fieldDelimiter>
+              <quoteCharacter>"</quoteCharacter>
+            </simpleDelimited>
+          </textFormat>
+        </dataFormat>
+        <distribution>
+          <online>
+            <url>https://pasta.lternet.edu/package/data/eml/knb-lter-ble/1/7/b698644419ea88ab1072f4fcbef9083c</url>
+          </online>
+        </distribution>
+      </physical>
+      <attributeList>
+        <attribute id="d1-e2-att1">
+          <attributeName>Site</attributeName>
+          <attributeLabel>Site</attributeLabel>
+          <attributeDefinition>Site name</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>any text</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e2-att2">
+          <attributeName>Station</attributeName>
+          <attributeLabel>Station</attributeLabel>
+          <attributeDefinition>When multiple sites within a single site were sampled, they were assigned a different subsite name</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>any text</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Station is not part of regional survey and so does not get a station identifier</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute id="d1-e2-att3">
+          <attributeName>Latitude</attributeName>
+          <attributeLabel>Latitude</attributeLabel>
+          <attributeDefinition>Latitude in decimal degrees</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <interval>
+              <unit>
+                <standardUnit>degree</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">-90</minimum>
+                  <maximum exclusive="false">90</maximum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e2-att4">
+          <attributeName>Longitude</attributeName>
+          <attributeLabel>Longitude</attributeLabel>
+          <attributeDefinition>Longitude in decimal degrees</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <interval>
+              <unit>
+                <standardUnit>degree</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">-180</minimum>
+                  <maximum exclusive="false">180</maximum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e2-att5">
+          <attributeName>DateTime</attributeName>
+          <attributeLabel>Date and time</attributeLabel>
+          <attributeDefinition>Time of sampling. AKDT time.</attributeDefinition>
+          <storageType>dateTime</storageType>
+          <measurementScale>
+            <dateTime>
+              <formatString>YYYY-MM-DDThh:mm</formatString>
+              <dateTimePrecision>1</dateTimePrecision>
+              <dateTimeDomain/>
+            </dateTime>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e2-att6">
+          <attributeName>pCO2_uatm</attributeName>
+          <attributeLabel>pCO2</attributeLabel>
+          <attributeDefinition>Partial pressure of CO2 (uatm)</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <customUnit>microatmosphere</customUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Data not collected</codeExplanation>
+          </missingValueCode>
+          <annotation>
+            <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
+            <valueURI label="carbon dioxide partial pressure">http://purl.dataone.org/odo/ECSO_00000636</valueURI>
+          </annotation>
+        </attribute>
+        <attribute id="d1-e2-att7">
+          <attributeName>WaterTemp_C</attributeName>
+          <attributeLabel>Water Temperature</attributeLabel>
+          <attributeDefinition>Water temperature in degrees Celsius</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <interval>
+              <unit>
+                <standardUnit>celsius</standardUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">-273.15</minimum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Data not collected</codeExplanation>
+          </missingValueCode>
+          <annotation>
+            <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
+            <valueURI label="Water Temperature">http://purl.dataone.org/odo/ECSO_00001227</valueURI>
+          </annotation>
+        </attribute>
+        <attribute id="d1-e2-att8">
+          <attributeName>DOC_ppm</attributeName>
+          <attributeLabel>Dissolved Organic Carbon</attributeLabel>
+          <attributeDefinition>Dissolved organic carbon determined by non-purgeable organic carbon method (ppm)</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <customUnit>partsPerMillion</customUnit>
+              </unit>
+              <precision>0.1</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Data not collected</codeExplanation>
+          </missingValueCode>
+          <annotation>
+            <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
+            <valueURI label="dissolved organic carbon">http://purl.dataone.org/odo/ECSO_00000571</valueURI>
+          </annotation>
+        </attribute>
+      </attributeList>
+      <numberOfRecords>2963</numberOfRecords>
+    </dataTable>
+    <dataTable>
+      <entityName>IBP C diel pCO2 data</entityName>
+      <entityDescription>Diel pCO2 in tundra pond over 4 summers</entityDescription>
+      <physical>
+        <objectName>IBP_C_diel_pCO2.csv</objectName>
+        <size unit="byte">71190</size>
+        <authentication method="MD5">d3a158536bc6bcc4b354e8c3220b8801</authentication>
+        <dataFormat>
+          <textFormat>
+            <numHeaderLines>1</numHeaderLines>
+            <numFooterLines>0</numFooterLines>
+            <recordDelimiter>\r\n</recordDelimiter>
+            <attributeOrientation>column</attributeOrientation>
+            <simpleDelimited>
+              <fieldDelimiter>,</fieldDelimiter>
+              <quoteCharacter>"</quoteCharacter>
+            </simpleDelimited>
+          </textFormat>
+        </dataFormat>
+        <distribution>
+          <online>
+            <url>https://pasta.lternet.edu/package/data/eml/knb-lter-ble/1/7/617415426847fd900b644283d86c1c66</url>
+          </online>
+        </distribution>
+      </physical>
+      <attributeList>
+        <attribute id="d1-e3-att1">
+          <attributeName>Latitude</attributeName>
+          <attributeLabel>Latitude</attributeLabel>
+          <attributeDefinition>Latitude in decimal degrees</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <interval>
+              <unit>
+                <standardUnit>degree</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">-90</minimum>
+                  <maximum exclusive="false">90</maximum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e3-att2">
+          <attributeName>Longitude</attributeName>
+          <attributeLabel>Longitude</attributeLabel>
+          <attributeDefinition>Longitude in decimal degrees</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <interval>
+              <unit>
+                <standardUnit>degree</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">-180</minimum>
+                  <maximum exclusive="false">180</maximum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e3-att3">
+          <attributeName>Year</attributeName>
+          <attributeLabel>Year</attributeLabel>
+          <attributeDefinition>Year data were collected</attributeDefinition>
+          <storageType>integer</storageType>
+          <measurementScale>
+            <dateTime>
+              <formatString>YYYY</formatString>
+              <dateTimePrecision>1</dateTimePrecision>
+              <dateTimeDomain/>
+            </dateTime>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e3-att4">
+          <attributeName>Hour</attributeName>
+          <attributeLabel>Hour</attributeLabel>
+          <attributeDefinition>Hour data were collected. AKDT time.</attributeDefinition>
+          <storageType>integer</storageType>
+          <measurementScale>
+            <dateTime>
+              <formatString>hh</formatString>
+              <dateTimePrecision>1</dateTimePrecision>
+              <dateTimeDomain/>
+            </dateTime>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e3-att5">
+          <attributeName>JulianDay</attributeName>
+          <attributeLabel>Julian Day</attributeLabel>
+          <attributeDefinition>Day of year starting from Jan 1st. AKDT time.</attributeDefinition>
+          <storageType>integer</storageType>
+          <measurementScale>
+            <dateTime>
+              <formatString>DDD</formatString>
+              <dateTimePrecision>1</dateTimePrecision>
+              <dateTimeDomain/>
+            </dateTime>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e3-att6">
+          <attributeName>Radiation_W_m2</attributeName>
+          <attributeLabel>Radiation</attributeLabel>
+          <attributeDefinition>Downward total solar radiation. Post 2017, these data were acquired from NEON's Barrow Environmental Observatory and are subject to NEON's data policy (see intellectuallRights for a copy).</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <customUnit>wattPerMeterSquared</customUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Data not collected</codeExplanation>
+          </missingValueCode>
+          <annotation>
+            <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
+            <valueURI label="solar radiation">http://purl.dataone.org/odo/ECSO_00001103</valueURI>
+          </annotation>
+        </attribute>
+        <attribute id="d1-e3-att7">
+          <attributeName>AirTemp_C</attributeName>
+          <attributeLabel>Air Temperature</attributeLabel>
+          <attributeDefinition>Air temperature in degrees Celsius</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <interval>
+              <unit>
+                <standardUnit>celsius</standardUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">-273.15</minimum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Data not collected</codeExplanation>
+          </missingValueCode>
+          <annotation>
+            <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
+            <valueURI label="air temperature">http://purl.dataone.org/odo/ECSO_00001225</valueURI>
+          </annotation>
+        </attribute>
+        <attribute id="d1-e3-att8">
+          <attributeName>pCO2_uatm</attributeName>
+          <attributeLabel>pCO2</attributeLabel>
+          <attributeDefinition>Partial pressure of CO2 (uatm)</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <customUnit>microatmosphere</customUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Data not collected</codeExplanation>
+          </missingValueCode>
+          <annotation>
+            <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
+            <valueURI label="carbon dioxide partial pressure">http://purl.dataone.org/odo/ECSO_00000636</valueURI>
+          </annotation>
+        </attribute>
+        <attribute id="d1-e3-att9">
+          <attributeName>DailyRain_mm</attributeName>
+          <attributeLabel>Total Daily Rainfall</attributeLabel>
+          <attributeDefinition>24-hour sum of rainfall</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>millimeter</standardUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e3-att10">
+          <attributeName>WaterTemp_C</attributeName>
+          <attributeLabel>Water Temperature</attributeLabel>
+          <attributeDefinition>Water temperature in degrees Celsius</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <interval>
+              <unit>
+                <standardUnit>celsius</standardUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">-273.15</minimum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Data not collected</codeExplanation>
+          </missingValueCode>
+          <annotation>
+            <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
+            <valueURI label="Water Temperature">http://purl.dataone.org/odo/ECSO_00001227</valueURI>
+          </annotation>
+        </attribute>
+      </attributeList>
+      <numberOfRecords>1168</numberOfRecords>
+    </dataTable>
+    <dataTable>
+      <entityName>IBP C Daily NEP</entityName>
+      <entityDescription>Summer Net Ecosystem Production (NEP) in tundra pond over 4 summers</entityDescription>
+      <physical>
+        <objectName>IBP_C_Daily_NEP.csv</objectName>
+        <size unit="byte">14092</size>
+        <authentication method="MD5">3e953a033cc23f2c35f58a0cd14c73a1</authentication>
+        <dataFormat>
+          <textFormat>
+            <numHeaderLines>1</numHeaderLines>
+            <numFooterLines>0</numFooterLines>
+            <recordDelimiter>\r\n</recordDelimiter>
+            <attributeOrientation>column</attributeOrientation>
+            <simpleDelimited>
+              <fieldDelimiter>,</fieldDelimiter>
+              <quoteCharacter>"</quoteCharacter>
+            </simpleDelimited>
+          </textFormat>
+        </dataFormat>
+        <distribution>
+          <online>
+            <url>https://pasta.lternet.edu/package/data/eml/knb-lter-ble/1/7/9942544de7e794ce84a62151bd41e6b3</url>
+          </online>
+        </distribution>
+      </physical>
+      <attributeList>
+        <attribute id="d1-e4-att1">
+          <attributeName>Latitude</attributeName>
+          <attributeLabel>Latitude</attributeLabel>
+          <attributeDefinition>Latitude in decimal degrees</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <interval>
+              <unit>
+                <standardUnit>degree</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">-90</minimum>
+                  <maximum exclusive="false">90</maximum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e4-att2">
+          <attributeName>Longitude</attributeName>
+          <attributeLabel>Longitude</attributeLabel>
+          <attributeDefinition>Longitude in decimal degrees</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <interval>
+              <unit>
+                <standardUnit>degree</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">-180</minimum>
+                  <maximum exclusive="false">180</maximum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e4-att3">
+          <attributeName>Year</attributeName>
+          <attributeLabel>Year</attributeLabel>
+          <attributeDefinition>Year data were collected</attributeDefinition>
+          <storageType>integer</storageType>
+          <measurementScale>
+            <dateTime>
+              <formatString>YYYY</formatString>
+              <dateTimePrecision>1</dateTimePrecision>
+              <dateTimeDomain/>
+            </dateTime>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e4-att4">
+          <attributeName>JulianDay</attributeName>
+          <attributeLabel>Julian Day</attributeLabel>
+          <attributeDefinition>Day of year starting from Jan 1st. AKDT time.</attributeDefinition>
+          <storageType>integer</storageType>
+          <measurementScale>
+            <dateTime>
+              <formatString>DDD</formatString>
+              <dateTimePrecision>1</dateTimePrecision>
+              <dateTimeDomain/>
+            </dateTime>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e4-att5">
+          <attributeName>WaterTemp_C</attributeName>
+          <attributeLabel>Water Temperature</attributeLabel>
+          <attributeDefinition>Water temperature in degrees Celsius</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <interval>
+              <unit>
+                <standardUnit>celsius</standardUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">-273.15</minimum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+        </attribute>
+        <attribute id="d1-e4-att6">
+          <attributeName>PAR_umol_m2_day</attributeName>
+          <attributeLabel>Photosynthetically Active Radiation</attributeLabel>
+          <attributeDefinition>Photosynthetically active solar radiation</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <customUnit>micromolePerMeterSquaredPerDay</customUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Data not collected</codeExplanation>
+          </missingValueCode>
+          <annotation>
+            <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
+            <valueURI label="photosynthetically active radiation">http://purl.dataone.org/odo/ECSO_00001573</valueURI>
+          </annotation>
+        </attribute>
+        <attribute id="d1-e4-att7">
+          <attributeName>NEP_g_m3_day</attributeName>
+          <attributeLabel>Net Ecosystem Production</attributeLabel>
+          <attributeDefinition>Net ecosystem production estimated by free water metabolism, in grams O2 per meter cubed per day</attributeDefinition>
+          <storageType>decimal</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <customUnit>gramPerMeterCubedPerDay</customUnit>
+              </unit>
+              <precision>0.01</precision>
+              <numericDomain>
+                <numberType>real</numberType>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>-9999</code>
+            <codeExplanation>Data not collected</codeExplanation>
+          </missingValueCode>
+        </attribute>
+      </attributeList>
+      <numberOfRecords>286</numberOfRecords>
+    </dataTable>
+  </dataset>
+  <additionalMetadata>
+    <metadata>
+      <unitList>
+        <unit abbreviation="umol_m2_day" constantToSI="1"
+          id="micromolePerMeterSquaredPerDay" multiplierToSI="0.000001"
+          name="micromolePerMeterSquaredPerDay"
+          parentSI="molePerMeterSquaredPerDay" unitType="amountOfSubstanceWeightFlux">
+          <description>areal uptake rate</description>
+        </unit>
+        <unit abbreviation="ppm" id="partsPerMillion" multiplierToSI="1"
+          name="partsPerMillion" unitType="dimensionless">
+          <description>ratio of two quantities as parts per million (1:1000000)</description>
+        </unit>
+        <unit abbreviation="g_m2_day" id="gramPerMeterSquaredPerDay"
+          name="gramPerMeterSquaredPerDay" unitType="massFlux"/>
+        <unit abbreviation="mm" id="millimeter" multiplierToSI="0.001"
+          name="millimeter" parentSI="meter">
+          <description>.001 meters</description>
+        </unit>
+        <unit abbreviation="cm_h" constantToSI="0"
+          id="centimeterPerHour" multiplierToSI="0.00001"
+          name="centimeterPerHour" parentSI="kilometersPerHour" unitType="speed"/>
+        <unit abbreviation="degree" id="degree"
+          multiplierToSI="0.0174532924" name="degree" parentSI="radian" unitType="angle">
+          <description>360 degrees comprise a unit circle.</description>
+        </unit>
+        <unit abbreviation="uatm" constantToSI="0" id="microatmosphere"
+          multiplierToSI="0.101325" name="microatmosphere"
+          parentSI="pascal" unitType="pressure">
+          <description>1 microAtmosphere = 0.000001 atmospheres = 1013.25 millibars = 0.101325 Pascals = 0.0000147 lb/sq.in</description>
+        </unit>
+        <unit abbreviation="m_s" id="meterPerSecond"
+          name="meterPerSecond" unitType="speed"/>
+        <unit abbreviation="mmol_m2_day" constantToSI="0"
+          id="millimolePerMeterSquaredPerDay" multiplierToSI="1"
+          name="millimolePerMeterSquaredPerDay" parentSI="mole">
+          <description>millimole per square meter per day</description>
+        </unit>
+        <unit abbreviation="C" constantToSI="273.18" id="celsius"
+          multiplierToSI="1" name="celsius" parentSI="kelvin">
+          <description>SI-derived unit of temperature</description>
+        </unit>
+        <unit abbreviation="g_m3_day" constantToSI="0"
+          id="gramPerMeterCubedPerDay" multiplierToSI="0.001"
+          name="gramPerMeterCubedPerDay"
+          parentSI="kilogramPerMeterCubed" unitType="volumetricMassDensity">
+          <description>concentration unit; sometimes used for pigments in natural waters.same magnitude as microgramPerLiter</description>
+        </unit>
+        <unit abbreviation="W_m2" id="wattPerMeterSquared"
+          name="wattPerMeterSquared" unitType="power">
+          <description>irradiance unit</description>
+        </unit>
+      </unitList>
+    </metadata>
+  </additionalMetadata>
+</eml:eml>
