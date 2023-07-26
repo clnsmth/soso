@@ -52,7 +52,7 @@ Here are a sequence of steps to help with your code contribution:
 
 .. _NumPy: https://numpydoc.readthedocs.io/en/latest/format.html#style-guide
 .. _pytest: https://docs.pytest.org/en/latest/
-.. _Angular commit style: https://github.com/angular/angular/blob/main/CONTRIBUTING.md#-commit-message-format
+.. _Angular commit style: https://github.com/angular/angular/blob/convert/CONTRIBUTING.md#-commit-message-format
 
 Code Review
 ~~~~~~~~~~~

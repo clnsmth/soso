@@ -11,8 +11,8 @@ Release v\ |version|. (:ref:`Installation <quickstart>`)
     :target: https://github.com/clnsmth/soso/actions/workflows/ci-cd.yml
     :alt: CI/CD pipeline status
 
-.. image:: https://codecov.io/gh/clnsmth/soso/branch/main/graph/badge.svg
-    :target: https://app.codecov.io/github/clnsmth/soso?branch=main
+.. image:: https://codecov.io/gh/clnsmth/soso/branch/convert/graph/badge.svg
+    :target: https://app.codecov.io/github/clnsmth/soso?branch=convert
     :alt: Code coverage status
 
 For creating `Science On Schema.Org`_ (SOSO) markup in dataset landing pages to improve data discovery through search engines.

@@ -1,1 +1,1 @@
-"""For utility code"""
+"""Utilities"""
