@@ -1,6 +1,6 @@
 """Test the converter."""
 
-from soso.converter import convert
+from soso.main import convert
 
 
 def test_convert_returns_dict(strategy_names):
