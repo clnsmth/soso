@@ -46,29 +46,6 @@ def convert(strategy):
         "wasDerivedFrom": strategy.get_was_derived_from(),
         "isBasedOn": strategy.get_is_based_on(),
         "wasGeneratedBy": strategy.get_was_generated_by(),
-        "checksum": strategy.get_checksum()
+        "checksum": strategy.get_checksum(),
     }
     return res
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

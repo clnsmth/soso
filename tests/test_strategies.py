@@ -49,9 +49,7 @@ def test_get_version_returns_expected_type(strategy_instance):
     """Test that the get_version method returns a string or a numeric."""
     res = strategy_instance.get_version()
     if res is not None:
-        assert isinstance(res, str) or \
-               isinstance(res, float) or \
-               isinstance(res, int)
+        assert isinstance(res, str) or isinstance(res, float) or isinstance(res, int)
 
 
 def test_get_get_is_accessible_for_free_returns_expected_type(strategy_instance):
@@ -101,12 +99,14 @@ def test_get_included_in_data_catalog_returns_expected_type(strategy_instance):
         # TODO: Test for URL (and other properties listed in SSSOM?).
         assert True
 
+
 def test_get_subject_of_returns_expected_type(strategy_instance):
     """Test that the get_subject_of method returns the expected type."""
     res = strategy_instance.get_subject_of()
     if res is not None:
         # TODO: Test for subjectOf.
         assert True
+
 
 def test_get_distribution_returns_expected_type(strategy_instance):
     """Test that the get_distribution method returns the expected type."""
@@ -115,12 +115,14 @@ def test_get_distribution_returns_expected_type(strategy_instance):
         # TODO: Test for distribution.
         assert True
 
+
 def test_get_date_created_returns_expected_type(strategy_instance):
     """Test that the get_date_created method returns the expected type."""
     res = strategy_instance.get_date_created()
     if res is not None:
         # TODO: Test for string (or date?).
         assert True
+
 
 def test_get_date_modified_returns_expected_type(strategy_instance):
     """Test that the get_date_modified method returns the expected type."""
@@ -129,6 +131,7 @@ def test_get_date_modified_returns_expected_type(strategy_instance):
         # TODO: Test for string (or date?).
         assert True
 
+
 def test_get_date_published_returns_expected_type(strategy_instance):
     """Test that the get_date_published method returns the expected type."""
     res = strategy_instance.get_date_published()
@@ -136,12 +139,14 @@ def test_get_date_published_returns_expected_type(strategy_instance):
         # TODO: Test for string (or date?).
         assert True
 
+
 def test_get_expires_returns_expected_type(strategy_instance):
     """Test that the get_expires method returns the expected type."""
     res = strategy_instance.get_expires()
     if res is not None:
         # TODO: Test for string (or date?).
         assert True
+
 
 def test_get_temporal_coverage_returns_expected_type(strategy_instance):
     """Test that the get_temporal_coverage method returns the expected type."""
@@ -245,27 +250,3 @@ def test_get_checksum_returns_expected_type(strategy_instance):
     if res is not None:
         # TODO: Test for spdx:Checksum.
         assert True
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

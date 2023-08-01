@@ -115,27 +115,3 @@ class StrategyInterface:
     def get_checksum(self):
         """Return a cryptographic checksum value that can be used to
         characterize the contents of the object."""
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

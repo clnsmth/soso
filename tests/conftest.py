@@ -50,7 +50,7 @@ def soso_properties():
         "wasDerivedFrom",
         "isBasedOn",
         "wasGeneratedBy",
-        "checksum"
+        "checksum",
     ]
 
 
@@ -87,18 +87,6 @@ def interface_methods():
         "get_was_derived_from",
         "get_is_based_on",
         "get_was_generated_by",
-        "get_checksum"
+        "get_checksum",
     ]
     return res
-
-
-
-
-
-
-
-
-
-
-
-

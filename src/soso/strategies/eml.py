@@ -35,7 +35,6 @@ class EML(StrategyInterface):
         # TODO: Implement me
         return "get_keywords from EML"
 
-
     def get_identifier(self):
         # TODO: Implement me
         return "get_identifier from EML"
@@ -127,30 +126,3 @@ class EML(StrategyInterface):
     def get_checksum(self):
         # TODO: Implement me
         return "get_checksum from EML"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -125,30 +125,3 @@ class ISO19115(StrategyInterface):
     def get_checksum(self):
         # TODO: Implement me
         return "get_checksum from ISO19115"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
