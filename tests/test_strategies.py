@@ -49,7 +49,7 @@ def test_get_version_returns_expected_type(strategy_instance):
     """Test that the get_version method returns a string or a numeric."""
     res = strategy_instance.get_version()
     if res is not None:
-        assert isinstance(res, str) or isinstance(res, float) or isinstance(res, int)
+        assert isinstance(res, (float, int, str))
 
 
 def test_get_get_is_accessible_for_free_returns_expected_type(strategy_instance):
