@@ -81,3 +81,6 @@ html_show_sphinx = False
 
 # If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
 html_show_copyright = False
+
+# If true, '()' will be appended to :func: etc. cross-reference text.
+add_function_parentheses = False
