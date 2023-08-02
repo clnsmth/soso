@@ -19,14 +19,14 @@ Strategy Interface
 EML Strategy
 ------------
 
-.. autoclass:: soso.strategies.eml
+.. autoclass:: soso.strategies.eml.EML
     :members:
     :noindex:
 
 ISO 19115 Strategy
 ------------------
 
-.. autoclass:: soso.strategies.iso19115
+.. autoclass:: soso.strategies.iso19115.ISO19115
     :members:
     :noindex:
 
