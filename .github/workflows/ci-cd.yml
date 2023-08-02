@@ -45,8 +45,8 @@ jobs:
       run: poetry install
     - name: Analyze code with pylint
       run: |
-        poetry run pylint src/ --exit-zero --disable=C0103
-        poetry run pylint tests/ --exit-zero --disable=C0103
+        poetry run pylint src/ --exit-zero --disable=C0103,W0621,R0904
+        poetry run pylint tests/ --exit-zero --disable=C0103,W0621,R0904
 
     # Test
     - name: Test with pytest

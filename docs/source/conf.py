@@ -17,6 +17,7 @@ release = '0.0.0'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
+    'sphinx.ext.viewcode',
     'myst_parser',
 ]
 
@@ -81,3 +82,6 @@ html_show_sphinx = False
 
 # If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
 html_show_copyright = False
+
+# If true, '()' will be appended to :func: etc. cross-reference text.
+add_function_parentheses = False

@@ -52,7 +52,7 @@ Here are a sequence of steps to help with your code contribution:
 
 .. _NumPy: https://numpydoc.readthedocs.io/en/latest/format.html#style-guide
 .. _pytest: https://docs.pytest.org/en/latest/
-.. _Angular commit style: https://github.com/angular/angular/blob/main/CONTRIBUTING.md#-commit-message-format
+.. _Angular commit style: https://github.com/angular/angular/blob/convert/CONTRIBUTING.md#-commit-message-format
 
 Code Review
 ~~~~~~~~~~~
@@ -68,7 +68,7 @@ Our project uses a couple tools to ensure the code base has a consistent
 style and format as it grows. We use `Black`_ for code formatting and `Pylint`_ for static code analysis. Both can be run from the command line::
 
     black src/ tests/
-    pylint src/ tests/ --disable=C0103,W0621
+    pylint src/ tests/ --disable=C0103,W0621,R0904
 
 .. _Black: https://black.readthedocs.io/en/stable/
 .. _Pylint: https://pylint.pycqa.org/en/latest/
