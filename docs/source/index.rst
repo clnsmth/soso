@@ -23,9 +23,6 @@ For creating `Science On Schema.Org`_ (SOSO) markup in dataset landing pages to 
 
 [TODO: Briefly demonstrate what this package does.]
 
-The demo:
-   >>> hello_world()
-
 Features
 --------
 

@@ -34,3 +34,5 @@ Utilities
 ---------
 
 .. automodule:: soso.utilities
+    :members:
+    :noindex:
