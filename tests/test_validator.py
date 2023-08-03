@@ -2,7 +2,7 @@
 
 import warnings
 import pytest
-from soso.validator import validate
+from soso.utilities import validate
 
 
 @pytest.mark.internet_required
