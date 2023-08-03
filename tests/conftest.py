@@ -1,5 +1,6 @@
 """Configure the test suite."""
 
+import socket
 import pytest
 from soso.strategies.eml import EML
 from soso.strategies.iso19115 import ISO19115
@@ -90,3 +91,20 @@ def interface_methods():
         "get_checksum",
     ]
     return res
+
+
+def pytest_configure(config):
+    """A marker for tests that require internet connection."""
+    config.addinivalue_line(
+        "markers", "internet_required: mark test as requiring internet connection"
+    )
+
+
+@pytest.fixture(scope="session")
+def internet_connection():
+    """Check if there is an internet connection."""
+    try:
+        socket.create_connection(("8.8.8.8", 53), timeout=5)
+        return True
+    except OSError:
+        return False
