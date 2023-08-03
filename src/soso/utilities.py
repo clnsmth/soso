@@ -24,8 +24,7 @@ def validate(graph):
     -----
     This function wraps `pyshacl.validate`, which requires an internet
     connection. Without it, this function will return None and a warning will
-    be raised. The warning is a bit cryptic: `nodename nor servname provided,
-    or not known`.
+    be raised.
     """
     try:
         res = pyshacl.validate(
