@@ -1,18 +1,19 @@
 """Utilities"""
 
 import urllib.error
+from importlib import resources
 import warnings
 import pyshacl.validate
-from soso.datasets import get_soso_common
+from soso.utilities import get_soso_common
 
 
 def validate(graph):
-    """Validate a graph against the SOSO shape.
+    """Validate a graph against the SOSO dataset SHACL shape.
 
     Parameters
     ----------
     graph : str
-        File path of the graph JSON-LD to validate.
+        File path of the JSON-LD graph to validate.
 
     Returns
     -------
@@ -23,8 +24,7 @@ def validate(graph):
     Notes
     -----
     This function wraps `pyshacl.validate`, which requires an internet
-    connection. Without it, this function will return None and a warning will
-    be raised.
+    connection.
     """
     try:
         res = pyshacl.validate(
@@ -41,3 +41,18 @@ def validate(graph):
     except urllib.error.URLError as e:
         warnings.warn(e)
         return None
+
+
+def get_soso_common():
+    """Return the path to the SHACL shape file for the SOSO dataset graph.
+
+    The shape file is for the current release version of the SOSO dataset
+    graph.
+
+    Returns
+    -------
+    str
+        Path to the SHACL shape file.
+    """
+    with resources.path("soso.data", "soso_common_v1.2.3.ttl") as f:
+        return f
