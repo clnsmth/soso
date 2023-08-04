@@ -4,7 +4,6 @@ import urllib.error
 from importlib import resources
 import warnings
 import pyshacl.validate
-from soso.utilities import get_soso_common
 
 
 def validate(graph):
