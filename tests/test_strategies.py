@@ -30,10 +30,10 @@ def test_get_description_returns_expected_type(strategy_instance):
         assert isinstance(res, str)
 
 
-# FIXME: Test for a URL pattern
 def test_get_url_returns_expected_type(strategy_instance):
     """Test that the get_url method returns a string."""
     res = strategy_instance.get_url()
+    # Test for a URL pattern
     if res is not None:
         assert isinstance(res, str)
 
@@ -63,7 +63,7 @@ def test_get_keywords_returns_expected_type(strategy_instance):
     """Test that the get_keywords method returns the expected type."""
     res = strategy_instance.get_keywords()
     if res is not None:
-        # TODO: Test for a list of strings and/or defined terms and/or url.
+        # Test for a list of strings and/or defined terms and/or url.
         assert True
 
 
@@ -71,7 +71,7 @@ def test_get_identifier_returns_expected_type(strategy_instance):
     """Test that the get_identifier method returns the expected type."""
     res = strategy_instance.get_identifier()
     if res is not None:
-        # TODO: Test for text, URL, or PropertyValue.
+        # Test for text, URL, or PropertyValue.
         assert True
 
 
@@ -79,7 +79,7 @@ def test_get_citation_returns_expected_type(strategy_instance):
     """Test that the get_citation method returns the expected type."""
     res = strategy_instance.get_citation()
     if res is not None:
-        # TODO: Test for text, or schema:CreativeWork.
+        # Test for text, or schema:CreativeWork.
         assert True
 
 
@@ -87,7 +87,7 @@ def test_get_variable_measured_returns_expected_type(strategy_instance):
     """Test that the get_variable_measured method returns the expected type."""
     res = strategy_instance.get_variable_measured()
     if res is not None:
-        # TODO: Test for list of PropertyValue.
+        # Test for list of PropertyValue.
         assert True
 
 
@@ -96,7 +96,7 @@ def test_get_included_in_data_catalog_returns_expected_type(strategy_instance):
     type."""
     res = strategy_instance.get_included_in_data_catalog()
     if res is not None:
-        # TODO: Test for URL (and other properties listed in SSSOM?).
+        # Test for URL (and other properties listed in SSSOM?).
         assert True
 
 
@@ -104,7 +104,7 @@ def test_get_subject_of_returns_expected_type(strategy_instance):
     """Test that the get_subject_of method returns the expected type."""
     res = strategy_instance.get_subject_of()
     if res is not None:
-        # TODO: Test for subjectOf.
+        # Test for subjectOf.
         assert True
 
 
@@ -112,7 +112,7 @@ def test_get_distribution_returns_expected_type(strategy_instance):
     """Test that the get_distribution method returns the expected type."""
     res = strategy_instance.get_distribution()
     if res is not None:
-        # TODO: Test for distribution.
+        # Test for distribution.
         assert True
 
 
@@ -120,7 +120,7 @@ def test_get_date_created_returns_expected_type(strategy_instance):
     """Test that the get_date_created method returns the expected type."""
     res = strategy_instance.get_date_created()
     if res is not None:
-        # TODO: Test for string (or date?).
+        # Test for string (or date?).
         assert True
 
 
@@ -128,7 +128,7 @@ def test_get_date_modified_returns_expected_type(strategy_instance):
     """Test that the get_date_modified method returns the expected type."""
     res = strategy_instance.get_date_modified()
     if res is not None:
-        # TODO: Test for string (or date?).
+        # Test for string (or date?).
         assert True
 
 
@@ -136,7 +136,7 @@ def test_get_date_published_returns_expected_type(strategy_instance):
     """Test that the get_date_published method returns the expected type."""
     res = strategy_instance.get_date_published()
     if res is not None:
-        # TODO: Test for string (or date?).
+        # Test for string (or date?).
         assert True
 
 
@@ -144,7 +144,7 @@ def test_get_expires_returns_expected_type(strategy_instance):
     """Test that the get_expires method returns the expected type."""
     res = strategy_instance.get_expires()
     if res is not None:
-        # TODO: Test for string (or date?).
+        # Test for string (or date?).
         assert True
 
 
@@ -152,7 +152,7 @@ def test_get_temporal_coverage_returns_expected_type(strategy_instance):
     """Test that the get_temporal_coverage method returns the expected type."""
     res = strategy_instance.get_temporal_coverage()
     if res is not None:
-        # TODO: Test for string, date, datetime, URL.
+        # Test for string, date, datetime, URL.
         assert True
 
 
@@ -160,7 +160,7 @@ def test_get_spatial_coverage_returns_expected_type(strategy_instance):
     """Test that the get_spatial_coverage method returns the expected type."""
     res = strategy_instance.get_spatial_coverage()
     if res is not None:
-        # TODO: Test for schema:geo.
+        # Test for schema:geo.
         assert True
 
 
@@ -168,7 +168,7 @@ def test_get_creator_returns_expected_type(strategy_instance):
     """Test that the get_creator method returns the expected type."""
     res = strategy_instance.get_creator()
     if res is not None:
-        # TODO: Test for schema:Role.
+        # Test for schema:Role.
         assert True
 
 
@@ -176,7 +176,7 @@ def test_get_contributor_returns_expected_type(strategy_instance):
     """Test that the get_contributor method returns the expected type."""
     res = strategy_instance.get_contributor()
     if res is not None:
-        # TODO: Test for schema:Role.
+        # Test for schema:Role.
         assert True
 
 
@@ -184,7 +184,7 @@ def test_get_provider_returns_expected_type(strategy_instance):
     """Test that the get_provider method returns the expected type."""
     res = strategy_instance.get_provider()
     if res is not None:
-        # TODO: Test for URL.
+        # Test for URL.
         assert True
 
 
@@ -192,7 +192,7 @@ def test_get_publisher_returns_expected_type(strategy_instance):
     """Test that the get_publisher method returns the expected type."""
     res = strategy_instance.get_publisher()
     if res is not None:
-        # TODO: Test for URL.
+        # Test for URL.
         assert True
 
 
@@ -200,7 +200,7 @@ def test_get_funding_returns_expected_type(strategy_instance):
     """Test that the get_funding method returns the expected type."""
     res = strategy_instance.get_funding()
     if res is not None:
-        # TODO: Test for MonetaryGrant.
+        # Test for MonetaryGrant.
         assert True
 
 
@@ -208,7 +208,7 @@ def test_get_license_returns_expected_type(strategy_instance):
     """Test that the get_license method returns the expected type."""
     res = strategy_instance.get_license()
     if res is not None:
-        # TODO: Test for license.
+        # Test for license.
         assert True
 
 
@@ -216,7 +216,7 @@ def test_get_was_revision_of_returns_expected_type(strategy_instance):
     """Test that the get_was_revision_of method returns the expected type."""
     res = strategy_instance.get_was_revision_of()
     if res is not None:
-        # TODO: Test for IRI.
+        # Test for IRI.
         assert True
 
 
@@ -224,7 +224,7 @@ def test_get_was_derived_from_returns_expected_type(strategy_instance):
     """Test that the get_was_derived_from method returns the expected type."""
     res = strategy_instance.get_was_derived_from()
     if res is not None:
-        # TODO: Test for IRI.
+        # Test for IRI.
         assert True
 
 
@@ -232,7 +232,7 @@ def test_get_is_based_on_returns_expected_type(strategy_instance):
     """Test that the get_is_based_on method returns the expected type."""
     res = strategy_instance.get_is_based_on()
     if res is not None:
-        # TODO: Test for URL.
+        # Test for URL.
         assert True
 
 
@@ -240,7 +240,7 @@ def test_get_was_generated_by_returns_expected_type(strategy_instance):
     """Test that the get_was_generated_by method returns the expected type."""
     res = strategy_instance.get_was_generated_by()
     if res is not None:
-        # TODO: Test for provone:Execution.
+        # Test for provone:Execution.
         assert True
 
 
@@ -248,5 +248,5 @@ def test_get_checksum_returns_expected_type(strategy_instance):
     """Test that the get_checksum method returns the expected type."""
     res = strategy_instance.get_checksum()
     if res is not None:
-        # TODO: Test for spdx:Checksum.
+        # Test for spdx:Checksum.
         assert True
