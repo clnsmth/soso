@@ -23,13 +23,6 @@ EML Strategy
     :members:
     :noindex:
 
-ISO 19115 Strategy
-------------------
-
-.. autoclass:: soso.strategies.iso19115.ISO19115
-    :members:
-    :noindex:
-
 Utilities
 ---------
 
