@@ -7,4 +7,5 @@ dependencies:
   - lxml
   - pandas
   - pyshacl
+  - numpy
 prefix: /opt/miniconda3/envs/soso
