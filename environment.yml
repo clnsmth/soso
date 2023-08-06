@@ -6,7 +6,7 @@ dependencies:
   - backports=1.0
   - backports.functools_lru_cache=1.6.5
   - bzip2=1.0.8
-  - ca-certificates=2023.5.7
+  - ca-certificates=2023.7.22
   - html5lib=1.1
   - icu=72.1
   - importlib-metadata=6.8.0
@@ -28,8 +28,8 @@ dependencies:
   - llvm-openmp=16.0.6
   - lxml=4.9.3
   - ncurses=6.4
-  - numpy=1.25.1
-  - openssl=3.1.1
+  - numpy=1.25.2
+  - openssl=3.1.2
   - owlrl=6.0.2
   - packaging=23.1
   - pandas=2.0.3

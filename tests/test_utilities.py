@@ -1,8 +1,12 @@
 """For testing the validator module."""
 
 import warnings
+from pathlib import PosixPath
 import pytest
+from pandas import DataFrame
 from soso.utilities import validate
+from soso.utilities import get_sssom_file_path
+from soso.utilities import read_sssom
 
 
 @pytest.mark.internet_required
@@ -41,3 +45,24 @@ def test_validate_returns_false_when_invalid(internet_connection):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         assert validate("tests/incomplete.jsonld") is False
+
+
+def test_get_sssom_file_path_returns_path(strategy_names):
+    """Test that get_sssom_file_path returns a path for each strategy name.
+
+    This ensures a SSSOM file exists for each strategy and that the path to
+    each is valid."""
+    for strategy in strategy_names:
+        sssom_file_path = get_sssom_file_path(strategy)
+        assert isinstance(sssom_file_path, PosixPath)
+
+
+def test_read_sssom_returns_dataframe(strategy_names):
+    """Test that read_sssom returns a dataframe.
+
+    SSSOM files contain an extensive set of information and can become
+    malformed during manual curation. This test is a very basic check on the
+    format (i.e. can be read without error)."""
+    for strategy in strategy_names:
+        sssom = read_sssom(strategy)
+        assert isinstance(sssom, DataFrame)

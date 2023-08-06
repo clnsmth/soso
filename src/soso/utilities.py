@@ -4,6 +4,7 @@ import urllib.error
 from importlib import resources
 import warnings
 import pyshacl.validate
+import pandas as pd
 
 
 def validate(graph):
@@ -55,3 +56,39 @@ def get_soso_common():
     """
     with resources.path("soso.data", "soso_common_v1.2.3.ttl") as f:
         return f
+
+
+def get_sssom_file_path(standard):
+    """Return the SSSOM file path for the specified metadata standard.
+
+    Parameters
+    ----------
+    standard : str
+        Metadata standard. Can be: EML.
+
+    Returns
+    -------
+    str
+        File path.
+    """
+    file_name = "soso-" + str.lower(standard) + ".sssom.tsv"
+    with resources.path("soso.data", file_name) as file_path:
+        return file_path
+
+
+def read_sssom(standard):
+    """Return the SSSOM for the specified metadata standard.
+
+    Parameters
+    ----------
+    standard : str
+        Metadata standard. Can be: EML.
+
+    Returns
+    -------
+    DataFrame
+        Pandas dataframe.
+    """
+    sssom_file_path = get_sssom_file_path(standard)
+    sssom = pd.read_csv(sssom_file_path, delimiter="\t")
+    return sssom
