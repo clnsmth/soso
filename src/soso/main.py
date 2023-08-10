@@ -1,5 +1,6 @@
 """The converter module."""
 
+from json import dumps
 from soso.strategies.eml import EML
 
 
@@ -13,7 +14,9 @@ def convert(strategy):
         raise ValueError("Invalid choice!")
 
     # Build the graph
-    res = {
+    graph = {
+        "@context": {"@vocab": "https://schema.org/"},
+        "@type": "Dataset",
         # "name": strategy.get_name(),
         # "description": strategy.get_description(),
         # "url": strategy.get_url(),
@@ -45,4 +48,4 @@ def convert(strategy):
         # "wasGeneratedBy": strategy.get_was_generated_by(),
         # "checksum": strategy.get_checksum(),
     }
-    return res
+    return dumps(graph)

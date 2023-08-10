@@ -21,6 +21,8 @@ def strategy_instance(request):
 def soso_properties():
     """Return the names of SOSO properties."""
     return [
+        "@context",
+        "@type",
         # "name",
         # "description",
         # "url",
