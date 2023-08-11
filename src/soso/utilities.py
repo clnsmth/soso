@@ -51,11 +51,11 @@ def get_soso_common():
 
     Returns
     -------
-    str
+    PosixPath
         Path to the SHACL shape file.
     """
-    with resources.path("soso.data", "soso_common_v1.2.3.ttl") as f:
-        return f
+    file_path = resources.files("soso.data").joinpath("soso_common_v1.2.3.ttl")
+    return file_path
 
 
 def get_sssom_file_path(standard):
@@ -68,12 +68,12 @@ def get_sssom_file_path(standard):
 
     Returns
     -------
-    str
+    PosixPath
         File path.
     """
     file_name = "soso-" + str.lower(standard) + ".sssom.tsv"
-    with resources.path("soso.data", file_name) as file_path:
-        return file_path
+    file_path = resources.files("soso.data").joinpath(file_name)
+    return file_path
 
 
 def read_sssom(standard):
