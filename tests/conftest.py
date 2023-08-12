@@ -3,6 +3,7 @@
 import socket
 import pytest
 from soso.strategies.eml import EML
+from soso.utilities import get_example_metadata_file_path
 
 
 @pytest.fixture
@@ -14,7 +15,11 @@ def strategy_names():
 @pytest.fixture(params=[EML])
 def strategy_instance(request):
     """Return the strategy instances."""
-    return request.param()
+    # Initialize strategy instances with a metadata file to fulfill the
+    # required file argument.
+    if request.param is EML:
+        strategy_instance = request.param(file=get_example_metadata_file_path("EML"))
+    return strategy_instance
 
 
 @pytest.fixture
@@ -97,7 +102,7 @@ def interface_methods():
 def pytest_configure(config):
     """A marker for tests that require internet connection."""
     config.addinivalue_line(
-        "markers", "internet_required: mark test as requiring internet connection"
+        "markers", "internet_required: mark test as requiring internet " + "connection"
     )
 
 

@@ -12,6 +12,7 @@ python = "^3.11"
 pyshacl = "^0.23.0"
 numpy = "^1.25.2"
 pandas = "^2.0.3"
+lxml = "^4.9.3"
 
 [tool.poetry.dev-dependencies]
 

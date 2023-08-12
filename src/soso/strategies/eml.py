@@ -1,10 +1,16 @@
 """The EML strategy module."""
 
+from lxml import etree
 from soso.interface import StrategyInterface
 
 
 class EML(StrategyInterface):
     """Define the strategy for EML."""
+
+    def __init__(self, file=None):
+        """Initialize the strategy."""
+        if file is not None:
+            super().__init__(metadata=etree.parse(file))
 
     # def get_name(self):
     #     return "name from EML"
