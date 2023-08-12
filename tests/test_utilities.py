@@ -7,6 +7,7 @@ from pandas import DataFrame
 from soso.utilities import validate
 from soso.utilities import get_sssom_file_path
 from soso.utilities import read_sssom
+from soso.utilities import get_example_metadata_file_path
 
 
 @pytest.mark.internet_required
@@ -66,3 +67,10 @@ def test_read_sssom_returns_dataframe(strategy_names):
     for strategy in strategy_names:
         sssom = read_sssom(strategy)
         assert isinstance(sssom, DataFrame)
+
+
+def test_get_example_metadata_file_path_returns_path(strategy_names):
+    """Test that get_example_metadata returns a path."""
+    for strategy in strategy_names:
+        file_path = get_example_metadata_file_path(standard=strategy)
+        assert isinstance(file_path, PosixPath)

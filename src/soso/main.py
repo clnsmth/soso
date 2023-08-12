@@ -4,12 +4,12 @@ from json import dumps
 from soso.strategies.eml import EML
 
 
-def convert(strategy):
+def convert(file, strategy):
     """Return SOSO markup for a metadata document and specified strategy."""
 
     # Load the strategy based on user choice
     if strategy == "eml":
-        strategy = EML()
+        strategy = EML(file)
     else:
         raise ValueError("Invalid choice!")
 

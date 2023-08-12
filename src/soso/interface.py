@@ -2,7 +2,19 @@
 
 
 class StrategyInterface:
-    """Define the strategy interface."""
+    """Define the strategy interface.
+
+    Attributes
+    ----------
+    metadata : object
+        The metadata object, such as an XML tree or JSON object, used by
+        strategy methods to create SOSO properties. The object is created upon
+        initialization, when a strategy instance reads a metadata file.
+    """
+
+    def __init__(self, metadata=None):
+        """Return the strategy attributes."""
+        self.metadata = metadata
 
     def get_name(self):
         """Return a descriptive name of a dataset."""

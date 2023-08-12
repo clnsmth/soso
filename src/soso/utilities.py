@@ -76,6 +76,26 @@ def get_sssom_file_path(standard):
     return file_path
 
 
+def get_example_metadata_file_path(standard):
+    """Return the file path of an example metadata file.
+
+    Parameters
+    ----------
+    standard : str
+        Metadata standard. Can be: EML.
+
+    Returns
+    -------
+    PosixPath
+        File path.
+    """
+    if standard.lower() == "eml":
+        file_path = resources.files("soso.data").joinpath("eml.xml")
+    else:
+        raise ValueError("Invalid choice!")
+    return file_path
+
+
 def read_sssom(standard):
     """Return the SSSOM for the specified metadata standard.
 

@@ -8,6 +8,15 @@ def test_strategy_inherits_strategy_interface(strategy_instance):
     assert isinstance(strategy_instance, StrategyInterface)
 
 
+# Each strategy should read a metadata document and store it as an attribute
+# for class methods to access.
+
+
+def test_strategy_reads_metadata(strategy_instance):
+    """Test that each strategy reads a metadata document."""
+    assert strategy_instance.metadata is not None
+
+
 # SOSO properties are not universally shared across metadata dialects. In cases
 # where a property is not available, the corresponding strategy method will
 # return None. Therefore, each method test below first checks if the return
