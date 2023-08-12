@@ -58,57 +58,57 @@ def get_soso_common():
     return file_path
 
 
-def get_sssom_file_path(standard):
-    """Return the SSSOM file path for the specified metadata standard.
+def get_sssom_file_path(strategy):
+    """Return the SSSOM file path for the specified strategy.
 
     Parameters
     ----------
-    standard : str
-        Metadata standard. Can be: EML.
+    strategy : str
+        Metadata strategy. Can be: EML.
 
     Returns
     -------
     PosixPath
         File path.
     """
-    file_name = "soso-" + str.lower(standard) + ".sssom.tsv"
+    file_name = "soso-" + str.lower(strategy) + ".sssom.tsv"
     file_path = resources.files("soso.data").joinpath(file_name)
     return file_path
 
 
-def get_example_metadata_file_path(standard):
+def get_example_metadata_file_path(strategy):
     """Return the file path of an example metadata file.
 
     Parameters
     ----------
-    standard : str
-        Metadata standard. Can be: EML.
+    strategy : str
+        Metadata strategy. Can be: EML.
 
     Returns
     -------
     PosixPath
         File path.
     """
-    if standard.lower() == "eml":
+    if strategy.lower() == "eml":
         file_path = resources.files("soso.data").joinpath("eml.xml")
     else:
         raise ValueError("Invalid choice!")
     return file_path
 
 
-def read_sssom(standard):
-    """Return the SSSOM for the specified metadata standard.
+def read_sssom(strategy):
+    """Return the SSSOM for the specified strategy.
 
     Parameters
     ----------
-    standard : str
-        Metadata standard. Can be: EML.
+    strategy : str
+        Metadata strategy. Can be: EML.
 
     Returns
     -------
     DataFrame
         Pandas dataframe.
     """
-    sssom_file_path = get_sssom_file_path(standard)
+    sssom_file_path = get_sssom_file_path(strategy)
     sssom = pd.read_csv(sssom_file_path, delimiter="\t")
     return sssom

@@ -72,5 +72,5 @@ def test_read_sssom_returns_dataframe(strategy_names):
 def test_get_example_metadata_file_path_returns_path(strategy_names):
     """Test that get_example_metadata returns a path."""
     for strategy in strategy_names:
-        file_path = get_example_metadata_file_path(standard=strategy)
+        file_path = get_example_metadata_file_path(strategy=strategy)
         assert isinstance(file_path, PosixPath)
