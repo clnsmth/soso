@@ -24,9 +24,9 @@ def test_validate_returns_no_warning_when_valid(internet_connection):
     """Test validate returns no warning when the graph is valid."""
     if not internet_connection:
         pytest.skip("Internet connection is not available.")
-    with warnings.catch_warnings(record=True) as w:
+    with warnings.catch_warnings(record=True) as list_of_warnings:
         validate("tests/full.jsonld")
-        for warning in w:
+        for warning in list_of_warnings:
             assert not issubclass(warning.category, UserWarning)
 
 

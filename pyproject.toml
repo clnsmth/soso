@@ -38,7 +38,7 @@ remove_dist = false                         # don't remove dists
 patch_without_tag = false                    # patch release by default
 
 [tool.pylint.'MESSAGES.CONTROL']
-disable = "invalid-name,redefined-outer-name,too-many-public-methods"
+disable = "too-many-public-methods"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
