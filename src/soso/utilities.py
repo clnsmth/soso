@@ -38,8 +38,8 @@ def validate(graph):
         if not conforms:
             warnings.warn(results_text)
         return conforms
-    except urllib.error.URLError as e:
-        warnings.warn(e)
+    except urllib.error.URLError as errors:
+        warnings.warn(errors)
         return None
 
 
