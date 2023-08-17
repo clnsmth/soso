@@ -16,9 +16,10 @@ class EML(StrategyInterface):
         name = self.metadata.xpath(".//dataset/title")
         return name[0].text
 
-    # def get_description(self):
-    #     return "description from EML"
-    #
+    def get_description(self):
+        description = self.metadata.xpath(".//dataset/abstract")
+        return description[0].text
+
     # def get_url(self):
     #     return "url from EML"
     #

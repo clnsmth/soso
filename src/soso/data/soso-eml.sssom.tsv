@@ -1,6 +1,6 @@
 subject_category	subject_id	subject_label	subject_type	predicate_id	object_id	object_label	object_type	confidence	comment	mapping_justification	mapping_date	creator_id
 Common Properties	schema:name	name	Text	skos:exactMatch	res:title	title	xs:string	1	Definitions and types match.	semapv:ManualMappingCuration	2023-03-17	https://orcid.org/0000-0003-2261-9931
-Common Properties	description	description	Text	skos:broadMatch	/eml/dataset/abstract	abstract	txt:TextType	1	Definitions match but object type is broader.	semapv:ManualMappingCuration	2023-03-25	https://orcid.org/0000-0003-2261-9931
+Common Properties	schema:description	description	Text	skos:broadMatch	res:abstract	abstract	txt:TextType	1	Definitions match but object type is broader.	semapv:ManualMappingCuration	2023-03-25	https://orcid.org/0000-0003-2261-9931
 Common Properties	url	url	URL	skos:exactMatch	sssom:NoMapping			1	No match can be found.	semapv:ManualMappingCuration	2023-03-17	https://orcid.org/0000-0003-2261-9931
 Common Properties	sameAs	sameAs	URL	skos:exactMatch	sssom:NoMapping			1	No match can be found.	semapv:ManualMappingCuration	2023-03-17	https://orcid.org/0000-0003-2261-9931
 Common Properties	version	version	Number Text	skos:exactMatch	sssom:NoMapping			1	No match can be found.	semapv:ManualMappingCuration	2023-03-17	https://orcid.org/0000-0003-2261-9931
