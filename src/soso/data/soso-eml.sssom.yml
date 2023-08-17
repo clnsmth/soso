@@ -17,6 +17,7 @@ curie_map:
   provone: http://purl.dataone.org/provone/2015/01/15/ontology#
   rc: https://eml.ecoinformatics.org/resource-2.2.0
   rdfs: https://www.w3.org/2001/sw/RDFCore/Schema/200212/
+  res: https://eml.ecoinformatics.org/resource-2.2.0
   schema: https://schema.org/
   semapv: https://mapping-commons.github.io/semantic-mapping-vocabulary/#
   spdx: http://spdx.org/rdf/terms#
