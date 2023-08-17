@@ -12,9 +12,10 @@ class EML(StrategyInterface):
         if file is not None:
             super().__init__(metadata=etree.parse(file))
 
-    # def get_name(self):
-    #     return "name from EML"
-    #
+    def get_name(self):
+        name = self.metadata.xpath(".//dataset/title")
+        return name[0].text
+
     # def get_description(self):
     #     return "description from EML"
     #

@@ -25,13 +25,13 @@ def test_strategy_reads_metadata(strategy_instance):
 # consistent test suite.
 
 
-# def test_get_name_returns_expected_type(strategy_instance):
-#     """Test that the get_name method returns a string."""
-#     res = strategy_instance.get_name()
-#     if res is not None:
-#         assert isinstance(res, str)
-#
-#
+def test_get_name_returns_expected_type(strategy_instance):
+    """Test that the get_name method returns a string."""
+    res = strategy_instance.get_name()
+    if res is not None:
+        assert isinstance(res, str)
+
+
 # def test_get_description_returns_expected_type(strategy_instance):
 #     """Test that the get_description method returns a string."""
 #     res = strategy_instance.get_description()
