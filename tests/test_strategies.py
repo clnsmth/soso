@@ -32,13 +32,13 @@ def test_get_name_returns_expected_type(strategy_instance):
         assert isinstance(res, str)
 
 
-# def test_get_description_returns_expected_type(strategy_instance):
-#     """Test that the get_description method returns a string."""
-#     res = strategy_instance.get_description()
-#     if res is not None:
-#         assert isinstance(res, str)
-#
-#
+def test_get_description_returns_expected_type(strategy_instance):
+    """Test that the get_description method returns a string."""
+    res = strategy_instance.get_description()
+    if res is not None:
+        assert isinstance(res, str)
+
+
 # def test_get_url_returns_expected_type(strategy_instance):
 #     """Test that the get_url method returns a string."""
 #     res = strategy_instance.get_url()

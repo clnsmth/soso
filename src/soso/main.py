@@ -18,7 +18,7 @@ def convert(file, strategy):
         "@context": {"@vocab": "https://schema.org/"},
         "@type": "Dataset",
         "name": strategy.get_name(),
-        # "description": strategy.get_description(),
+        "description": strategy.get_description(),
         # "url": strategy.get_url(),
         # "sameAs": strategy.get_same_as(),
         # "version": strategy.get_version(),

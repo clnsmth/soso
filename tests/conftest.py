@@ -29,7 +29,7 @@ def soso_properties():
         "@context",
         "@type",
         "name",
-        # "description",
+        "description",
         # "url",
         # "sameAs",
         # "version",
@@ -66,7 +66,7 @@ def interface_methods():
     """Return the names of strategy methods."""
     res = [
         "get_name",
-        # "get_description",
+        "get_description",
         # "get_url",
         # "get_same_as",
         # "get_version",
