@@ -5,9 +5,28 @@ from soso.strategies.eml import EML
 
 
 def convert(file, strategy, **kwargs):
-    """Return SOSO markup for a metadata document and specified strategy."""
+    """Return SOSO markup for a metadata file and specified strategy.
 
-    # Load the strategy based on user choice. Pass kwargs, so the strategy may
+    Parameters
+    ----------
+    file : str
+        The path to the metadata file. Refer to the strategy's documentation
+        for a list of supported file types.
+    strategy : str
+        The conversion strategy to be employed. Available strategies include:
+        "EML".
+    **kwargs : dict
+        Additional keyword arguments for creating SOSO properties not covered
+        by the chosen `strategy`. Check the Notes section in the strategy's
+        documentation for more information.
+
+    Returns
+    -------
+    str
+        The SOSO graph in JSON-LD format.
+    """
+
+    # Load the strategy based on user choice. Pass kwargs, so the strategy can
     # operate on them.
     if strategy == "eml":
         strategy = EML(file, **kwargs)
