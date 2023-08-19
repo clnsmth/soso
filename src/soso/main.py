@@ -49,4 +49,11 @@ def convert(file, strategy, **kwargs):
         # "wasGeneratedBy": strategy.get_was_generated_by(),
         # "checksum": strategy.get_checksum(),
     }
+
+    # Remove properties where get methods returned None, so the user is
+    # return a clean graph.
+    for key, value in list(graph.items()):
+        if value is None:
+            del graph[key]
+
     return dumps(graph)
