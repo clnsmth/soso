@@ -1,6 +1,7 @@
 """Configure the test suite."""
 
 import socket
+from urllib.parse import urlparse
 import pytest
 from soso.strategies.eml import EML
 from soso.utilities import get_example_metadata_file_path
@@ -18,7 +19,10 @@ def strategy_instance(request):
     # Initialize strategy instances with a metadata file to fulfill the
     # required file argument.
     if request.param is EML:
-        res = request.param(file=get_example_metadata_file_path("EML"))
+        res = request.param(
+            file=get_example_metadata_file_path("EML"),
+            url="https://example.com",  # url doesn't map to EML so use kwargs
+        )
     return res
 
 
@@ -30,7 +34,7 @@ def soso_properties():
         "@type",
         "name",
         "description",
-        # "url",
+        "url",
         # "sameAs",
         # "version",
         # "isAccessibleForFree",
@@ -67,7 +71,7 @@ def interface_methods():
     res = [
         "get_name",
         "get_description",
-        # "get_url",
+        "get_url",
         # "get_same_as",
         # "get_version",
         # "get_is_accessible_for_free",
@@ -113,4 +117,13 @@ def internet_connection():
         socket.create_connection(("8.8.8.8", 53), timeout=5)
         return True
     except OSError:
+        return False
+
+
+def is_url(url):
+    """Check if a string is a URL."""
+    try:
+        res = urlparse(url)
+        return all([res.scheme, res.netloc])
+    except ValueError:
         return False

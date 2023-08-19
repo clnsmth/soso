@@ -5,12 +5,24 @@ from soso.interface import StrategyInterface
 
 
 class EML(StrategyInterface):
-    """Define the strategy for EML."""
+    """Define the strategy for EML.
 
-    def __init__(self, file=None):
+    Notes
+    -----
+    Not all SOSO properties map to EML. Such properties may be
+    defined with `kwargs` where values are of the expected types (see the
+    `SOSO guidelines <https://github.com/ESIPFed/science-on-schema.org/blob
+    /master/guides/Dataset.md>`_ for more information on each property):
+
+    - url
+    """
+
+    def __init__(self, file=None, **kwargs):
         """Initialize the strategy."""
         if file is not None:
             super().__init__(metadata=etree.parse(file))
+        if kwargs is not None:
+            self.kwargs = kwargs  # for method access to kwargs
 
     def get_name(self):
         name = self.metadata.xpath(".//dataset/title")
@@ -20,9 +32,10 @@ class EML(StrategyInterface):
         description = self.metadata.xpath(".//dataset/abstract")
         return description[0].text
 
-    # def get_url(self):
-    #     return "url from EML"
-    #
+    def get_url(self):
+        url = self.kwargs.get("url")
+        return url
+
     # def get_same_as(self):
     #     return "same_as from EML"
     #

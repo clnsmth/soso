@@ -23,7 +23,7 @@ class StrategyInterface:
         """Return a short summary describing a dataset."""
 
     def get_url(self):
-        """Return location of a page describing the dataset."""
+        """Return the location of a page describing the dataset."""
 
     def get_same_as(self):
         """Return other URLs that can be used to access the dataset page.

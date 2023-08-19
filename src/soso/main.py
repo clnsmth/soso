@@ -4,12 +4,13 @@ from json import dumps
 from soso.strategies.eml import EML
 
 
-def convert(file, strategy):
+def convert(file, strategy, **kwargs):
     """Return SOSO markup for a metadata document and specified strategy."""
 
-    # Load the strategy based on user choice
+    # Load the strategy based on user choice. Pass kwargs, so the strategy may
+    # operate on them.
     if strategy == "eml":
-        strategy = EML(file)
+        strategy = EML(file, **kwargs)
     else:
         raise ValueError("Invalid choice!")
 
@@ -19,7 +20,7 @@ def convert(file, strategy):
         "@type": "Dataset",
         "name": strategy.get_name(),
         "description": strategy.get_description(),
-        # "url": strategy.get_url(),
+        "url": strategy.get_url(),
         # "sameAs": strategy.get_same_as(),
         # "version": strategy.get_version(),
         # "isAccessibleForFree": strategy.get_is_accessible_for_free(),

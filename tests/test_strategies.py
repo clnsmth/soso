@@ -1,6 +1,7 @@
 """Test the strategies."""
 
 from soso.interface import StrategyInterface
+from tests.conftest import is_url
 
 
 def test_strategy_inherits_strategy_interface(strategy_instance):
@@ -39,14 +40,13 @@ def test_get_description_returns_expected_type(strategy_instance):
         assert isinstance(res, str)
 
 
-# def test_get_url_returns_expected_type(strategy_instance):
-#     """Test that the get_url method returns a string."""
-#     res = strategy_instance.get_url()
-#     # Test for a URL pattern
-#     if res is not None:
-#         assert isinstance(res, str)
-#
-#
+def test_get_url_returns_expected_type(strategy_instance):
+    """Test that the get_url method returns a string."""
+    res = strategy_instance.get_url()
+    if res is not None:
+        assert is_url(res)
+
+
 # def test_get_same_as_returns_expected_type(strategy_instance):
 #     """Test that the get_same_as method returns a string."""
 #     res = strategy_instance.get_same_as()
