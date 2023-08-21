@@ -5,24 +5,35 @@ from soso.interface import StrategyInterface
 
 
 class EML(StrategyInterface):
-    """Define the strategy for EML.
+    """Define the conversion strategy for EML (Ecological Metadata Language).
+
+    Parameters
+    ----------
+    file : str
+        The path to the metadata file. This should be an XML file in EML
+        format.
+    **kwargs : dict
+        Additional keyword arguments that can be utilized to define SOSO
+        properties that don't directly correspond to metadata fields. See
+        Notes for more information.
 
     Notes
     -----
-    Not all SOSO properties map to EML. Such properties may be
-    defined with `kwargs` where values are of the expected types (see the
-    `SOSO guidelines <https://github.com/ESIPFed/science-on-schema.org/blob
-    /master/guides/Dataset.md>`_ for more information on each property):
+    Not all SOSO properties have a direct mapping to EML metadata. Such properties
+    can be specified using `kwargs`, where the keys represent property names, and
+    the values define the property types (provided as strings or dictionaries).
+    Refer to the `SOSO guidelines <https://github.com/ESIPFed/science-on-schema.org/blob
+    /master/guides/Dataset.md>`_ for detailed insights into each property.
+
+    Unmappable properties:
 
     - url
     """
 
-    def __init__(self, file=None, **kwargs):
+    def __init__(self, file, **kwargs):
         """Initialize the strategy."""
-        if file is not None:
-            super().__init__(metadata=etree.parse(file))
-        if kwargs is not None:
-            self.kwargs = kwargs  # for method access to kwargs
+        super().__init__(metadata=etree.parse(file))
+        self.kwargs = kwargs
 
     def get_name(self):
         name = self.metadata.xpath(".//dataset/title")

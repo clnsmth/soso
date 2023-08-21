@@ -16,13 +16,8 @@ def strategy_names():
 @pytest.fixture(params=[EML])
 def strategy_instance(request):
     """Return the strategy instances."""
-    # Initialize strategy instances with a metadata file to fulfill the
-    # required file argument.
     if request.param is EML:
-        res = request.param(
-            file=get_example_metadata_file_path("EML"),
-            url="https://example.com",  # url doesn't map to EML so use kwargs
-        )
+        res = request.param(file=get_example_metadata_file_path("EML"))
     return res
 
 

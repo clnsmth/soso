@@ -2,28 +2,46 @@
 
 
 class StrategyInterface:
-    """Define the strategy interface.
+    """Define the interface that each conversion strategy must implement.
 
     Attributes
     ----------
-    metadata : object
-        The metadata object, such as an XML tree or JSON object, used by
-        strategy methods to create SOSO properties. The object is created upon
-        initialization, when a strategy instance reads a metadata file.
+    metadata : object or None
+        The metadata object, which could be an XML tree, a JSON object, or
+        another suitable representation. This object is utilized by strategy
+        methods to generate SOSO properties.
+    kwargs : dict or None
+        Additional keyword arguments that can be utilized to define SOSO
+        properties that don't directly correspond to metadata fields.
     """
 
-    def __init__(self, metadata=None):
+    def __init__(self, metadata=None, **kwargs):
         """Return the strategy attributes."""
         self.metadata = metadata
+        self.kwargs = kwargs
 
     def get_name(self):
-        """Return a descriptive name of a dataset."""
+        """Return a descriptive name of a dataset.
+
+        Returns
+        -------
+        str"""
 
     def get_description(self):
-        """Return a short summary describing a dataset."""
+        """Return a short summary describing a dataset.
+
+        Returns
+        -------
+        str"""
 
     def get_url(self):
-        """Return the location of a page describing the dataset."""
+        """Return the location of a page describing the dataset.
+
+        Returns
+        -------
+        str
+            A URL.
+        """
 
     def get_same_as(self):
         """Return other URLs that can be used to access the dataset page.
