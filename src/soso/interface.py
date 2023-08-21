@@ -56,7 +56,12 @@ class StrategyInterface:
         """
 
     def get_version(self):
-        """Return the version number or identifier for the dataset."""
+        """Return the version number or identifier for the dataset.
+
+        Returns
+        -------
+        str or numbers.Number
+        """
 
     def get_is_accessible_for_free(self):
         """Return if the dataset is accessible for free."""

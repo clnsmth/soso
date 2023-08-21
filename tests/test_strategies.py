@@ -1,5 +1,6 @@
 """Test the strategies."""
 
+from numbers import Number
 from soso.interface import StrategyInterface
 from tests.conftest import is_url
 
@@ -57,13 +58,16 @@ def test_get_same_as_returns_expected_type(strategy_instance):
         assert is_url(res)
 
 
-# def test_get_version_returns_expected_type(strategy_instance):
-#     """Test that the get_version method returns a string or a numeric."""
-#     res = strategy_instance.get_version()
-#     if res is not None:
-#         assert isinstance(res, (float, int, str))
-#
-#
+def test_get_version_returns_expected_type(strategy_instance):
+    """Test that the get_version method returns a string or number."""
+    version_values = ["1.0", 1.0]
+    for value in version_values:
+        strategy_instance.kwargs = {"version": value}
+        res = strategy_instance.get_version()
+        if res is not None:
+            assert isinstance(res, (str, Number))
+
+
 # def test_get_get_is_accessible_for_free_returns_expected_type(strategy_instance):
 #     """Test that the get_is_accessible_for_free method returns a boolean."""
 #     res = strategy_instance.get_is_accessible_for_free()

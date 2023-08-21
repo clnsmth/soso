@@ -1,5 +1,6 @@
 """The EML strategy module."""
 
+from numbers import Number
 from lxml import etree
 from soso.interface import StrategyInterface
 
@@ -28,6 +29,7 @@ class EML(StrategyInterface):
     Unmappable properties:
 
     - url
+    - version
     """
 
     def __init__(self, file, **kwargs):
@@ -51,9 +53,15 @@ class EML(StrategyInterface):
         same_as = self.kwargs.get("sameAs")
         return same_as
 
-    # def get_version(self):
-    #     return "version from EML"
-    #
+    def get_version(self):
+        version = self.kwargs.get("version")
+        if version is not None:
+            # Constrain the user provided argument to one of the types
+            # expected by the SOSO guidelines.
+            if not isinstance(version, (str, Number)):
+                raise TypeError("version must be a string or number!")
+        return version
+
     # def get_is_accessible_for_free(self):
     #     return True
     #
