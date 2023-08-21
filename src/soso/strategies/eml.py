@@ -47,9 +47,10 @@ class EML(StrategyInterface):
         url = self.kwargs.get("url")
         return url
 
-    # def get_same_as(self):
-    #     return "same_as from EML"
-    #
+    def get_same_as(self):
+        same_as = self.kwargs.get("sameAs")
+        return same_as
+
     # def get_version(self):
     #     return "version from EML"
     #

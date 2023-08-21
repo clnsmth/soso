@@ -47,7 +47,13 @@ class StrategyInterface:
         """Return other URLs that can be used to access the dataset page.
 
         A link to a page that provides more information about the same dataset,
-        usually in a different repository."""
+        usually in a different repository.
+
+        Returns
+        -------
+        str
+            A URL.
+        """
 
     def get_version(self):
         """Return the version number or identifier for the dataset."""

@@ -49,13 +49,14 @@ def test_get_url_returns_expected_type(strategy_instance):
         assert is_url(res)
 
 
-# def test_get_same_as_returns_expected_type(strategy_instance):
-#     """Test that the get_same_as method returns a string."""
-#     res = strategy_instance.get_same_as()
-#     if res is not None:
-#         assert isinstance(res, str)
-#
-#
+def test_get_same_as_returns_expected_type(strategy_instance):
+    """Test that the get_same_as method returns a URL formatted string."""
+    strategy_instance.kwargs = {"sameAs": "https://example.com"}
+    res = strategy_instance.get_same_as()
+    if res is not None:
+        assert is_url(res)
+
+
 # def test_get_version_returns_expected_type(strategy_instance):
 #     """Test that the get_version method returns a string or a numeric."""
 #     res = strategy_instance.get_version()
