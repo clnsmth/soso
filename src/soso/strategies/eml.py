@@ -28,6 +28,7 @@ class EML(StrategyInterface):
     Unmappable properties:
 
     - url
+    - sameAs
     - version
     """
 
