@@ -28,6 +28,7 @@ class EML(StrategyInterface):
     Unmappable properties:
 
     - url
+    - version
     """
 
     def __init__(self, file, **kwargs):
@@ -51,9 +52,10 @@ class EML(StrategyInterface):
         same_as = self.kwargs.get("sameAs")
         return same_as
 
-    # def get_version(self):
-    #     return "version from EML"
-    #
+    def get_version(self):
+        version = self.kwargs.get("version")
+        return version
+
     # def get_is_accessible_for_free(self):
     #     return True
     #
