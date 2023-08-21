@@ -76,14 +76,15 @@ def test_get_get_is_accessible_for_free_returns_expected_type(strategy_instance)
         assert isinstance(res, bool)
 
 
-# def test_get_keywords_returns_expected_type(strategy_instance):
-#     """Test that the get_keywords method returns the expected type."""
-#     res = strategy_instance.get_keywords()
-#     if res is not None:
-#         # Test for a list of strings and/or defined terms and/or url.
-#         assert True
-#
-#
+def test_get_keywords_returns_expected_type(strategy_instance):
+    """Test that the get_keywords method returns a list of strings and/or
+    dictionaries."""
+    res = strategy_instance.get_keywords()
+    if res is not None:
+        for item in res:
+            assert isinstance(item, (str, dict))
+
+
 # def test_get_identifier_returns_expected_type(strategy_instance):
 #     """Test that the get_identifier method returns the expected type."""
 #     res = strategy_instance.get_identifier()
