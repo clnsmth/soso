@@ -30,6 +30,7 @@ class EML(StrategyInterface):
     - url
     - sameAs
     - version
+    - isAccessibleForFree
     """
 
     def __init__(self, file, **kwargs):
@@ -57,9 +58,10 @@ class EML(StrategyInterface):
         version = self.kwargs.get("version")
         return version
 
-    # def get_is_accessible_for_free(self):
-    #     return True
-    #
+    def get_is_accessible_for_free(self):
+        is_accessible_for_free = self.kwargs.get("isAccessibleForFree")
+        return is_accessible_for_free
+
     # def get_keywords(self):
     #     return "get_keywords from EML"
     #

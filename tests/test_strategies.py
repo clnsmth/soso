@@ -68,13 +68,14 @@ def test_get_version_returns_expected_type(strategy_instance):
             assert isinstance(res, (str, Number))
 
 
-# def test_get_get_is_accessible_for_free_returns_expected_type(strategy_instance):
-#     """Test that the get_is_accessible_for_free method returns a boolean."""
-#     res = strategy_instance.get_is_accessible_for_free()
-#     if res is not None:
-#         assert isinstance(res, bool)
-#
-#
+def test_get_get_is_accessible_for_free_returns_expected_type(strategy_instance):
+    """Test that the get_is_accessible_for_free method returns a boolean."""
+    strategy_instance.kwargs = {"isAccessibleForFree": True}
+    res = strategy_instance.get_is_accessible_for_free()
+    if res is not None:
+        assert isinstance(res, bool)
+
+
 # def test_get_keywords_returns_expected_type(strategy_instance):
 #     """Test that the get_keywords method returns the expected type."""
 #     res = strategy_instance.get_keywords()

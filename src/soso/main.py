@@ -42,7 +42,7 @@ def convert(file, strategy, **kwargs):
         "url": strategy.get_url(),
         "sameAs": strategy.get_same_as(),
         "version": strategy.get_version(),
-        # "isAccessibleForFree": strategy.get_is_accessible_for_free(),
+        "isAccessibleForFree": strategy.get_is_accessible_for_free(),
         # "keywords": strategy.get_keywords(),
         # "identifier": strategy.get_identifier(),
         # "citation": strategy.get_citation(),

@@ -64,7 +64,12 @@ class StrategyInterface:
         """
 
     def get_is_accessible_for_free(self):
-        """Return if the dataset is accessible for free."""
+        """Return if the dataset is accessible for free.
+
+        Returns
+        -------
+        bool
+        """
 
     def get_keywords(self):
         """Return keywords summarizing the dataset.
