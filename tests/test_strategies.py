@@ -41,7 +41,7 @@ def test_get_description_returns_expected_type(strategy_instance):
 
 
 def test_get_url_returns_expected_type(strategy_instance):
-    """Test that the get_url method returns a string."""
+    """Test that the get_url method returns a URL formatted string."""
     # url doesn't map to EML so use kwargs
     strategy_instance.kwargs = {"url": "https://example.com"}
     res = strategy_instance.get_url()
