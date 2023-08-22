@@ -98,7 +98,12 @@ class StrategyInterface:
         """Return the citation for the dataset.
 
         Adding the schema:citation field can be done in two ways - as either
-        text or a schema:CreativeWork."""
+        text or a schema:CreativeWork.
+
+        Returns
+        -------
+        str or dict
+        """
 
     def get_variable_measured(self):
         """Return the measurement variables of the dataset.
