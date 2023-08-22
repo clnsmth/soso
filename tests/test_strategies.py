@@ -93,14 +93,13 @@ def test_get_identifier_returns_expected_type(strategy_instance):
         assert isinstance(res, (str, dict))  # str includes URL
 
 
-# def test_get_citation_returns_expected_type(strategy_instance):
-#     """Test that the get_citation method returns the expected type."""
-#     res = strategy_instance.get_citation()
-#     if res is not None:
-#         # Test for text, or schema:CreativeWork.
-#         assert True
-#
-#
+def test_get_citation_returns_expected_type(strategy_instance):
+    """Test that the get_citation method returns a string or dictionary."""
+    res = strategy_instance.get_citation()
+    if res is not None:
+        assert isinstance(res, (str, dict))
+
+
 # def test_get_variable_measured_returns_expected_type(strategy_instance):
 #     """Test that the get_variable_measured method returns the expected type."""
 #     res = strategy_instance.get_variable_measured()

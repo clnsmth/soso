@@ -31,6 +31,7 @@ class EML(StrategyInterface):
     - sameAs
     - version
     - isAccessibleForFree
+    - citation
     """
 
     def __init__(self, file, **kwargs):
@@ -79,9 +80,10 @@ class EML(StrategyInterface):
         identifier = self.metadata.xpath("@packageId")
         return identifier[0]
 
-    # def get_citation(self):
-    #     return "get_citation from EML"
-    #
+    def get_citation(self):
+        citation = self.kwargs.get("citation")
+        return citation
+
     # def get_variable_measured(self):
     #     return "get_variable_measured from EML"
     #
