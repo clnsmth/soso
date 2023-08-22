@@ -85,14 +85,14 @@ def test_get_keywords_returns_expected_type(strategy_instance):
             assert isinstance(item, (str, dict))
 
 
-# def test_get_identifier_returns_expected_type(strategy_instance):
-#     """Test that the get_identifier method returns the expected type."""
-#     res = strategy_instance.get_identifier()
-#     if res is not None:
-#         # Test for text, URL, or PropertyValue.
-#         assert True
-#
-#
+def test_get_identifier_returns_expected_type(strategy_instance):
+    """Test that the get_identifier method returns a string, URL, or
+    dictionary."""
+    res = strategy_instance.get_identifier()
+    if res is not None:
+        assert isinstance(res, (str, dict))  # str includes URL
+
+
 # def test_get_citation_returns_expected_type(strategy_instance):
 #     """Test that the get_citation method returns the expected type."""
 #     res = strategy_instance.get_citation()

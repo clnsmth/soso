@@ -44,7 +44,7 @@ def convert(file, strategy, **kwargs):
         "version": strategy.get_version(),
         "isAccessibleForFree": strategy.get_is_accessible_for_free(),
         "keywords": strategy.get_keywords(),
-        # "identifier": strategy.get_identifier(),
+        "identifier": strategy.get_identifier(),
         # "citation": strategy.get_citation(),
         # "variableMeasured": strategy.get_citation(),
         # "includedInDataCatalog": strategy.get_included_in_data_catalog(),
