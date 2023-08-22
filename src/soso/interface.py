@@ -74,8 +74,14 @@ class StrategyInterface:
     def get_keywords(self):
         """Return keywords summarizing the dataset.
 
-        Adding the schema:keywords field can be done in three ways - a text
-        description, a URL, or by using schema:DefinedTerm."""
+        Adding the schema:keywords field can be done in two ways - a text
+        description, or by using schema:DefinedTerm. We recommend using
+        schema:DefinedTerm if a keyword comes from a controlled vocabulary.
+
+        Returns
+        -------
+        list
+        """
 
     def get_identifier(self):
         """Return the identifier for the dataset, such as a DOI.

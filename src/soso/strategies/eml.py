@@ -62,9 +62,19 @@ class EML(StrategyInterface):
         is_accessible_for_free = self.kwargs.get("isAccessibleForFree")
         return is_accessible_for_free
 
-    # def get_keywords(self):
-    #     return "get_keywords from EML"
-    #
+    def get_keywords(self):
+        keywords = []
+        for item in self.metadata.xpath(".//dataset/keywordSet/keyword"):
+            keywords.append(item.text)
+        for item in self.metadata.xpath(".//dataset/annotation/valueURI"):
+            defined_term = {
+                "@type": "DefinedTerm",
+                "name": item.attrib["label"],
+                "url": item.text,
+            }
+            keywords.append(defined_term)
+        return keywords
+
     # def get_identifier(self):
     #     return "get_identifier from EML"
     #

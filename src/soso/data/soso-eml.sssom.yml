@@ -8,7 +8,7 @@ object_source: https://doi.org/10.5063/F11834T2
 object_source_version: 2.2.0
 curie_map:
   dbpedia: http://dbpedia.org/resource/
-  eml: eml://ecoinformatics.org/eml-2.2.0/
+  eml: https://eml.ecoinformatics.org/eml-2.2.0
   gsqtime: https://vocabs.gsq.digital/object?uri=http://linked.data.gov.au/def/trs
   gstime: http://schema.geoschemas.org/contexts/temporal#
   icsc:
@@ -19,6 +19,7 @@ curie_map:
   rdfs: https://www.w3.org/2001/sw/RDFCore/Schema/200212/
   res: https://eml.ecoinformatics.org/resource-2.2.0
   schema: https://schema.org/
+  sem: https://eml.ecoinformatics.org/semantics-2.2.0
   semapv: https://mapping-commons.github.io/semantic-mapping-vocabulary/#
   spdx: http://spdx.org/rdf/terms#
   sssom: https://w3id.org/sssom/
