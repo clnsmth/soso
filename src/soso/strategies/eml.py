@@ -75,9 +75,10 @@ class EML(StrategyInterface):
             keywords.append(defined_term)
         return keywords
 
-    # def get_identifier(self):
-    #     return "get_identifier from EML"
-    #
+    def get_identifier(self):
+        identifier = self.metadata.xpath("@packageId")
+        return identifier[0]
+
     # def get_citation(self):
     #     return "get_citation from EML"
     #

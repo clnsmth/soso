@@ -87,7 +87,12 @@ class StrategyInterface:
         """Return the identifier for the dataset, such as a DOI.
 
         Adding the schema:identifier field can be done in three ways - a text
-        description, a URL, or by using the schema:PropertyValue field."""
+        description, a URL, or by using the schema:PropertyValue field.
+
+        Returns
+        -------
+        str or dict
+        """
 
     def get_citation(self):
         """Return the citation for the dataset.
