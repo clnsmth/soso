@@ -84,9 +84,9 @@ class EML(StrategyInterface):
         citation = self.kwargs.get("citation")
         return citation
 
-    # def get_variable_measured(self):
-    #     return "get_variable_measured from EML"
-    #
+    def get_variable_measured(self):
+        return "get_variable_measured from EML"
+
     # def get_included_in_data_catalog(self):
     #     return "get_included_in_data_catalog from EML"
     #
