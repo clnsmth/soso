@@ -1,4 +1,5 @@
 """The EML strategy module."""
+import json
 
 from lxml import etree
 from soso.interface import StrategyInterface
@@ -89,16 +90,20 @@ class EML(StrategyInterface):
         for item in self.metadata.xpath(".//attributeList/attribute"):
             property_value = {
                 "@type": "PropertyValue",
-                "name": "latitude",
-                "propertyID":"http://purl.obolibrary.org/obo/NCIT_C68642",
-                "url": "https://www.sample-data-repository.org/dataset-parameter/665787",
-                "description": "Latitude where water samples were collected; north is positive. Latitude is a geographic coordinate which refers to the angle from a point on the Earth's surface to the equatorial plane",
-                "unitText": "decimal degrees",
-                "unitCode":"http://qudt.org/vocab/unit/DEG",
-                "minValue": "45.0",
-                "maxValue": "15.0"
+                "name": item.findtext("attributeName"),
+                "alternateName": item.findtext("attributeLabel"),
+                "propertyID": item.findtext(".//valueURI"),
+                "description": item.findtext("attributeDefinition"),
+                "unitText": item.findtext(".//standardUnit")
+                or item.findtext(".//customUnit"),
+                "minValue": item.findtext(".//minimum"),
+                "maxValue": item.findtext(".//maximum"),
             }
-        return "get_variable_measured from EML"
+            property_value = {
+                key: value for key, value in property_value.items() if value is not None
+            }
+            variable_measured.append(property_value)
+        return variable_measured
 
     # def get_included_in_data_catalog(self):
     #     return "get_included_in_data_catalog from EML"
