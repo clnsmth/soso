@@ -33,6 +33,7 @@ class EML(StrategyInterface):
     - version
     - isAccessibleForFree
     - citation
+    - includedInDataCatalog
     """
 
     def __init__(self, file, **kwargs):
@@ -105,9 +106,10 @@ class EML(StrategyInterface):
             variable_measured.append(property_value)
         return variable_measured
 
-    # def get_included_in_data_catalog(self):
-    #     return "get_included_in_data_catalog from EML"
-    #
+    def get_included_in_data_catalog(self):
+        included_in_data_catalog = self.kwargs.get("includedInDataCatalog")
+        return included_in_data_catalog
+
     # def get_subject_of(self):
     #     return "get_subject_of from EML"
     #

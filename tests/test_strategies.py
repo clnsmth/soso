@@ -107,15 +107,22 @@ def test_get_variable_measured_returns_expected_type(strategy_instance):
         assert isinstance(res, list)
 
 
-# def test_get_included_in_data_catalog_returns_expected_type(strategy_instance):
-#     """Test that the get_included_in_data_catalog method returns the expected
-#     type."""
-#     res = strategy_instance.get_included_in_data_catalog()
-#     if res is not None:
-#         # Test for URL (and other properties listed in SSSOM?).
-#         assert True
-#
-#
+def test_get_included_in_data_catalog_returns_expected_type(strategy_instance):
+    """Test that the get_included_in_data_catalog method returns a
+    dictionary."""
+    strategy_instance.kwargs = {
+        "includedInDataCatalog": {
+            "@type": "DataCatalog",
+            "name": "Biological Data",
+            "description": "A catalog of biological data.",
+            "url": "https://www.sample-data-repository.org/collection/biological-data",
+        }
+    }
+    res = strategy_instance.get_included_in_data_catalog()
+    if res is not None:
+        assert isinstance(res, dict)
+
+
 # def test_get_subject_of_returns_expected_type(strategy_instance):
 #     """Test that the get_subject_of method returns the expected type."""
 #     res = strategy_instance.get_subject_of()
