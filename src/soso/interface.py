@@ -111,7 +111,12 @@ class StrategyInterface:
         Adding the schema:variableMeasured field can be done in three ways - as
         a simple list of variable names, names of variables with formal
         property types, or, for numeric types, additional numeric
-        properties."""
+        properties.
+
+        Returns
+        -------
+        list
+        """
 
     def get_included_in_data_catalog(self):
         """Return the data catalog that the dataset is included in."""

@@ -85,6 +85,19 @@ class EML(StrategyInterface):
         return citation
 
     def get_variable_measured(self):
+        variable_measured = []
+        for item in self.metadata.xpath(".//attributeList/attribute"):
+            property_value = {
+                "@type": "PropertyValue",
+                "name": "latitude",
+                "propertyID":"http://purl.obolibrary.org/obo/NCIT_C68642",
+                "url": "https://www.sample-data-repository.org/dataset-parameter/665787",
+                "description": "Latitude where water samples were collected; north is positive. Latitude is a geographic coordinate which refers to the angle from a point on the Earth's surface to the equatorial plane",
+                "unitText": "decimal degrees",
+                "unitCode":"http://qudt.org/vocab/unit/DEG",
+                "minValue": "45.0",
+                "maxValue": "15.0"
+            }
         return "get_variable_measured from EML"
 
     # def get_included_in_data_catalog(self):
