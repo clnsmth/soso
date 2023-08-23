@@ -1,4 +1,5 @@
 """The EML strategy module."""
+import json
 
 from lxml import etree
 from soso.interface import StrategyInterface
@@ -84,9 +85,26 @@ class EML(StrategyInterface):
         citation = self.kwargs.get("citation")
         return citation
 
-    # def get_variable_measured(self):
-    #     return "get_variable_measured from EML"
-    #
+    def get_variable_measured(self):
+        variable_measured = []
+        for item in self.metadata.xpath(".//attributeList/attribute"):
+            property_value = {
+                "@type": "PropertyValue",
+                "name": item.findtext("attributeName"),
+                "alternateName": item.findtext("attributeLabel"),
+                "propertyID": item.findtext(".//valueURI"),
+                "description": item.findtext("attributeDefinition"),
+                "unitText": item.findtext(".//standardUnit")
+                or item.findtext(".//customUnit"),
+                "minValue": item.findtext(".//minimum"),
+                "maxValue": item.findtext(".//maximum"),
+            }
+            property_value = {
+                key: value for key, value in property_value.items() if value is not None
+            }
+            variable_measured.append(property_value)
+        return variable_measured
+
     # def get_included_in_data_catalog(self):
     #     return "get_included_in_data_catalog from EML"
     #

@@ -46,7 +46,7 @@ def convert(file, strategy, **kwargs):
         "keywords": strategy.get_keywords(),
         "identifier": strategy.get_identifier(),
         "citation": strategy.get_citation(),
-        # "variableMeasured": strategy.get_citation(),
+        "variableMeasured": strategy.get_variable_measured(),
         # "includedInDataCatalog": strategy.get_included_in_data_catalog(),
         # "subjectOf": strategy.get_subject_of(),
         # "distribution": strategy.get_distribution(),

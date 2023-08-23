@@ -100,14 +100,13 @@ def test_get_citation_returns_expected_type(strategy_instance):
         assert isinstance(res, (str, dict))
 
 
-# def test_get_variable_measured_returns_expected_type(strategy_instance):
-#     """Test that the get_variable_measured method returns the expected type."""
-#     res = strategy_instance.get_variable_measured()
-#     if res is not None:
-#         # Test for list of PropertyValue.
-#         assert True
-#
-#
+def test_get_variable_measured_returns_expected_type(strategy_instance):
+    """Test that the get_variable_measured method returns the expected type."""
+    res = strategy_instance.get_variable_measured()
+    if res is not None:
+        assert isinstance(res, list)
+
+
 # def test_get_included_in_data_catalog_returns_expected_type(strategy_instance):
 #     """Test that the get_included_in_data_catalog method returns the expected
 #     type."""
