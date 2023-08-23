@@ -119,7 +119,12 @@ class StrategyInterface:
         """
 
     def get_included_in_data_catalog(self):
-        """Return the data catalog that the dataset is included in."""
+        """Return the data catalog that the dataset is included in.
+
+        Returns
+        -------
+        dict
+        """
 
     def get_subject_of(self):
         """Return the metadata record for the dataset."""
