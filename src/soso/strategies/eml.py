@@ -34,6 +34,7 @@ class EML(StrategyInterface):
     - isAccessibleForFree
     - citation
     - includedInDataCatalog
+    - subjectOf
     """
 
     def __init__(self, file, **kwargs):
@@ -110,9 +111,10 @@ class EML(StrategyInterface):
         included_in_data_catalog = self.kwargs.get("includedInDataCatalog")
         return included_in_data_catalog
 
-    # def get_subject_of(self):
-    #     return "get_subject_of from EML"
-    #
+    def get_subject_of(self):
+        subject_of = self.kwargs.get("subjectOf")
+        return subject_of
+
     # def get_distribution(self):
     #     return "get_distribution from EML"
     #

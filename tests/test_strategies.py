@@ -123,14 +123,27 @@ def test_get_included_in_data_catalog_returns_expected_type(strategy_instance):
         assert isinstance(res, dict)
 
 
-# def test_get_subject_of_returns_expected_type(strategy_instance):
-#     """Test that the get_subject_of method returns the expected type."""
-#     res = strategy_instance.get_subject_of()
-#     if res is not None:
-#         # Test for subjectOf.
-#         assert True
-#
-#
+def test_get_subject_of_returns_expected_type(strategy_instance):
+    """Test that the get_subject_of method returns the expected a
+    dictionary."""
+    strategy_instance.kwargs = {
+        "subjectOf": {
+            "@type": "DataDownload",
+            "name": "Metadata for dataset",
+            "description": "Metadata describing the dataset",
+            "encodingFormat": [
+                "application/xml",
+                "https://metadata.schema/version-1.0.0",
+            ],
+            "contentURL": "https://example.com/metadata/eml-metadata.xml",
+            "dateModified": "2019-06-12T14:44:15Z",
+        }
+    }
+    res = strategy_instance.get_subject_of()
+    if res is not None:
+        assert isinstance(res, dict)
+
+
 # def test_get_distribution_returns_expected_type(strategy_instance):
 #     """Test that the get_distribution method returns the expected type."""
 #     res = strategy_instance.get_distribution()
