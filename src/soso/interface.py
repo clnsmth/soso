@@ -127,7 +127,12 @@ class StrategyInterface:
         """
 
     def get_subject_of(self):
-        """Return the metadata record for the dataset."""
+        """Return the metadata record for the dataset.
+
+        Returns
+        -------
+        dict
+        """
 
     def get_distribution(self):
         """Return the where to get the dataset and in what format."""
