@@ -135,7 +135,12 @@ class StrategyInterface:
         """
 
     def get_distribution(self):
-        """Return the where to get the dataset and in what format."""
+        """Return where to get the data and in what format.
+
+        Returns
+        -------
+        list
+        """
 
     def get_date_created(self):
         """Return the date the dataset was initially generated."""
@@ -188,7 +193,3 @@ class StrategyInterface:
     def get_was_generated_by(self):
         """Return an execution linking a program to source and derived
         products."""
-
-    def get_checksum(self):
-        """Return a cryptographic checksum value that can be used to
-        characterize the contents of the object."""

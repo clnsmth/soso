@@ -144,14 +144,13 @@ def test_get_subject_of_returns_expected_type(strategy_instance):
         assert isinstance(res, dict)
 
 
-# def test_get_distribution_returns_expected_type(strategy_instance):
-#     """Test that the get_distribution method returns the expected type."""
-#     res = strategy_instance.get_distribution()
-#     if res is not None:
-#         # Test for distribution.
-#         assert True
-#
-#
+def test_get_distribution_returns_expected_type(strategy_instance):
+    """Test that the get_distribution method returns a list."""
+    res = strategy_instance.get_distribution()
+    if res is not None:
+        assert isinstance(res, list)
+
+
 # def test_get_date_created_returns_expected_type(strategy_instance):
 #     """Test that the get_date_created method returns the expected type."""
 #     res = strategy_instance.get_date_created()
@@ -277,12 +276,4 @@ def test_get_subject_of_returns_expected_type(strategy_instance):
 #     res = strategy_instance.get_was_generated_by()
 #     if res is not None:
 #         # Test for provone:Execution.
-#         assert True
-#
-#
-# def test_get_checksum_returns_expected_type(strategy_instance):
-#     """Test that the get_checksum method returns the expected type."""
-#     res = strategy_instance.get_checksum()
-#     if res is not None:
-#         # Test for spdx:Checksum.
 #         assert True
