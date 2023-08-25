@@ -39,7 +39,7 @@ def soso_properties():
         "variableMeasured",
         "includedInDataCatalog",
         "subjectOf",
-        # "distribution",
+        "distribution",
         # "dateCreated",
         # "dateModified",
         # "datePublished",
@@ -56,7 +56,6 @@ def soso_properties():
         # "wasDerivedFrom",
         # "isBasedOn",
         # "wasGeneratedBy",
-        # "checksum",
     ]
 
 
@@ -76,7 +75,7 @@ def interface_methods():
         "get_variable_measured",
         "get_included_in_data_catalog",
         "get_subject_of",
-        # "get_distribution",
+        "get_distribution",
         # "get_date_created",
         # "get_date_modified",
         # "get_date_published",
@@ -93,7 +92,6 @@ def interface_methods():
         # "get_was_derived_from",
         # "get_is_based_on",
         # "get_was_generated_by",
-        # "get_checksum",
     ]
     return res
 

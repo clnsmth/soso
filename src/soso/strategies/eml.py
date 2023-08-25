@@ -1,5 +1,4 @@
 """The EML strategy module."""
-import json
 
 from lxml import etree
 from soso.interface import StrategyInterface
@@ -115,9 +114,28 @@ class EML(StrategyInterface):
         subject_of = self.kwargs.get("subjectOf")
         return subject_of
 
-    # def get_distribution(self):
-    #     return "get_distribution from EML"
-    #
+    def get_distribution(self):
+        distribution = []
+        data_entities = [
+            "dataTable",
+            "spatialRaster",
+            "spatialVector",
+            "storedProcedure",
+            "view",
+            "otherEntity",
+        ]
+        for data_entity in data_entities:
+            for item in self.metadata.xpath(f".//{data_entity}"):
+                data_download = {
+                    "@type": "DataDownload",
+                    "name": item.findtext(".//entityName"),
+                    "description": item.findtext(".//entityDescription"),
+                    "contentSize": get_content_size(item),
+                    "contentURL": get_content_url(item),
+                }
+                distribution.append(data_download)
+        return distribution
+
     # def get_date_created(self):
     #     return "get_date_created from EML"
     #
@@ -165,6 +183,51 @@ class EML(StrategyInterface):
     #
     # def get_was_generated_by(self):
     #     return "get_was_generated_by from EML"
-    #
-    # def get_checksum(self):
-    #     return "get_checksum from EML"
+
+
+# Utility functions for the EML strategy
+
+
+def get_content_size(data_entity_element):
+    """Return the content size for a data entity element.
+
+    The If the "unit" attribute of the "size" element is defined, it will be
+    appended to the content size value.
+
+    Parameters
+    ----------
+    data_entity_element : lxml.etree._Element
+        The data entity element to get the content size from.
+
+    Returns
+    -------
+    str
+    """
+    size_element = data_entity_element.xpath(".//physical/size")
+    size = size_element[0].text
+    unit = size_element[0].get("unit")
+    if unit:
+        size += " " + unit
+    return size
+
+
+def get_content_url(data_entity_element):
+    """Return the content url for a data entity element.
+
+    If the "function" attribute of the data entity element is "information",
+    the url elements value does not semantically match the SOSO contentUrl
+    property definition and None is returned.
+
+    Parameters
+    ----------
+    data_entity_element : lxml.etree._Element
+        The data entity element to get the content url from.
+
+    Returns
+    -------
+    str or None
+    """
+    url_element = data_entity_element.xpath(".//distribution/online/url")
+    if url_element[0].get("function") != "information":
+        return url_element[0].text
+    return None

@@ -49,7 +49,7 @@ def convert(file, strategy, **kwargs):
         "variableMeasured": strategy.get_variable_measured(),
         "includedInDataCatalog": strategy.get_included_in_data_catalog(),
         "subjectOf": strategy.get_subject_of(),
-        # "distribution": strategy.get_distribution(),
+        "distribution": strategy.get_distribution(),
         # "dateCreated": strategy.get_date_created(),
         # "dateModified": strategy.get_date_modified(),
         # "datePublished": strategy.get_date_published(),
@@ -66,7 +66,6 @@ def convert(file, strategy, **kwargs):
         # "wasDerivedFrom": strategy.get_was_derived_from(),
         # "isBasedOn": strategy.get_is_based_on(),
         # "wasGeneratedBy": strategy.get_was_generated_by(),
-        # "checksum": strategy.get_checksum(),
     }
 
     # Remove properties where get methods returned None, so the user is

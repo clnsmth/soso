@@ -10,10 +10,12 @@ curie_map:
   attr: https://eml.ecoinformatics.org/attribute-2.2.0
   dbpedia: http://dbpedia.org/resource/
   eml: https://eml.ecoinformatics.org/eml-2.2.0
+  ent: https://eml.ecoinformatics.org/entity-2.2.0
   gsqtime: https://vocabs.gsq.digital/object?uri=http://linked.data.gov.au/def/trs
   gstime: http://schema.geoschemas.org/contexts/temporal#
   icsc: http://resource.geosciml.org/clashttps://vocabs.ardc.edu.au/repository/api/lda/csiro/international-chronostratigraphic-chart/geologic-time-scale-2020/resource?uri=http://resource.geosciml.org/classifier/ics/ischart/Boundariessifier/ics/ischart/
   md: https://eml.ecoinformatics.org/methods-2.2.0
+  phys: https://eml.ecoinformatics.org/physical-2.2.0
   prov: http://www.w3.org/ns/prov#
   provone: http://purl.dataone.org/provone/2015/01/15/ontology#
   rc: https://eml.ecoinformatics.org/resource-2.2.0
