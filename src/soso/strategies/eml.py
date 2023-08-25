@@ -34,6 +34,7 @@ class EML(StrategyInterface):
     - citation
     - includedInDataCatalog
     - subjectOf
+    - potentialAction
     """
 
     def __init__(self, file, **kwargs):
@@ -135,6 +136,10 @@ class EML(StrategyInterface):
                 }
                 distribution.append(data_download)
         return distribution
+
+    def get_potential_action(self):
+        potential_action = self.kwargs.get("potentialAction")
+        return potential_action
 
     # def get_date_created(self):
     #     return "get_date_created from EML"

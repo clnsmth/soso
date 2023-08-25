@@ -142,6 +142,19 @@ class StrategyInterface:
         list
         """
 
+    def get_potential_action(self):
+        """Return the query parameters and methods to actuate a data request.
+
+        Here, we use the schema:SearchAction type becuase it lets you define
+        the query parameters and HTTP methods so that machines can build user
+        interfaces to collect those query parmaeters and actuate a request to
+        provide the user what they are looking for.
+
+        Returns
+        -------
+        dict
+        """
+
     def get_date_created(self):
         """Return the date the dataset was initially generated."""
 
