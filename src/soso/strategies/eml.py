@@ -150,9 +150,10 @@ class EML(StrategyInterface):
         date_modified = self.metadata.xpath(".//dataset/pubDate")
         return date_modified[0].text
 
-    # def get_date_published(self):
-    #     return "get_date_published from EML"
-    #
+    def get_date_published(self):
+        date_published = self.metadata.xpath(".//dataset/pubDate")
+        return date_published[0].text
+
     # def get_expires(self):
     #     return "get_expires from EML"
     #
