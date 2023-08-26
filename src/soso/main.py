@@ -50,6 +50,7 @@ def convert(file, strategy, **kwargs):
         "includedInDataCatalog": strategy.get_included_in_data_catalog(),
         "subjectOf": strategy.get_subject_of(),
         "distribution": strategy.get_distribution(),
+        "potentialAction": strategy.get_potential_action(),
         # "dateCreated": strategy.get_date_created(),
         # "dateModified": strategy.get_date_modified(),
         # "datePublished": strategy.get_date_published(),

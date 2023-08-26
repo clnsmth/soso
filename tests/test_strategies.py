@@ -151,6 +151,74 @@ def test_get_distribution_returns_expected_type(strategy_instance):
         assert isinstance(res, list)
 
 
+def test_get_potential_action_returns_expected_type(strategy_instance):
+    """Test that the get_potential_action method returns a dictionary."""
+    strategy_instance.kwargs = {
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+                "@type": "EntryPoint",
+                "contentType": ["application/x-netcdf", "text/tab-separated-values"],
+                "urlTemplate": "https://www.sample-data-repository.org/"
+                "dataset/1234/download?format={format}&"
+                "startDateTime={start}&endDateTime={end}&bounds"
+                "={bbox}",
+                "description": "Download dataset 1234 based on the requested "
+                "format, start/end dates and bounding box",
+                "httpMethod": ["GET", "POST"],
+            },
+            "query-input": [
+                {
+                    "@type": "PropertyValueSpecification",
+                    "valueName": "format",
+                    "description": "The desired format requested either "
+                    "'application/x-netcdf' or 'text/tab-"
+                    "separated-values'",
+                    "valueRequired": True,
+                    "defaultValue": "application/x-netcdf",
+                    "valuePattern": r"(application\/x-netcdf|text\/tab-"
+                    "separated-values)",
+                },
+                {
+                    "@type": "PropertyValueSpecification",
+                    "valueName": "start",
+                    "description": "A UTC ISO DateTime",
+                    "valueRequired": False,
+                    "valuePattern": "(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0"
+                    "[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|"
+                    "[01][0-9]):([0-5][0-9]):([0-5][0-9])"
+                    "(.[0-9]+)?(Z)?",
+                },
+                {
+                    "@type": "PropertyValueSpecification",
+                    "valueName": "end",
+                    "description": "A UTC ISO DateTime",
+                    "valueRequired": False,
+                    "valuePattern": "(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0"
+                    "[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|"
+                    "[01][0-9]):([0-5][0-9]):([0-5][0-9])"
+                    "(.[0-9]+)?(Z)?",
+                },
+                {
+                    "@type": "PropertyValueSpecification",
+                    "valueName": "bbox",
+                    "description": "Two points in decimal degrees that create "
+                    "a bounding box fomatted at 'lon,lat' of "
+                    "the lower-left corner and 'lon,lat' of "
+                    "the upper-right",
+                    "valueRequired": False,
+                    "valuePattern": "(-?[0-9]+(.[0-9]+)?),[ ]*(-?[0-9]+(.[0-9]"
+                    "+)?)[ ]*(-?[0-9]+(.[0-9]+)?),[ ]*(-?[0-9]"
+                    "+(.[0-9]+)?)",
+                },
+            ],
+        }
+    }
+    res = strategy_instance.get_potential_action()
+    if res is not None:
+        assert isinstance(res, dict)
+
+
 # def test_get_date_created_returns_expected_type(strategy_instance):
 #     """Test that the get_date_created method returns the expected type."""
 #     res = strategy_instance.get_date_created()
