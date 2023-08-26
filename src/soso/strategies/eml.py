@@ -35,6 +35,7 @@ class EML(StrategyInterface):
     - includedInDataCatalog
     - subjectOf
     - potentialAction
+    - dateCreated
     """
 
     def __init__(self, file, **kwargs):
@@ -141,9 +142,10 @@ class EML(StrategyInterface):
         potential_action = self.kwargs.get("potentialAction")
         return potential_action
 
-    # def get_date_created(self):
-    #     return "get_date_created from EML"
-    #
+    def get_date_created(self):
+        date_created = self.kwargs.get("dateCreated")
+        return date_created
+
     # def get_date_modified(self):
     #     return "get_date_modified from EML"
     #

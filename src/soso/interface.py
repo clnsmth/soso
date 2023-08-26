@@ -156,7 +156,12 @@ class StrategyInterface:
         """
 
     def get_date_created(self):
-        """Return the date the dataset was initially generated."""
+        """Return the date the dataset was initially generated.
+
+        Returns
+        -------
+        str
+        """
 
     def get_date_modified(self):
         """Return the date the dataset was most recently updated or changed."""
