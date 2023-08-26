@@ -164,7 +164,12 @@ class StrategyInterface:
         """
 
     def get_date_modified(self):
-        """Return the date the dataset was most recently updated or changed."""
+        """Return the date the dataset was most recently updated or changed.
+
+        Returns
+        -------
+        str
+        """
 
     def get_date_published(self):
         """Return the date when a dataset was made available to the public

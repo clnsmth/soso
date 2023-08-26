@@ -146,9 +146,10 @@ class EML(StrategyInterface):
         date_created = self.kwargs.get("dateCreated")
         return date_created
 
-    # def get_date_modified(self):
-    #     return "get_date_modified from EML"
-    #
+    def get_date_modified(self):
+        date_modified = self.metadata.xpath(".//dataset/pubDate")
+        return date_modified[0].text
+
     # def get_date_published(self):
     #     return "get_date_published from EML"
     #

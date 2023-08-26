@@ -226,14 +226,13 @@ def test_get_date_created_returns_expected_type(strategy_instance):
         assert isinstance(res, str)
 
 
-# def test_get_date_modified_returns_expected_type(strategy_instance):
-#     """Test that the get_date_modified method returns the expected type."""
-#     res = strategy_instance.get_date_modified()
-#     if res is not None:
-#         # Test for string (or date?).
-#         assert True
-#
-#
+def test_get_date_modified_returns_expected_type(strategy_instance):
+    """Test that the get_date_modified method returns a string."""
+    res = strategy_instance.get_date_modified()
+    if res is not None:
+        assert isinstance(res, str)
+
+
 # def test_get_date_published_returns_expected_type(strategy_instance):
 #     """Test that the get_date_published method returns the expected type."""
 #     res = strategy_instance.get_date_published()
