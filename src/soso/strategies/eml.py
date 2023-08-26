@@ -36,6 +36,7 @@ class EML(StrategyInterface):
     - subjectOf
     - potentialAction
     - dateCreated
+    - expires
     """
 
     def __init__(self, file, **kwargs):
@@ -154,9 +155,10 @@ class EML(StrategyInterface):
         date_published = self.metadata.xpath(".//dataset/pubDate")
         return date_published[0].text
 
-    # def get_expires(self):
-    #     return "get_expires from EML"
-    #
+    def get_expires(self):
+        expires = self.kwargs.get("expires")
+        return expires
+
     # def get_temporal_coverage(self):
     #     return "get_temporal_coverage from EML"
     #

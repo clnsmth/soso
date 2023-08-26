@@ -182,7 +182,12 @@ class StrategyInterface:
 
     def get_expires(self):
         """Return the date when the dataset expires and is no longer useful or
-        available."""
+        available.
+
+        Returns
+        -------
+        str
+        """
 
     def get_temporal_coverage(self):
         """Return the time period(s) that the content applies to."""

@@ -240,14 +240,14 @@ def test_get_date_published_returns_expected_type(strategy_instance):
         assert isinstance(res, str)
 
 
-# def test_get_expires_returns_expected_type(strategy_instance):
-#     """Test that the get_expires method returns the expected type."""
-#     res = strategy_instance.get_expires()
-#     if res is not None:
-#         # Test for string (or date?).
-#         assert True
-#
-#
+def test_get_expires_returns_expected_type(strategy_instance):
+    """Test that the get_expires method returns a string."""
+    strategy_instance.kwargs = {"expires": "2019-06-12T14:44:15Z"}
+    res = strategy_instance.get_expires()
+    if res is not None:
+        assert isinstance(res, str)
+
+
 # def test_get_temporal_coverage_returns_expected_type(strategy_instance):
 #     """Test that the get_temporal_coverage method returns the expected type."""
 #     res = strategy_instance.get_temporal_coverage()
