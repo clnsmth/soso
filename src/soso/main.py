@@ -53,7 +53,7 @@ def convert(file, strategy, **kwargs):
         "potentialAction": strategy.get_potential_action(),
         "dateCreated": strategy.get_date_created(),
         "dateModified": strategy.get_date_modified(),
-        # "datePublished": strategy.get_date_published(),
+        "datePublished": strategy.get_date_published(),
         # "expires": strategy.get_expires(),
         # "temporalCoverage": strategy.get_temporal_coverage(),
         # "spatialCoverage": strategy.get_spatial_coverage(),

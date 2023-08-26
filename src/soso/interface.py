@@ -173,7 +173,12 @@ class StrategyInterface:
 
     def get_date_published(self):
         """Return the date when a dataset was made available to the public
-        through a publication process."""
+        through a publication process.
+
+        Returns
+        -------
+        str
+        """
 
     def get_expires(self):
         """Return the date when the dataset expires and is no longer useful or
