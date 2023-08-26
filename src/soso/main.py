@@ -52,7 +52,7 @@ def convert(file, strategy, **kwargs):
         "distribution": strategy.get_distribution(),
         "potentialAction": strategy.get_potential_action(),
         "dateCreated": strategy.get_date_created(),
-        # "dateModified": strategy.get_date_modified(),
+        "dateModified": strategy.get_date_modified(),
         # "datePublished": strategy.get_date_published(),
         # "expires": strategy.get_expires(),
         # "temporalCoverage": strategy.get_temporal_coverage(),
