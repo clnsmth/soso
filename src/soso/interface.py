@@ -204,7 +204,12 @@ class StrategyInterface:
 
     def get_spatial_coverage(self):
         """Return the location on Earth that is the focus of the dataset
-        content."""
+        content.
+
+        Returns
+        -------
+        dict
+        """
 
     def get_creator(self):
         """Return the creator(s) of a dataset."""

@@ -178,9 +178,21 @@ class EML(StrategyInterface):
                 temporal_coverage = convert_single_date_time(single_date_time[0])
         return temporal_coverage
 
-    # def get_spatial_coverage(self):
-    #     return "get_spatial_coverage from EML"
-    #
+    def get_spatial_coverage(self):
+        # EML geographic coverage can have several elements. So get geographic coverage and iterate over each item.
+        spatial_coverage = []
+        for item in self.metadata.xpath(".//dataset/coverage/geographicCoverage"):
+            # For each item determine the object type either as point, box, or polygon. Use a helper function to determine the type.
+            object_type = get_spatial_type(item)
+            # Based on the object type, call one of three additional helper functions to parse the content and return result as a dictionary.
+            if object_type == "Point":
+                spatial_coverage.append(get_point(item))
+            elif object_type == "Box":
+                spatial_coverage.append(get_box(item))
+            elif object_type == "Polygon":
+                spatial_coverage.append(get_polygon(item))
+        return spatial_coverage
+
     # def get_creator(self):
     #     return "get_creator from EML"
     #
@@ -358,3 +370,19 @@ def convert_single_date_time_type(single_date_time):
             },
         }
     return instant
+
+
+def get_spatial_type(item):
+    pass
+
+
+def get_point(item):
+    pass
+
+
+def get_box(item):
+    pass
+
+
+def get_polygon(item):
+    pass

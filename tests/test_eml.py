@@ -191,3 +191,19 @@ def test_convert_single_date_time_returns_expected_type():
     root = etree.fromstring(xml_content)
     res = convert_single_date_time_type(root)
     assert isinstance(res, str)
+
+
+def test_get_spatial_type_returns_expected_value():
+    assert False
+
+
+def test_get_point_returns_expected_value():
+    assert False
+
+
+def test_get_box_returns_expected_value():
+    assert False
+
+
+def test_get_polygon_returns_expected_value():
+    assert False
