@@ -190,7 +190,17 @@ class StrategyInterface:
         """
 
     def get_temporal_coverage(self):
-        """Return the time period(s) that the content applies to."""
+        """Return the time period(s) that the content applies to.
+
+        Temporal coverage can be an instant or interval expressed as a calendar
+        datetime or geologic age.
+
+        Returns
+        -------
+        str or dict
+            Calendar datetimes are returned as a string and geologic ages are
+            returned as a dictionary.
+        """
 
     def get_spatial_coverage(self):
         """Return the location on Earth that is the focus of the dataset
