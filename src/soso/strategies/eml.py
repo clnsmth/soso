@@ -159,9 +159,25 @@ class EML(StrategyInterface):
         expires = self.kwargs.get("expires")
         return expires
 
-    # def get_temporal_coverage(self):
-    #     return "get_temporal_coverage from EML"
-    #
+    def get_temporal_coverage(self):
+        range_of_dates = self.metadata.xpath(
+            ".//dataset/coverage/temporalCoverage/rangeOfDates"
+        )
+        single_date_time = self.metadata.xpath(
+            ".//dataset/coverage/temporalCoverage/singleDateTime"
+        )
+        if range_of_dates:
+            temporal_coverage = convert_range_of_dates(range_of_dates[0])
+        elif single_date_time:
+            if len(single_date_time) > 1:
+                # schema:temporalCoverage only allows one but EML may have
+                # many. There is no reliable way to determine which is the
+                # most relevant, so we return None.
+                temporal_coverage = None
+            else:
+                temporal_coverage = convert_single_date_time(single_date_time[0])
+        return temporal_coverage
+
     # def get_spatial_coverage(self):
     #     return "get_spatial_coverage from EML"
     #
@@ -196,7 +212,7 @@ class EML(StrategyInterface):
     #     return "get_was_generated_by from EML"
 
 
-# Utility functions for the EML strategy
+# Below are utility functions for the EML strategy.
 
 
 def get_content_size(data_entity_element):
@@ -242,3 +258,103 @@ def get_content_url(data_entity_element):
     if url_element[0].get("function") != "information":
         return url_element[0].text
     return None
+
+
+def convert_range_of_dates(range_of_dates):
+    """Return EML rangeOfDates as a calendar datetime or geologic age interval.
+
+    Parameters
+    ----------
+    range_of_dates : lxml.etree._Element
+        The EML rangeOfDates element to convert.
+
+    Returns
+    -------
+    str or dict
+        A string if `range_of_dates` represents a calendar datetime, or a dict
+        if it represents a geologic age. The dict is formatted as an OWL-Time
+        ProperInterval type.
+    """
+    begin_date = convert_single_date_time_type(range_of_dates.xpath(".//beginDate")[0])
+    end_date = convert_single_date_time_type(range_of_dates.xpath(".//endDate")[0])
+    # To finish processing, we need to know if the begin_date and end_date are
+    # calendar dates/times (str) or geologic ages (dict).
+    if isinstance(begin_date, str) and isinstance(end_date, str):
+        interval = begin_date + "/" + end_date
+    else:
+        interval = {
+            "@type": "time:ProperInterval",
+            "hasBeginning": begin_date,
+            "hasEnd": end_date,
+        }
+    return interval
+
+
+def convert_single_date_time(single_date_time):
+    """Return EML singleDateTime as a calendar datetime or geologic age
+    instant.
+
+    Parameters
+    ----------
+    single_date_time : lxml.etree._Element
+        The EML singleDateTime element to convert.
+
+    Returns
+    -------
+    str or dict
+        A string if `single_date_time` represents a calendar datetime, or a
+        dict if it represents a geologic age. The dict is formatted as an
+        OWL-Time Instant type.
+    """
+    return convert_single_date_time_type(single_date_time)
+
+
+def convert_single_date_time_type(single_date_time):
+    """Convert EML SingleDateTimeType to a calendar datetime or geologic age
+    instant.
+
+    Parameters
+    ----------
+    single_date_time : lxml.etree._Element
+        The EML SingleDateTimeType element to convert.
+
+    Returns
+    -------
+    str or dict
+        A string if `single_date_time` represents a calendar datetime, or a
+        dict if it represents a geologic age. The dict is formatted as an
+        OWL-Time Instant type.
+
+    Notes
+    -----
+    The return type is governed by the presence/absense of the EML
+    alternativeTimeScale element. The presence of which indicates that the
+    SingleDateTimeType element represents a geologic age, otherwise it
+    represents a calendar date and/or time.
+    """
+    if not single_date_time.xpath(".//alternativeTimeScale"):
+        calendar_date = single_date_time.findtext(".//calendarDate")
+        time = single_date_time.findtext(".//time")
+        instant = (
+            calendar_date + "T" + time if calendar_date and time else calendar_date
+        )
+    else:
+        instant = {
+            "@type": "time:Instant",
+            "time:inTimePosition": {
+                "@type": "time:TimePosition",
+                "time:numericPosition": {
+                    "@type": "xsd:decimal",
+                    "value": single_date_time.findtext(".//timeScaleAgeEstimate"),
+                },
+            },
+            "gstime:uncertainty": {
+                "@type": "xsd:decimal",
+                "value": single_date_time.findtext(".//timeScaleAgeUncertainty"),
+            },
+            "time:hasTRS": {
+                "@type": "xsd:string",
+                "value": single_date_time.findtext(".//timeScaleName"),
+            },
+        }
+    return instant

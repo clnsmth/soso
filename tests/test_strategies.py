@@ -248,14 +248,14 @@ def test_get_expires_returns_expected_type(strategy_instance):
         assert isinstance(res, str)
 
 
-# def test_get_temporal_coverage_returns_expected_type(strategy_instance):
-#     """Test that the get_temporal_coverage method returns the expected type."""
-#     res = strategy_instance.get_temporal_coverage()
-#     if res is not None:
-#         # Test for string, date, datetime, URL.
-#         assert True
-#
-#
+def test_get_temporal_coverage_returns_expected_type(strategy_instance):
+    """Test that the get_temporal_coverage method returns a string or
+    dictionary."""
+    res = strategy_instance.get_temporal_coverage()
+    if res is not None:
+        assert isinstance(res, (str, dict))
+
+
 # def test_get_spatial_coverage_returns_expected_type(strategy_instance):
 #     """Test that the get_spatial_coverage method returns the expected type."""
 #     res = strategy_instance.get_spatial_coverage()
