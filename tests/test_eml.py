@@ -6,6 +6,11 @@ from soso.strategies.eml import (
     get_content_size,
     convert_single_date_time_type,
     convert_range_of_dates,
+    get_spatial_type,
+    get_point,
+    get_elevation,
+    get_box,
+    get_polygon,
 )
 
 
@@ -194,16 +199,199 @@ def test_convert_single_date_time_returns_expected_type():
 
 
 def test_get_spatial_type_returns_expected_value():
-    assert False
+    """Test that the get_spatial_type function returns the expected value."""
+    # The geographic coverage is a point if the north and south bounding
+    # coordinates are equal and the east and west bounding coordinates are
+    # equal.
+    xml_content = """
+    <root>
+        <boundingCoordinates>
+            <westBoundingCoordinate>10</westBoundingCoordinate>
+            <eastBoundingCoordinate>10</eastBoundingCoordinate>
+            <southBoundingCoordinate>20</southBoundingCoordinate>
+            <northBoundingCoordinate>20</northBoundingCoordinate>
+        </boundingCoordinates>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert get_spatial_type(root) == "Point"
+
+    # The geographic coverage is a box if the north and south bounding
+    # coordinates are not equal and the east and west bounding coordinates are
+    # not equal.
+    xml_content = """
+    <root>
+        <boundingCoordinates>
+            <westBoundingCoordinate>10</westBoundingCoordinate>
+            <eastBoundingCoordinate>20</eastBoundingCoordinate>
+            <southBoundingCoordinate>10</southBoundingCoordinate>
+            <northBoundingCoordinate>20</northBoundingCoordinate>
+        </boundingCoordinates>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert get_spatial_type(root) == "Box"
+
+    # The geographic coverage is a polygon if the gRing element is present and
+    # contains a string.
+    xml_content = """
+    <root>
+        <datasetGPolygon>
+              <datasetGPolygonOuterGRing>
+                <gRing>12.453,15.0 5,101 -111,45</gRing>
+              </datasetGPolygonOuterGRing>
+        </datasetGPolygon>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert get_spatial_type(root) == "Polygon"
 
 
-def test_get_point_returns_expected_value():
-    assert False
+def test_get_point_returns_expected_value_and_type():
+    """Test that the get_point function returns the value as a dictionary."""
+    # The function will return a dictionary with the latitude and longitude
+    # values.
+    xml_content = """
+    <root>
+        <boundingCoordinates>
+            <westBoundingCoordinate>10</westBoundingCoordinate>
+            <eastBoundingCoordinate>10</eastBoundingCoordinate>
+            <southBoundingCoordinate>20</southBoundingCoordinate>
+            <northBoundingCoordinate>20</northBoundingCoordinate>
+        </boundingCoordinates>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    res = get_point(root)
+    assert isinstance(res, dict)
+    assert res["latitude"] == "20"
+    assert res["longitude"] == "10"
+
+    # The function will return elevation if it is present.
+    xml_content = """
+    <root>
+        <boundingCoordinates>
+            <westBoundingCoordinate>10</westBoundingCoordinate>
+            <eastBoundingCoordinate>10</eastBoundingCoordinate>
+            <southBoundingCoordinate>20</southBoundingCoordinate>
+            <northBoundingCoordinate>20</northBoundingCoordinate>
+            <boundingAltitudes>
+                <altitudeMinimum>100</altitudeMinimum>
+                <altitudeMaximum>100</altitudeMaximum>
+                <altitudeUnits>meter</altitudeUnits>
+            </boundingAltitudes>
+        </boundingCoordinates>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    res = get_point(root)
+    assert res["elevation"] == "100 meter"
 
 
-def test_get_box_returns_expected_value():
-    assert False
+def test_get_elevation_returns_value_and_type():
+    """Test that the get_elevation function returns the expected value as a
+    string."""
+    # The function will return a string with the elevation value if the
+    # altitude values are equal.
+    xml_content = """
+    <root>
+        <boundingCoordinates>
+            <boundingAltitudes>
+                <altitudeMinimum>100</altitudeMinimum>
+                <altitudeMaximum>100</altitudeMaximum>
+            </boundingAltitudes>
+        </boundingCoordinates>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    res = get_elevation(root)
+    assert res == "100"
+
+    # The function will return a string with the elevation value and units if
+    # the altitude values are equal and the units are present.
+    xml_content = """
+    <root>
+        <boundingCoordinates>
+            <boundingAltitudes>
+                <altitudeMinimum>100</altitudeMinimum>
+                <altitudeMaximum>100</altitudeMaximum>
+                <altitudeUnits>meter</altitudeUnits>
+            </boundingAltitudes>
+        </boundingCoordinates>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    res = get_elevation(root)
+    assert res == "100 meter"
+
+    # The function will return None if the altitude values are not equal.
+    xml_content = """
+    <root>
+        <boundingCoordinates>
+            <boundingAltitudes>
+                <altitudeMinimum>100</altitudeMinimum>
+                <altitudeMaximum>200</altitudeMaximum>
+            </boundingAltitudes>
+        </boundingCoordinates>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    res = get_elevation(root)
+    assert res is None
 
 
-def test_get_polygon_returns_expected_value():
-    assert False
+def test_get_box_returns_expected_value_and_type():
+    """Test that the get_box function returns a dictionary with the expected
+    value as a string."""
+    # The function will return a dictionary, with the box field value as a
+    # string with coordinates in the correct order (south, west, north, east)
+    # and separated by spaces.
+    xml_content = """
+    <root>
+        <boundingCoordinates>
+            <westBoundingCoordinate>110</westBoundingCoordinate>
+            <eastBoundingCoordinate>120</eastBoundingCoordinate>
+            <southBoundingCoordinate>30</southBoundingCoordinate>
+            <northBoundingCoordinate>40</northBoundingCoordinate>
+        </boundingCoordinates>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    res = get_box(root)
+    assert isinstance(res, dict)
+    assert res["box"] == "30 110 40 120"
+
+
+def test_get_polygon_returns_expected_value_and_type():
+    """Test that the get_polygon function returns a dictionary with the
+    expected value as a string."""
+    # The function will return a dictionary, with the polygon value as a
+    # string with coordinates in the correct order and separated by spaces.
+    xml_content = """
+    <root>
+        <datasetGPolygon>
+              <datasetGPolygonOuterGRing>
+                <gRing>120,39 123,40 121,41 122,39 120,39</gRing>
+              </datasetGPolygonOuterGRing>
+        </datasetGPolygon>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    res = get_polygon(root)
+    assert isinstance(res, dict)
+    assert res["polygon"] == "39 120 40 123 41 121 39 122 39 120"
+
+    # The function will ensure that the first and last latitude/longitude
+    # pairs are the same.
+    xml_content = """
+    <root>
+        <datasetGPolygon>
+              <datasetGPolygonOuterGRing>
+                <gRing>120,39 123,40 121,41 122,39</gRing>
+              </datasetGPolygonOuterGRing>
+        </datasetGPolygon>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    res = get_polygon(root)
+    assert res["polygon"] == "39 120 40 123 41 121 39 122 39 120"
