@@ -178,9 +178,19 @@ class EML(StrategyInterface):
                 temporal_coverage = convert_single_date_time(single_date_time[0])
         return temporal_coverage
 
-    # def get_spatial_coverage(self):
-    #     return "get_spatial_coverage from EML"
-    #
+    def get_spatial_coverage(self):
+        geo = []
+        for item in self.metadata.xpath(".//dataset/coverage/geographicCoverage"):
+            object_type = get_spatial_type(item)
+            if object_type == "Point":
+                geo.append(get_point(item))
+            elif object_type == "Box":
+                geo.append(get_box(item))
+            elif object_type == "Polygon":
+                geo.append(get_polygon(item))
+        spatial_coverage = {"@type": "Place", "geo": geo}
+        return spatial_coverage
+
     # def get_creator(self):
     #     return "get_creator from EML"
     #
@@ -358,3 +368,162 @@ def convert_single_date_time_type(single_date_time):
             },
         }
     return instant
+
+
+def get_spatial_type(geographic_coverage):
+    """Return the object type for a geographic coverage element.
+
+    Parameters
+    ----------
+    geographic_coverage : lxml.etree._Element
+        The EML geographicCoverage element to get the object type from.
+
+    Returns
+    -------
+    str
+        One of "Point", "Box", or "Polygon".
+    """
+    # If the "boundingCoordinates" element is present, the object type is a
+    # point if the north and south bounding coordinates are equal and the east
+    # and west bounding coordinates are equal. Otherwise, the object type is a
+    # box.
+    if geographic_coverage.xpath(".//boundingCoordinates"):
+        west = geographic_coverage.findtext(".//westBoundingCoordinate")
+        east = geographic_coverage.findtext(".//eastBoundingCoordinate")
+        south = geographic_coverage.findtext(".//southBoundingCoordinate")
+        north = geographic_coverage.findtext(".//northBoundingCoordinate")
+        if west == east and south == north:
+            spatial_type = "Point"
+        else:
+            spatial_type = "Box"
+    elif geographic_coverage.xpath(".//gRing"):
+        # The geographic coverage is a polygon if the gRing element is present.
+        spatial_type = "Polygon"
+    return spatial_type
+
+
+def get_point(geographic_coverage):
+    """Return the geographic coverage as a point.
+
+    Parameters
+    ----------
+    geographic_coverage : lxml.etree._Element
+        The EML geographicCoverage element to convert.
+
+    Returns
+    -------
+    dict
+        The geographic coverage as a point.
+
+    Notes
+    -----
+    This function assumes that the geographic coverage is a point. It does not
+    check if the geographic coverage is a point. Use the `get_spatial_type`
+    function to determine the object type.
+    """
+    north = geographic_coverage.findtext(".//northBoundingCoordinate")
+    west = geographic_coverage.findtext(".//westBoundingCoordinate")
+    point = {
+        "@type": "GeoCoordinates",
+        "latitude": north,
+        "longitude": west,
+    }
+    elevation = get_elevation(geographic_coverage)
+    if elevation:
+        point["elevation"] = elevation
+    return point
+
+
+def get_elevation(geographic_coverage):
+    """Return the elevation for a geographic coverage element.
+
+    Parameters
+    ----------
+    geographic_coverage : lxml.etree._Element
+        The EML geographicCoverage element to get the elevation from.
+
+    Returns
+    -------
+    str
+        The elevation.
+    """
+    # The elevation is the altitudeMinimum if it is equal to the
+    # altitudeMaximum. A range of elevations is not supported.
+    altitude_minimum = geographic_coverage.findtext(".//altitudeMinimum")
+    altitude_maximum = geographic_coverage.findtext(".//altitudeMaximum")
+    altitude_units = geographic_coverage.findtext(".//altitudeUnits")
+    if altitude_minimum == altitude_maximum:
+        elevation = altitude_minimum
+        if altitude_units:  # add units if present
+            elevation += " " + altitude_units
+    else:
+        elevation = None
+    return elevation
+
+
+def get_box(geographic_coverage):
+    """Return the geographic coverage as a box.
+
+    Parameters
+    ----------
+    geographic_coverage : lxml.etree._Element
+        The EML geographicCoverage element to convert.
+
+    Returns
+    -------
+    dict
+        The geographic coverage as a box.
+
+    Notes
+    -----
+    This function assumes that the geographic coverage is a box. It does not
+    check if the geographic coverage is a box. Use the `get_spatial_type`
+    function to determine the object type.
+    """
+    north = geographic_coverage.findtext(".//northBoundingCoordinate")
+    west = geographic_coverage.findtext(".//westBoundingCoordinate")
+    south = geographic_coverage.findtext(".//southBoundingCoordinate")
+    east = geographic_coverage.findtext(".//eastBoundingCoordinate")
+    box = {"@type": "GeoShape", "box": south + " " + west + " " + north + " " + east}
+    return box
+
+
+def get_polygon(geographic_coverage):
+    """Return the geographic coverage as a polygon.
+
+    Parameters
+    ----------
+    geographic_coverage : lxml.etree._Element
+        The EML geographicCoverage element to convert.
+
+    Returns
+    -------
+    dict
+        The geographic coverage as a polygon.
+
+    Notes
+    -----
+    This function assumes that the geographic coverage is a polygon. It does
+    not check if the geographic coverage is a polygon. Use the
+    `get_spatial_type` function to determine the object type.
+
+    This function assumes, as per the EML 2.2.0 specification, that the
+    GRingType is a "set of ordered pairs of floating-point numbers, separated
+    by commas, in which the first number in each pair is the longitude of a
+    point and the second is the latitude of the point.".
+    """
+    g_ring = geographic_coverage.findtext(".//gRing")
+    # Parse g_ring into tuples of longitude/latitude pairs.
+    res = []
+    for pair in g_ring.split():
+        res.append(tuple(pair.split(",")))
+    # Reverse the order of the longitude/latitude pairs.
+    res = [pair[::-1] for pair in res]
+    # Ensure the first and last pairs are the same.
+    if res[0] != res[-1]:
+        res.append(res[0])
+    # Convert the list of tuples to a space separated string.
+    res = " ".join([" ".join(pair) for pair in res])
+    # Create the polygon.
+    polygon = {"@type": "GeoShape", "polygon": res}
+    return polygon

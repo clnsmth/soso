@@ -256,14 +256,13 @@ def test_get_temporal_coverage_returns_expected_type(strategy_instance):
         assert isinstance(res, (str, dict))
 
 
-# def test_get_spatial_coverage_returns_expected_type(strategy_instance):
-#     """Test that the get_spatial_coverage method returns the expected type."""
-#     res = strategy_instance.get_spatial_coverage()
-#     if res is not None:
-#         # Test for schema:geo.
-#         assert True
-#
-#
+def test_get_spatial_coverage_returns_expected_type(strategy_instance):
+    """Test that the get_spatial_coverage method returns a dictionary."""
+    res = strategy_instance.get_spatial_coverage()
+    if res is not None:
+        assert isinstance(res, dict)
+
+
 # def test_get_creator_returns_expected_type(strategy_instance):
 #     """Test that the get_creator method returns the expected type."""
 #     res = strategy_instance.get_creator()
