@@ -57,7 +57,7 @@ def convert(file, strategy, **kwargs):
         "expires": strategy.get_expires(),
         "temporalCoverage": strategy.get_temporal_coverage(),
         "spatialCoverage": strategy.get_spatial_coverage(),
-        # "creator": strategy.get_creator(),
+        "creator": strategy.get_creator(),
         # "contributor": strategy.get_creator(),
         # "provider": strategy.get_provider(),
         # "publisher": strategy.get_publisher(),

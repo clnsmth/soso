@@ -212,7 +212,12 @@ class StrategyInterface:
         """
 
     def get_creator(self):
-        """Return the creator(s) of a dataset."""
+        """Return the creator(s) of a dataset.
+
+        Returns
+        -------
+        dict
+        """
 
     def get_contributor(self):
         """Return the contributor(s) of a dataset."""
