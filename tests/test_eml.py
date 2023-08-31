@@ -11,6 +11,7 @@ from soso.strategies.eml import (
     get_elevation,
     get_box,
     get_polygon,
+    convert_user_id,
 )
 
 
@@ -395,3 +396,19 @@ def test_get_polygon_returns_expected_value_and_type():
     root = etree.fromstring(xml_content)
     res = get_polygon(root)
     assert res["polygon"] == "39 120 40 123 41 121 39 122 39 120"
+
+
+def test_convert_user_id_returns_value_and_type():
+    """Test that the convert_user_id function returns the expected value and
+    type."""
+    # The function will return a dictionary formatted as a
+    # schema:PropertyValue type.
+    xml_content = """
+    <userId directory="ORCID">https://orcid.org/0000-0002-6091-xxxx</userId>
+    """
+    root = etree.fromstring(xml_content)
+    res = convert_user_id([root])  # requires element to be in a list
+    assert isinstance(res, dict)
+    assert res["@type"] == "PropertyValue"
+    assert res["propertyID"] == "ORCID"
+    assert res["value"] == "https://orcid.org/0000-0002-6091-xxxx"

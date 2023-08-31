@@ -191,9 +191,22 @@ class EML(StrategyInterface):
         spatial_coverage = {"@type": "Place", "geo": geo}
         return spatial_coverage
 
-    # def get_creator(self):
-    #     return "get_creator from EML"
-    #
+    def get_creator(self):
+        creator = []
+        creators = self.metadata.xpath(".//dataset/creator")
+        for item in creators:
+            res = {
+                "@type": "Person",
+                "honorificPrefix": item.findtext("individualName/salutation"),
+                "givenName": item.findtext("individualName/givenName"),
+                "familyName": item.findtext("individualName/surName"),
+                "url": item.findtext("onlineUrl"),
+                "identifier": convert_user_id(item.xpath("userId")),
+            }
+            creator.append(res)
+        creator = {"@list": creator}  # preserve creator order
+        return creator
+
     # def get_contributor(self):
     #     return "get_contributor from EML"
     #
@@ -527,3 +540,27 @@ def get_polygon(geographic_coverage):
     # Create the polygon.
     polygon = {"@type": "GeoShape", "polygon": res}
     return polygon
+
+
+def convert_user_id(user_id):
+    """Return the user ID as a PropertyValue.
+
+    Parameters
+    ----------
+    user_id : list of lxml.etree._Element
+        The EML userId element to convert.
+
+    Returns
+    -------
+    dict or None
+        A PropertyValue if the `user_id` is not empty, otherwise None.
+    """
+    if len(user_id) != 0:
+        property_value = {
+            "@type": "PropertyValue",
+            "propertyID": user_id[0].get("directory"),
+            "value": user_id[0].text,
+        }
+    else:
+        property_value = None
+    return property_value
