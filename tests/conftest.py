@@ -54,7 +54,7 @@ def soso_properties():
         "funding",
         "license",
         "wasRevisionOf",
-        # "wasDerivedFrom",
+        "wasDerivedFrom",
         # "isBasedOn",
         # "wasGeneratedBy",
     ]
@@ -91,7 +91,7 @@ def interface_methods():
         "get_funding",
         "get_license",
         "get_was_revision_of",
-        # "get_was_derived_from",
+        "get_was_derived_from",
         # "get_is_based_on",
         # "get_was_generated_by",
     ]

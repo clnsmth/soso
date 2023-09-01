@@ -268,7 +268,12 @@ class StrategyInterface:
         """
 
     def get_was_derived_from(self):
-        """Return a link to a source dataset."""
+        """Return links to source datasets.
+
+        Returns
+        -------
+        list
+        """
 
     def get_is_based_on(self):
         """Return a link to a source dataset."""

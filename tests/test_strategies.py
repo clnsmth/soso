@@ -318,14 +318,13 @@ def test_get_was_revision_of_returns_expected_type(strategy_instance):
         assert isinstance(res, dict)
 
 
-# def test_get_was_derived_from_returns_expected_type(strategy_instance):
-#     """Test that the get_was_derived_from method returns the expected type."""
-#     res = strategy_instance.get_was_derived_from()
-#     if res is not None:
-#         # Test for IRI.
-#         assert True
-#
-#
+def test_get_was_derived_from_returns_expected_type(strategy_instance):
+    """Test that the get_was_derived_from method returns a list."""
+    res = strategy_instance.get_was_derived_from()
+    if res is not None:
+        assert isinstance(res, list)
+
+
 # def test_get_is_based_on_returns_expected_type(strategy_instance):
 #     """Test that the get_is_based_on method returns the expected type."""
 #     res = strategy_instance.get_is_based_on()
