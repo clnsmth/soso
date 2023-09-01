@@ -281,9 +281,10 @@ class EML(StrategyInterface):
             was_derived_from = None  # for readability
         return was_derived_from
 
-    # def get_is_based_on(self):
-    #     return "get_is_based_on from EML"
-    #
+    def get_is_based_on(self):
+        is_based_on = self.get_was_derived_from()  # duplicate for discovery
+        return is_based_on
+
     # def get_was_generated_by(self):
     #     return "get_was_generated_by from EML"
 

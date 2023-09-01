@@ -55,7 +55,7 @@ def soso_properties():
         "license",
         "wasRevisionOf",
         "wasDerivedFrom",
-        # "isBasedOn",
+        "isBasedOn",
         # "wasGeneratedBy",
     ]
 
@@ -92,7 +92,7 @@ def interface_methods():
         "get_license",
         "get_was_revision_of",
         "get_was_derived_from",
-        # "get_is_based_on",
+        "get_is_based_on",
         # "get_was_generated_by",
     ]
     return res
