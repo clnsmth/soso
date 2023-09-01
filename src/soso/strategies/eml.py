@@ -37,6 +37,7 @@ class EML(StrategyInterface):
     - potentialAction
     - dateCreated
     - expires
+    - provider
     - wasRevisionOf
     """
 
