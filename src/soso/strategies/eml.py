@@ -204,7 +204,10 @@ class EML(StrategyInterface):
                 "identifier": convert_user_id(item.xpath("userId")),
             }
             creator.append(res)
-        creator = {"@list": creator}  # preserve creator order
+        if len(creator) != 0:
+            creator = {"@list": creator}  # to preserve order
+        else:
+            creator = None  # for readability
         return creator
 
     def get_contributor(self):
@@ -224,7 +227,10 @@ class EML(StrategyInterface):
                 },
             }
             contributor.append(res)
-        contributor = {"@list": contributor}  # preserve contributor order
+        if len(contributor) != 0:
+            contributor = {"@list": contributor}  # to preserve order
+        else:
+            contributor = None  # for readability
         return contributor
 
     def get_provider(self):
