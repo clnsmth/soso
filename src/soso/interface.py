@@ -220,7 +220,12 @@ class StrategyInterface:
         """
 
     def get_contributor(self):
-        """Return the contributor(s) of a dataset."""
+        """Return the contributor(s) of a dataset.
+
+        Returns
+        -------
+        dict
+        """
 
     def get_provider(self):
         """Return the provider of a dataset.
