@@ -64,7 +64,7 @@ def convert(file, strategy, **kwargs):
         "funding": strategy.get_funding(),
         "license": strategy.get_license(),
         "wasRevisionOf": strategy.get_was_revision_of(),
-        # "wasDerivedFrom": strategy.get_was_derived_from(),
+        "wasDerivedFrom": strategy.get_was_derived_from(),
         # "isBasedOn": strategy.get_is_based_on(),
         # "wasGeneratedBy": strategy.get_was_generated_by(),
     }

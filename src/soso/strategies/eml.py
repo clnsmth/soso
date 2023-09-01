@@ -270,9 +270,17 @@ class EML(StrategyInterface):
         was_revision_of = self.kwargs.get("wasRevisionOf")
         return was_revision_of
 
-    # def get_was_derived_from(self):
-    #     return "get_was_derived_from from EML"
-    #
+    def get_was_derived_from(self):
+        was_derived_from = []
+        datasource = self.metadata.xpath(".//dataSource")
+        for item in datasource:
+            url = item.findtext(".//distribution/online/url")
+            if url:
+                was_derived_from.append({"@id": url})
+        if len(was_derived_from) == 0:
+            was_derived_from = None  # for readability
+        return was_derived_from
+
     # def get_is_based_on(self):
     #     return "get_is_based_on from EML"
     #
