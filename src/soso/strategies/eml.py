@@ -259,9 +259,10 @@ class EML(StrategyInterface):
         funding = None if len(funding) == 0 else funding  # for readability
         return funding
 
-    # def get_license(self):
-    #     return "get_license from EML"
-    #
+    def get_license(self):
+        license_url = self.metadata.findtext(".//dataset/licensed/url")
+        return license_url
+
     # def get_was_revision_of(self):
     #     return "get_was_revision_of from EML"
     #

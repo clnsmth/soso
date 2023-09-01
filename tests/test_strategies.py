@@ -304,14 +304,13 @@ def test_get_funding_returns_expected_type(strategy_instance):
         assert isinstance(res, list)
 
 
-# def test_get_license_returns_expected_type(strategy_instance):
-#     """Test that the get_license method returns the expected type."""
-#     res = strategy_instance.get_license()
-#     if res is not None:
-#         # Test for license.
-#         assert True
-#
-#
+def test_get_license_returns_expected_type(strategy_instance):
+    """Test that the get_license method returns a string."""
+    res = strategy_instance.get_license()
+    if res is not None:
+        assert isinstance(res, str)
+
+
 # def test_get_was_revision_of_returns_expected_type(strategy_instance):
 #     """Test that the get_was_revision_of method returns the expected type."""
 #     res = strategy_instance.get_was_revision_of()
