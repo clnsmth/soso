@@ -285,4 +285,9 @@ class StrategyInterface:
 
     def get_was_generated_by(self):
         """Return an execution linking a program to source and derived
-        products."""
+        products.
+
+        Returns
+        -------
+        dict
+        """

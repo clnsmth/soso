@@ -332,9 +332,16 @@ def test_get_is_based_on_returns_expected_type(strategy_instance):
         assert isinstance(res, list)
 
 
-# def test_get_was_generated_by_returns_expected_type(strategy_instance):
-#     """Test that the get_was_generated_by method returns the expected type."""
-#     res = strategy_instance.get_was_generated_by()
-#     if res is not None:
-#         # Test for provone:Execution.
-#         assert True
+def test_get_was_generated_by_returns_expected_type(strategy_instance):
+    """Test that the get_was_generated_by method returns a dictionary."""
+    strategy_instance.kwargs = {
+        "prov:wasGeneratedBy": {
+            "@id": "https://example.org/executions/execution-42",
+            "@type": "provone:Execution",
+            "prov:hadPlan": "https://somerepository.org/datasets/10.xxxx/Dataset-2.v2/process-script.R",
+            "prov:used": {"@id": "https://doi.org/10.xxxx/Dataset-1"},
+        }
+    }
+    res = strategy_instance.get_was_generated_by()
+    if res is not None:
+        assert isinstance(res, dict)

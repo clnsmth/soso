@@ -66,7 +66,7 @@ def convert(file, strategy, **kwargs):
         "wasRevisionOf": strategy.get_was_revision_of(),
         "wasDerivedFrom": strategy.get_was_derived_from(),
         "isBasedOn": strategy.get_is_based_on(),
-        # "wasGeneratedBy": strategy.get_was_generated_by(),
+        "wasGeneratedBy": strategy.get_was_generated_by(),
     }
 
     # Remove properties where get methods returned None, so the user is
