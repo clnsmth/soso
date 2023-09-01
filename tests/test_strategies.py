@@ -270,14 +270,13 @@ def test_get_creator_returns_expected_type(strategy_instance):
         assert isinstance(res, dict)
 
 
-# def test_get_contributor_returns_expected_type(strategy_instance):
-#     """Test that the get_contributor method returns the expected type."""
-#     res = strategy_instance.get_contributor()
-#     if res is not None:
-#         # Test for schema:Role.
-#         assert True
-#
-#
+def test_get_contributor_returns_expected_type(strategy_instance):
+    """Test that the get_contributor method returns a dictionary."""
+    res = strategy_instance.get_contributor()
+    if res is not None:
+        assert isinstance(res, dict)
+
+
 # def test_get_provider_returns_expected_type(strategy_instance):
 #     """Test that the get_provider method returns the expected type."""
 #     res = strategy_instance.get_provider()

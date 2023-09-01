@@ -207,9 +207,26 @@ class EML(StrategyInterface):
         creator = {"@list": creator}  # preserve creator order
         return creator
 
-    # def get_contributor(self):
-    #     return "get_contributor from EML"
-    #
+    def get_contributor(self):
+        contributor = []
+        contributors = self.metadata.xpath(".//dataset/associatedParty")
+        for item in contributors:
+            res = {
+                "@type": "Role",
+                "roleName": item.findtext("role"),
+                "contributor": {
+                    "@type": "Person",
+                    "honorificPrefix": item.findtext("individualName/salutation"),
+                    "givenName": item.findtext("individualName/givenName"),
+                    "familyName": item.findtext("individualName/surName"),
+                    "url": item.findtext("onlineUrl"),
+                    "identifier": convert_user_id(item.xpath("userId")),
+                },
+            }
+            contributor.append(res)
+        contributor = {"@list": contributor}  # preserve contributor order
+        return contributor
+
     # def get_provider(self):
     #     return "get_provider from EML"
     #
