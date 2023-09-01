@@ -40,6 +40,7 @@ class EML(StrategyInterface):
     - provider
     - publisher
     - wasRevisionOf
+    - wasGeneratedBy
     """
 
     def __init__(self, file, **kwargs):
@@ -285,8 +286,9 @@ class EML(StrategyInterface):
         is_based_on = self.get_was_derived_from()  # duplicate for discovery
         return is_based_on
 
-    # def get_was_generated_by(self):
-    #     return "get_was_generated_by from EML"
+    def get_was_generated_by(self):
+        was_generated_by = self.kwargs.get("wasGeneratedBy")
+        return was_generated_by
 
 
 # Below are utility functions for the EML strategy.
