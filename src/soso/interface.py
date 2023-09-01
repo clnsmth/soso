@@ -252,7 +252,12 @@ class StrategyInterface:
         """
 
     def get_license(self):
-        """Return the license of a dataset."""
+        """Return the license of a dataset.
+
+        Returns
+        -------
+        str
+        """
 
     def get_was_revision_of(self):
         """Return a link to the prior version of the dataset."""
