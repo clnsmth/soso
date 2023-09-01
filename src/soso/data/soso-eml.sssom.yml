@@ -19,6 +19,7 @@ curie_map:
   owl: http://www.w3.org/2002/07/owl#
   par: https://eml.ecoinformatics.org/party-2.2.0
   phys: https://eml.ecoinformatics.org/physical-2.2.0
+  proj: https://eml.ecoinformatics.org/project-2.2.0
   prov: http://www.w3.org/ns/prov#
   provone: http://purl.dataone.org/provone/2015/01/15/ontology#
   rc: https://eml.ecoinformatics.org/resource-2.2.0

@@ -241,9 +241,24 @@ class EML(StrategyInterface):
         publisher = self.kwargs.get("publisher")
         return publisher
 
-    # def get_funding(self):
-    #     return "get_funding from EML"
-    #
+    def get_funding(self):
+        funding = []
+        for item in self.metadata.xpath(".//dataset/project/award"):
+            res = {
+                "@type": "MonetaryGrant",
+                "identifier": item.findtext("awardNumber"),
+                "name": item.findtext("title"),
+                "url": item.findtext("awardUrl"),
+                "funder": {
+                    "@type": "Organization",
+                    "name": item.findtext("funderName"),
+                    "identifier": item.findtext("funderIdentifier"),
+                },
+            }
+            funding.append(res)
+        funding = None if len(funding) == 0 else funding  # for readability
+        return funding
+
     # def get_license(self):
     #     return "get_license from EML"
     #
