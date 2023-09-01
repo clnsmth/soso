@@ -37,6 +37,7 @@ class EML(StrategyInterface):
     - potentialAction
     - dateCreated
     - expires
+    - wasRevisionOf
     """
 
     def __init__(self, file, **kwargs):
@@ -263,9 +264,10 @@ class EML(StrategyInterface):
         license_url = self.metadata.findtext(".//dataset/licensed/url")
         return license_url
 
-    # def get_was_revision_of(self):
-    #     return "get_was_revision_of from EML"
-    #
+    def get_was_revision_of(self):
+        was_revision_of = self.kwargs.get("wasRevisionOf")
+        return was_revision_of
+
     # def get_was_derived_from(self):
     #     return "get_was_derived_from from EML"
     #

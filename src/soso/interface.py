@@ -260,7 +260,12 @@ class StrategyInterface:
         """
 
     def get_was_revision_of(self):
-        """Return a link to the prior version of the dataset."""
+        """Return a link to the prior version of the dataset.
+
+        Returns
+        -------
+        dict
+        """
 
     def get_was_derived_from(self):
         """Return a link to a source dataset."""
