@@ -230,9 +230,10 @@ class EML(StrategyInterface):
     # def get_provider(self):
     #     return "get_provider from EML"
     #
-    # def get_publisher(self):
-    #     return "get_publisher from EML"
-    #
+    def get_publisher(self):
+        publisher = self.kwargs.get("publisher")
+        return publisher
+
     # def get_funding(self):
     #     return "get_funding from EML"
     #
