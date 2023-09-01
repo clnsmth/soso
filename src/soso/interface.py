@@ -244,7 +244,12 @@ class StrategyInterface:
         """
 
     def get_funding(self):
-        """Return the funding for a dataset."""
+        """Return the funding for a dataset.
+
+        Returns
+        -------
+        list
+        """
 
     def get_license(self):
         """Return the license of a dataset."""

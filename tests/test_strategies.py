@@ -297,14 +297,13 @@ def test_get_publisher_returns_expected_type(strategy_instance):
         assert isinstance(res, dict)
 
 
-# def test_get_funding_returns_expected_type(strategy_instance):
-#     """Test that the get_funding method returns the expected type."""
-#     res = strategy_instance.get_funding()
-#     if res is not None:
-#         # Test for MonetaryGrant.
-#         assert True
-#
-#
+def test_get_funding_returns_expected_type(strategy_instance):
+    """Test that the get_funding method returns a list."""
+    res = strategy_instance.get_funding()
+    if res is not None:
+        assert isinstance(res, list)
+
+
 # def test_get_license_returns_expected_type(strategy_instance):
 #     """Test that the get_license method returns the expected type."""
 #     res = strategy_instance.get_license()
