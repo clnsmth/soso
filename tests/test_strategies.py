@@ -311,14 +311,13 @@ def test_get_license_returns_expected_type(strategy_instance):
         assert isinstance(res, str)
 
 
-# def test_get_was_revision_of_returns_expected_type(strategy_instance):
-#     """Test that the get_was_revision_of method returns the expected type."""
-#     res = strategy_instance.get_was_revision_of()
-#     if res is not None:
-#         # Test for IRI.
-#         assert True
-#
-#
+def test_get_was_revision_of_returns_expected_type(strategy_instance):
+    """Test that the get_was_revision_of method returns a dictionary."""
+    res = strategy_instance.get_was_revision_of()
+    if res is not None:
+        assert isinstance(res, dict)
+
+
 # def test_get_was_derived_from_returns_expected_type(strategy_instance):
 #     """Test that the get_was_derived_from method returns the expected type."""
 #     res = strategy_instance.get_was_derived_from()
