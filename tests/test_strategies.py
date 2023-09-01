@@ -325,14 +325,13 @@ def test_get_was_derived_from_returns_expected_type(strategy_instance):
         assert isinstance(res, list)
 
 
-# def test_get_is_based_on_returns_expected_type(strategy_instance):
-#     """Test that the get_is_based_on method returns the expected type."""
-#     res = strategy_instance.get_is_based_on()
-#     if res is not None:
-#         # Test for URL.
-#         assert True
-#
-#
+def test_get_is_based_on_returns_expected_type(strategy_instance):
+    """Test that the get_is_based_on method returns a list."""
+    res = strategy_instance.get_is_based_on()
+    if res is not None:
+        assert isinstance(res, list)
+
+
 # def test_get_was_generated_by_returns_expected_type(strategy_instance):
 #     """Test that the get_was_generated_by method returns the expected type."""
 #     res = strategy_instance.get_was_generated_by()
