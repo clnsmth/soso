@@ -227,9 +227,10 @@ class EML(StrategyInterface):
         contributor = {"@list": contributor}  # preserve contributor order
         return contributor
 
-    # def get_provider(self):
-    #     return "get_provider from EML"
-    #
+    def get_provider(self):
+        provider = self.kwargs.get("provider")
+        return provider
+
     def get_publisher(self):
         publisher = self.kwargs.get("publisher")
         return publisher

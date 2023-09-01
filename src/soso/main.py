@@ -59,7 +59,7 @@ def convert(file, strategy, **kwargs):
         "spatialCoverage": strategy.get_spatial_coverage(),
         "creator": strategy.get_creator(),
         "contributor": strategy.get_contributor(),
-        # "provider": strategy.get_provider(),
+        "provider": strategy.get_provider(),
         "publisher": strategy.get_publisher(),
         # "funding": strategy.get_funding(),
         # "license": strategy.get_license(),

@@ -277,14 +277,16 @@ def test_get_contributor_returns_expected_type(strategy_instance):
         assert isinstance(res, dict)
 
 
-# def test_get_provider_returns_expected_type(strategy_instance):
-#     """Test that the get_provider method returns the expected type."""
-#     res = strategy_instance.get_provider()
-#     if res is not None:
-#         # Test for URL.
-#         assert True
-#
-#
+def test_get_provider_returns_expected_type(strategy_instance):
+    """Test that the get_provider method returns a dictionary."""
+    strategy_instance.kwargs = {
+        "provider": {"@id": "https://www.sample-data-repository.org"}
+    }
+    res = strategy_instance.get_provider()
+    if res is not None:
+        assert isinstance(res, dict)
+
+
 def test_get_publisher_returns_expected_type(strategy_instance):
     """Test that the get_publisher method returns a dictionary."""
     strategy_instance.kwargs = {
