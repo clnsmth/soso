@@ -60,7 +60,7 @@ def convert(file, strategy, **kwargs):
         "creator": strategy.get_creator(),
         "contributor": strategy.get_contributor(),
         # "provider": strategy.get_provider(),
-        # "publisher": strategy.get_publisher(),
+        "publisher": strategy.get_publisher(),
         # "funding": strategy.get_funding(),
         # "license": strategy.get_license(),
         # "wasRevisionOf": strategy.get_was_revision_of(),
