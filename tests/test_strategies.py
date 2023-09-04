@@ -338,7 +338,8 @@ def test_get_was_generated_by_returns_expected_type(strategy_instance):
         "prov:wasGeneratedBy": {
             "@id": "https://example.org/executions/execution-42",
             "@type": "provone:Execution",
-            "prov:hadPlan": "https://somerepository.org/datasets/10.xxxx/Dataset-2.v2/process-script.R",
+            "prov:hadPlan": "https://somerepository.org/datasets/10.xxxx/"
+            "Dataset-2.v2/process-script.R",
             "prov:used": {"@id": "https://doi.org/10.xxxx/Dataset-1"},
         }
     }
