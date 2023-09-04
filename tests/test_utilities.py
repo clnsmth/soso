@@ -8,6 +8,7 @@ from soso.utilities import validate
 from soso.utilities import get_sssom_file_path
 from soso.utilities import read_sssom
 from soso.utilities import get_example_metadata_file_path
+from soso.utilities import get_shacl_file_path
 
 
 @pytest.mark.internet_required
@@ -74,3 +75,9 @@ def test_get_example_metadata_file_path_returns_path(strategy_names):
     for strategy in strategy_names:
         file_path = get_example_metadata_file_path(strategy=strategy)
         assert isinstance(file_path, PosixPath)
+
+
+def test_get_shacl_file_path_returns_path():
+    """Test that get_shacl_file_path returns a path."""
+    file_path = get_shacl_file_path()
+    assert isinstance(file_path, PosixPath)
