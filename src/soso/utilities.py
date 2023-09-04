@@ -29,7 +29,7 @@ def validate(graph):
     try:
         res = pyshacl.validate(
             data_graph=graph,
-            shacl_graph=str(get_soso_common()),
+            shacl_graph=str(get_shacl_file_path()),
             data_graph_format="json-ld",
             shacl_graph_format="turtle",
         )
@@ -43,8 +43,8 @@ def validate(graph):
         return None
 
 
-def get_soso_common():
-    """Return the path to the SHACL shape file for the SOSO dataset graph.
+def get_shacl_file_path():
+    """Return the SHACL shape file path for the SOSO dataset graph.
 
     The shape file is for the current release version of the SOSO dataset
     graph.
