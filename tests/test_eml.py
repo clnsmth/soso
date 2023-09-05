@@ -12,6 +12,7 @@ from soso.strategies.eml import (
     get_box,
     get_polygon,
     convert_user_id,
+    get_data_entity_encoding_format,
 )
 
 
@@ -412,3 +413,19 @@ def test_convert_user_id_returns_value_and_type():
     assert res["@type"] == "PropertyValue"
     assert res["propertyID"] == "ORCID"
     assert res["value"] == "https://orcid.org/0000-0002-6091-xxxx"
+
+
+def test_get_data_entity_encoding_format_returns_value_and_type():
+    """Test that the get_data_entity_encoding_format function returns the
+    expected value as a string."""
+    xml_content = """
+    <root>
+        <physical>
+            <objectName>data_file.csv</objectName>
+        </physical>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    res = get_data_entity_encoding_format(root)
+    assert isinstance(res, str)
+    assert res == "text/csv"
