@@ -1,5 +1,6 @@
 """The EML strategy module."""
 
+from mimetypes import guess_type
 from lxml import etree
 from soso.interface import StrategyInterface
 
@@ -139,6 +140,7 @@ class EML(StrategyInterface):
                     "description": item.findtext(".//entityDescription"),
                     "contentSize": get_content_size(item),
                     "contentURL": get_content_url(item),
+                    "encodingFormat": get_data_entity_encoding_format(item),
                 }
                 distribution.append(data_download)
         return distribution
@@ -620,3 +622,21 @@ def convert_user_id(user_id):
     else:
         property_value = None
     return property_value
+
+
+def get_data_entity_encoding_format(data_entity_element):
+    """Return the encoding format for a data entity element.
+
+    Parameters
+    ----------
+    data_entity_element : lxml.etree._Element
+        The data entity element to get the encoding format from.
+
+    Returns
+    -------
+    str
+        The encoding format as a MIME type.
+    """
+    object_name = data_entity_element.findtext(".//physical/objectName")
+    encoding_format = guess_type(object_name, strict=False)
+    return encoding_format[0]
