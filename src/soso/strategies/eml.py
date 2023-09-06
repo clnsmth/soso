@@ -201,15 +201,7 @@ class EML(StrategyInterface):
         creator = []
         creators = self.metadata.xpath(".//dataset/creator")
         for item in creators:
-            res = {
-                "@type": "Person",
-                "honorificPrefix": item.findtext("individualName/salutation"),
-                "givenName": item.findtext("individualName/givenName"),
-                "familyName": item.findtext("individualName/surName"),
-                "url": item.findtext("onlineUrl"),
-                "identifier": convert_user_id(item.xpath("userId")),
-            }
-            creator.append(res)
+            creator.append(get_person_or_organization(item))  # can be either
         if len(creator) != 0:
             creator = {"@list": creator}  # to preserve order
         else:
@@ -223,14 +215,7 @@ class EML(StrategyInterface):
             res = {
                 "@type": "Role",
                 "roleName": item.findtext("role"),
-                "contributor": {
-                    "@type": "Person",
-                    "honorificPrefix": item.findtext("individualName/salutation"),
-                    "givenName": item.findtext("individualName/givenName"),
-                    "familyName": item.findtext("individualName/surName"),
-                    "url": item.findtext("onlineUrl"),
-                    "identifier": convert_user_id(item.xpath("userId")),
-                },
+                "contributor": get_person_or_organization(item),  # can be either
             }
             contributor.append(res)
         if len(contributor) != 0:
@@ -640,3 +625,37 @@ def get_data_entity_encoding_format(data_entity_element):
     object_name = data_entity_element.findtext(".//physical/objectName")
     encoding_format = guess_type(object_name, strict=False)
     return encoding_format[0]
+
+
+def get_person_or_organization(responsible_party):
+    """Return the responsible party as a schema:Person or schema:Organization.
+
+    The Person and Organization types are very similar, so this function
+    handles them both and determines which type to return based on the
+    presence/absense of the individualName element.
+
+    Parameters
+    ----------
+    responsible_party : lxml.etree._Element
+        The EML responsibleParty type element to convert.
+
+    Returns
+    -------
+    dict
+    """
+    if responsible_party.xpath("individualName"):
+        res = {
+            "@type": "Person",
+            "honorificPrefix": responsible_party.findtext("salutation"),
+            "givenName": responsible_party.findtext("individualName/givenName"),
+            "familyName": responsible_party.findtext("individualName/surName"),
+            "url": responsible_party.findtext("onlineUrl"),
+            "identifier": convert_user_id(responsible_party.xpath("userId")),
+        }
+    else:
+        res = {
+            "@type": "Organization",
+            "name": responsible_party.findtext("organizationName"),
+            "identifier": convert_user_id(responsible_party.xpath("userId")),
+        }
+    return res
