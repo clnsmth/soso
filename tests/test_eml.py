@@ -13,6 +13,7 @@ from soso.strategies.eml import (
     get_polygon,
     convert_user_id,
     get_data_entity_encoding_format,
+    get_person_or_organization,
 )
 
 
@@ -429,3 +430,35 @@ def test_get_data_entity_encoding_format_returns_value_and_type():
     res = get_data_entity_encoding_format(root)
     assert isinstance(res, str)
     assert res == "text/csv"
+
+
+def test_get_person_or_organization_returns_value_and_type():
+    """Test that the get_person function returns the expected value and
+    type."""
+    # The function will return a dictionary formatted as a schema:Person type
+    # if the "individualName" element is present.
+    xml_content = """
+    <root>
+        <individualName>
+            <givenName>givenName</givenName>
+            <surName>surName</surName>
+        </individualName>
+        <onlineUrl>https://organization.org/</onlineUrl>
+        <userId directory="ORCID">https://orcid.org/0000-0002-6091-xxxx</userId>
+    </root>"""
+    root = etree.fromstring(xml_content)
+    res = get_person_or_organization(root)
+    assert isinstance(res, dict)
+    assert res["@type"] == "Person"
+
+    # The function will return a dictionary formatted as a schema:Organization
+    # type if the "individualName" element is not present.
+    xml_content = """
+    <root>
+        <organizationName>An Organization</organizationName>
+        <userId directory="ROR">https://ror.org/xxxx</userId>
+    </root>"""
+    root = etree.fromstring(xml_content)
+    res = get_person_or_organization(root)
+    assert isinstance(res, dict)
+    assert res["@type"] == "Organization"
