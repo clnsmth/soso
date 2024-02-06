@@ -32,10 +32,12 @@ jobs:
       with:
         jupyter: true
         src: ./src
+        version: "23.7.0"
     - uses: psf/black@stable
       with:
         jupyter: true
         src: ./tests
+        version: "23.7.0"
 
       # Analyze code but don't error on issues. This check encourages best
       # practices and offers flexibility in adoption.
