@@ -55,8 +55,8 @@ not
 ``feat(module): add framework for new feature``
 
 .. _Python Semantic Release: https://python-semantic-release.readthedocs.io/en/latest/
-.. _Angular commit style: https://github.com/angular/angular/blob/convert/CONTRIBUTING.md#-commit-message-format
-.. _commit message header: https://github.com/angular/angular/blob/convert/CONTRIBUTING.md#commit-message-header
+.. _Angular commit style: https://github.com/angular/angular/blob/main/CONTRIBUTING.md#commit
+.. _commit message header: https://github.com/angular/angular/blob/main/CONTRIBUTING.md#commit-message-header
 
 Do your best to keep the commit message header from exceeding 52 characters in length, but no greater than 72 characters, and keep the commit message body from exceeding 72 characters.
 
