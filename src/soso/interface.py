@@ -13,6 +13,13 @@ class StrategyInterface:
     kwargs : dict or None
         Additional keyword arguments that can be utilized to define SOSO
         properties that don't directly correspond to metadata fields.
+
+    Returns
+    -------
+    Any
+        Methods of the Strategy Interface return a Python value that, when
+        serialized, follows SOSO conventions in JSON-LD format. None is
+        returned for 'NULL' values.
     """
 
     def __init__(self, metadata=None, **kwargs):
@@ -21,273 +28,244 @@ class StrategyInterface:
         self.kwargs = kwargs
 
     def get_name(self):
-        """Return a descriptive name of a dataset.
-
+        """
         Returns
         -------
-        str"""
+        Any
+            A descriptive name of a dataset.
+        """
 
     def get_description(self):
-        """Return a short summary describing a dataset.
-
+        """
         Returns
         -------
-        str"""
+        Any
+            A short summary describing a dataset.
+        """
 
     def get_url(self):
-        """Return the location of a page describing the dataset.
-
+        """
         Returns
         -------
-        str
-            A URL.
+        Any
+            The location of a page describing the dataset.
         """
 
     def get_same_as(self):
-        """Return other URLs that can be used to access the dataset page.
-
-        A link to a page that provides more information about the same dataset,
-        usually in a different repository.
-
+        """
         Returns
         -------
-        str
-            A URL.
+        Any
+            Other URLs that can be used to access the dataset page, usually in
+            a different repository.
         """
 
     def get_version(self):
-        """Return the version number or identifier for the dataset.
-
+        """
         Returns
         -------
-        str or numbers.Number
+        Any
+            The version number or identifier for the dataset.
         """
 
     def get_is_accessible_for_free(self):
-        """Return if the dataset is accessible for free.
-
+        """
         Returns
         -------
-        bool
+        Any
+            If the dataset is accessible for free.
         """
 
     def get_keywords(self):
-        """Return keywords summarizing the dataset.
-
-        Adding the schema:keywords field can be done in two ways - a text
-        description, or by using schema:DefinedTerm. We recommend using
-        schema:DefinedTerm if a keyword comes from a controlled vocabulary.
-
+        """
         Returns
         -------
-        list
+        Any
+            Keywords summarizing the dataset.
         """
 
     def get_identifier(self):
-        """Return the identifier for the dataset, such as a DOI.
-
-        Adding the schema:identifier field can be done in three ways - a text
-        description, a URL, or by using the schema:PropertyValue field.
-
+        """
         Returns
         -------
-        str or dict
+        Any
+            The identifier for the dataset, such as a DOI.
         """
 
     def get_citation(self):
-        """Return the citation for the dataset.
-
-        Adding the schema:citation field can be done in two ways - as either
-        text or a schema:CreativeWork.
-
+        """
         Returns
         -------
-        str or dict
+        Any
+            The citation for the dataset.
         """
 
     def get_variable_measured(self):
-        """Return the measurement variables of the dataset.
-
-        Adding the schema:variableMeasured field can be done in three ways - as
-        a simple list of variable names, names of variables with formal
-        property types, or, for numeric types, additional numeric
-        properties.
-
+        """
         Returns
         -------
-        list
+        Any
+            The measurement variables of the dataset.
         """
 
     def get_included_in_data_catalog(self):
-        """Return the data catalog that the dataset is included in.
-
+        """
         Returns
         -------
-        dict
+        Any
+            The data catalog that the dataset is included in.
         """
 
     def get_subject_of(self):
-        """Return the metadata record for the dataset.
-
+        """
         Returns
         -------
-        dict
+        Any
+            The metadata record for the dataset.
         """
 
     def get_distribution(self):
-        """Return where to get the data and in what format.
-
+        """
         Returns
         -------
-        list
+        Any
+            Where to get the data and in what format.
         """
 
     def get_potential_action(self):
-        """Return the query parameters and methods to actuate a data request.
-
-        Here, we use the schema:SearchAction type becuase it lets you define
-        the query parameters and HTTP methods so that machines can build user
-        interfaces to collect those query parmaeters and actuate a request to
-        provide the user what they are looking for.
-
+        """
         Returns
         -------
-        dict
+        Any
+            The query parameters and methods to actuate a data request.
         """
 
     def get_date_created(self):
-        """Return the date the dataset was initially generated.
-
+        """
         Returns
         -------
-        str
+        Any
+            The date the dataset was initially generated.
         """
 
     def get_date_modified(self):
-        """Return the date the dataset was most recently updated or changed.
-
+        """
         Returns
         -------
-        str
+        Any
+            The date the dataset was most recently updated or changed.
         """
 
     def get_date_published(self):
-        """Return the date when a dataset was made available to the public
-        through a publication process.
-
+        """
         Returns
         -------
-        str
+        Any
+            The date when a dataset was made available to the public through a
+            publication process.
         """
 
     def get_expires(self):
-        """Return the date when the dataset expires and is no longer useful or
-        available.
-
+        """
         Returns
         -------
-        str
+        Any
+            The date when the dataset expires and is no longer useful or
+            available.
         """
 
     def get_temporal_coverage(self):
-        """Return the time period(s) that the content applies to.
-
-        Temporal coverage can be an instant or interval expressed as a calendar
-        datetime or geologic age.
-
+        """
         Returns
         -------
-        str or dict
-            Calendar datetimes are returned as a string and geologic ages are
-            returned as a dictionary.
+        Any
+            The time period(s) that the content applies to.
         """
 
     def get_spatial_coverage(self):
-        """Return the location on Earth that is the focus of the dataset
-        content.
-
+        """
         Returns
         -------
-        dict
+        Any
+            The location on Earth that is the focus of the dataset content.
         """
 
     def get_creator(self):
-        """Return the creator(s) of a dataset.
-
+        """
         Returns
         -------
-        dict
+        Any
+            The creator(s) of a dataset.
         """
 
     def get_contributor(self):
-        """Return the contributor(s) of a dataset.
-
+        """
         Returns
         -------
-        dict
+        Any
+            The contributor(s) of a dataset.
         """
 
     def get_provider(self):
-        """Return the provider of a dataset.
-
+        """
         Returns
         -------
-        dict
+        Any
+            The provider of a dataset.
         """
 
     def get_publisher(self):
-        """Return the publisher of a dataset.
-
+        """
         Returns
         -------
-        dict
+        Any
+            The publisher of a dataset.
         """
 
     def get_funding(self):
-        """Return the funding for a dataset.
-
+        """
         Returns
         -------
-        list
+        Any
+            The funding for a dataset.
         """
 
     def get_license(self):
-        """Return the license of a dataset.
-
+        """
         Returns
         -------
-        str
+        Any
+            The license of a dataset.
         """
 
     def get_was_revision_of(self):
-        """Return a link to the prior version of the dataset.
-
+        """
         Returns
         -------
-        dict
+        Any
+            A link to the prior version of the dataset.
         """
 
     def get_was_derived_from(self):
-        """Return links to source datasets.
-
+        """
         Returns
         -------
-        list
+        Any
+            Links to source datasets.
         """
 
     def get_is_based_on(self):
-        """Return links to source datasets.
-
+        """
         Returns
         -------
-        list
+        Any
+            Links to source datasets.
         """
 
     def get_was_generated_by(self):
-        """Return an execution linking a program to source and derived
-        products.
-
+        """
         Returns
         -------
-        dict
+        Any
+            An execution linking a program to source and derived products.
         """
