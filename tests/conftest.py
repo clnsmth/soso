@@ -1,5 +1,4 @@
 """Configure the test suite."""
-
 import socket
 from urllib.parse import urlparse
 import pytest
@@ -122,3 +121,81 @@ def is_url(url):
         return all([res.scheme, res.netloc])
     except ValueError:
         return False
+
+
+def is_property_type(results, expected_types):
+    """
+    Parameters
+    ----------
+    results : Any
+        The results of a strategy method to check.
+    expected_types : List
+        The expected types, as a list of strings. See below for the currently
+        supported types.
+
+    Returns
+    -------
+    bool
+        True if the result is one of the expected types.
+
+    Notes
+    -----
+    Expected types are one or more of:
+
+    - schema:Text
+    - schema:URL
+    - schema:Number
+    - schema:Boolean
+    - schema:DefinedTerm
+    - schema:PropertyValue
+    - schema:DataCatalog
+    - schema:DataDownload
+    - time:ProperInterval
+    - time:Instant
+    - schema:Place
+    - schema:Person
+    - schema:Organization
+    - schema:MonetaryGrant
+    - @id
+    - provone:Execution
+
+    where schema, time, and provone are the namespaces of https://schema.org/,
+    http://www.w3.org/2006/time#, and
+    http://purl.dataone.org/provone/2015/01/15/ontology# respectively.
+
+    When type matching, the namespace prefix of an expected type is not used.
+    Only the suffix is used.
+    """
+    # Prepare the results and expected_types for iteration
+    if isinstance(results, dict) and results.get("@list") is not None:
+        results = results.get("@list")  # Flatten @list to facilitate checking
+    if not isinstance(results, list):  # Convert to list for iteration
+        results = [results]
+    if not isinstance(expected_types, list):  # Convert to list for iteration
+        expected_types = [expected_types]
+    # Check that the results are at least one of the expected types
+    outputs = []
+    for result in results:
+        is_expected_type = []
+        for expected_type in expected_types:
+            if expected_type == "schema:Text":
+                is_expected_type.append(isinstance(result, str))
+            elif expected_type == "schema:URL":
+                is_expected_type.append(is_url(result))
+            elif expected_type == "schema:Number":
+                is_expected_type.append(isinstance(result, (int, float)))
+            elif expected_type == "schema:Boolean":
+                is_expected_type.append(isinstance(result, bool))
+            elif expected_type in ["schema:Date", "schema:DateTime"]:
+                is_expected_type.append(isinstance(result, str))
+            elif expected_type == "@id":
+                is_expected_type.append(is_url(result.get("@id")))
+            elif isinstance(result, dict):  # schema:Thing or @id
+                if result.get("@type") is not None:
+                    suffix = expected_type.split(":")[1]
+                    is_type = suffix in result.get("@type")
+                    is_expected_type.append(is_type)
+            else:
+                is_expected_type.append(False)
+        outputs.append(any(is_expected_type))
+    return any(outputs)
