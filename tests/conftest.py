@@ -1,5 +1,4 @@
 """Configure the test suite."""
-
 import socket
 from urllib.parse import urlparse
 import pytest
@@ -122,3 +121,78 @@ def is_url(url):
         return all([res.scheme, res.netloc])
     except ValueError:
         return False
+
+
+def is_property_type(result, expected_type):
+    """
+    Parameters
+    ----------
+    result : Any
+        The result to be checked.
+    expected_type : List
+        The expected type(s) as a list of strings. See below for the list of
+        expected types.
+
+    Returns
+    -------
+    bool
+        True if the result is one of the expected types.
+
+    Notes
+    -----
+    Expected types are usually one or more of:
+    - schema:Text
+    - schema:URL
+    - schema:Number
+    - schema:Boolean
+    - schema:DefinedTerm
+    - schema:PropertyValue
+    - schema:DataCatalog
+    - schema:DataDownload
+    - time:ProperInterval
+    - time:Instant
+    - schema:Place
+    - schema:Person
+    - schema:Organization
+    - schema:MonetaryGrant
+    - @id
+    where schema and time are the namespaces of https://schema.org/ and
+    http://www.w3.org/2006/time#, respectively.
+
+    The namespace prefix of an expected type is not currently used to determine
+    if the result is a member of the type, only the suffix is used, currently.
+    """
+    # Ensure arguments are lists for iteration
+    if not isinstance(result, list):
+        result = [result]
+    if not isinstance(expected_type, list):
+        expected_type = [expected_type]
+    # Check that the result is at least one of the expected types
+    results = []
+    for res in result:
+        is_expected_type = []
+        for extype in expected_type:
+            if extype == "schema:Text":
+                is_expected_type.append(isinstance(res, str))
+            elif extype == "schema:URL":
+                is_expected_type.append(is_url(res))
+            elif extype == "schema:Number":
+                is_expected_type.append(isinstance(res, (int, float)))
+            elif extype == "schema:Boolean":
+                is_expected_type.append(isinstance(res, bool))
+            elif extype == "schema:Date":
+                # TODO: implement this check
+                is_expected_type.append(isinstance(res, str))
+            elif extype == "schema:DateTime":
+                # TODO: implement this check
+                is_expected_type.append(isinstance(res, str))
+            elif extype == "@id":
+                is_expected_type.append(is_url(res.get("@id")))
+            elif isinstance(res, dict):  # schema:Thing or @id
+                if res.get("@type") is not None:
+                    is_type = extype.split(":")[1] in res.get("@type")
+                    is_expected_type.append(is_type)
+            else:
+                is_expected_type.append(False)
+        results.append(any(is_expected_type))
+    return any(results)
