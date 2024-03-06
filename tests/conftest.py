@@ -166,6 +166,7 @@ def is_property_type(results, expected_types):
     When type matching, the namespace prefix of an expected type is not used.
     Only the suffix is used.
     """
+    # pylint: disable=R0912
     # Prepare the results and expected_types for iteration
     if isinstance(results, dict) and results.get("@list") is not None:
         results = results.get("@list")  # Flatten @list to facilitate checking
