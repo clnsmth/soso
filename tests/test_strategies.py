@@ -1,8 +1,6 @@
 """Test the strategies."""
 
-from numbers import Number
 from soso.interface import StrategyInterface
-from tests.conftest import is_url
 from tests.conftest import is_property_type
 
 
@@ -82,8 +80,7 @@ def test_get_keywords_returns_expected_type(strategy_instance):
     """Test that the get_keywords method returns the expected type."""
     res = strategy_instance.get_keywords()
     if res is not None:
-        for item in res:
-            assert is_property_type(res, ["schema:Text", "schema:DefinedTerm"])
+        assert is_property_type(res, ["schema:Text", "schema:DefinedTerm"])
 
 
 def test_get_identifier_returns_expected_type(strategy_instance):
@@ -91,12 +88,8 @@ def test_get_identifier_returns_expected_type(strategy_instance):
     res = strategy_instance.get_identifier()
     if res is not None:
         assert is_property_type(
-            result=res,
-            expected_type=[
-                "schema:Text",
-                "schema:URL",
-                "schema:PropertyValue"
-            ]
+            results=res,
+            expected_types=["schema:Text", "schema:URL", "schema:PropertyValue"],
         )
 
 
@@ -259,14 +252,14 @@ def test_get_temporal_coverage_returns_expected_type(strategy_instance):
     res = strategy_instance.get_temporal_coverage()
     if res is not None:
         assert is_property_type(
-            result=res,
-            expected_type=[
+            results=res,
+            expected_types=[
                 "schema:Text",
                 "schema:Date",
                 "schema:DateTime",
                 "time:ProperInterval",
-                "time:Instant"
-            ]
+                "time:Instant",
+            ],
         )
 
 
@@ -282,12 +275,8 @@ def test_get_creator_returns_expected_type(strategy_instance):
     res = strategy_instance.get_creator()
     if res is not None:
         assert is_property_type(
-            result=res,
-            expected_type=[
-                "schema:Person",
-                "schema:Organization",
-                "schema:Role"
-            ]
+            results=res,
+            expected_types=["schema:Person", "schema:Organization", "schema:Role"],
         )
 
 
@@ -296,12 +285,8 @@ def test_get_contributor_returns_expected_type(strategy_instance):
     res = strategy_instance.get_contributor()
     if res is not None:
         assert is_property_type(
-            result=res,
-            expected_type=[
-                "schema:Person",
-                "schema:Organization",
-                "schema:Role"
-            ]
+            results=res,
+            expected_types=["schema:Person", "schema:Organization", "schema:Role"],
         )
 
 
@@ -322,48 +307,42 @@ def test_get_publisher_returns_expected_type(strategy_instance):
     }
     res = strategy_instance.get_publisher()
     if res is not None:
-        assert isinstance(res, dict)
-        # assert is_property_type(res, [])
+        assert is_property_type(res, ["schema:Organization", "@id"])
 
 
 def test_get_funding_returns_expected_type(strategy_instance):
     """Test that the get_funding method returns the expected type."""
     res = strategy_instance.get_funding()
     if res is not None:
-        assert isinstance(res, list)
-        # assert is_property_type(res, [])
+        assert is_property_type(res, ["schema:MonetaryGrant"])
 
 
 def test_get_license_returns_expected_type(strategy_instance):
     """Test that the get_license method returns the expected type."""
     res = strategy_instance.get_license()
     if res is not None:
-        assert isinstance(res, str)
-        # assert is_property_type(res, [])
+        assert is_property_type(res, ["schema:URL"])
 
 
 def test_get_was_revision_of_returns_expected_type(strategy_instance):
     """Test that the get_was_revision_of method returns the expected type."""
     res = strategy_instance.get_was_revision_of()
     if res is not None:
-        assert isinstance(res, dict)
-        # assert is_property_type(res, [])
+        assert is_property_type(res, ["@id"])
 
 
 def test_get_was_derived_from_returns_expected_type(strategy_instance):
     """Test that the get_was_derived_from method returns the expected type."""
     res = strategy_instance.get_was_derived_from()
     if res is not None:
-        assert isinstance(res, list)
-        # assert is_property_type(res, [])
+        assert is_property_type(res, ["@id"])
 
 
 def test_get_is_based_on_returns_expected_type(strategy_instance):
     """Test that the get_is_based_on method returns the expected type."""
     res = strategy_instance.get_is_based_on()
     if res is not None:
-        assert isinstance(res, list)
-        # assert is_property_type(res, [])
+        assert is_property_type(res, ["@id"])
 
 
 def test_get_was_generated_by_returns_expected_type(strategy_instance):
@@ -379,5 +358,4 @@ def test_get_was_generated_by_returns_expected_type(strategy_instance):
     }
     res = strategy_instance.get_was_generated_by()
     if res is not None:
-        assert isinstance(res, dict)
-        # assert is_property_type(res, [])
+        assert is_property_type(res, ["provone:Execution"])

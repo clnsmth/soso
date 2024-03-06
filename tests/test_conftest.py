@@ -53,10 +53,11 @@ def test_is_property_type_for_expected_things():
         "schema:MonetaryGrant",
     ]
     for thing in things:
-        assert is_property_type({"@type": thing}, expected_type=[thing])
+        assert is_property_type({"@type": thing}, expected_types=[thing])
     for thing in things:
         assert (
-            is_property_type({"@type": thing}, expected_type=["schema:Text"]) is False
+            is_property_type(results={"@type": thing}, expected_types=["schema:Text"])
+            is False
         )
 
 
@@ -64,5 +65,7 @@ def test_is_property_type_returns_true_for_subsets():
     """Test that the is_property_type function returns True if the type is a
     subset of the expected types."""
     things = ["schema:Text", "schema:DefinedTerm"]
-    assert is_property_type({"@type": "schema:DefinedTerm"}, expected_type=things)
-    assert is_property_type("some text", expected_type=things)
+    assert is_property_type(
+        results={"@type": "schema:DefinedTerm"}, expected_types=things
+    )
+    assert is_property_type("some text", expected_types=things)
