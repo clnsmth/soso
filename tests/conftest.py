@@ -1,6 +1,8 @@
 """Configure the test suite."""
 import socket
 from urllib.parse import urlparse
+from numbers import Number
+from copy import deepcopy
 import pytest
 from soso.strategies.eml import EML
 from soso.utilities import get_example_metadata_file_path
@@ -200,3 +202,52 @@ def is_property_type(results, expected_types):
                 is_expected_type.append(False)
         outputs.append(any(is_expected_type))
     return any(outputs)
+
+
+def is_not_null(results):
+    """
+    Parameters
+    ----------
+    results : Any
+        The results of a strategy method.
+
+    Returns
+    -------
+    bool
+        True if the results from a strategy method are not null (i.e. 'useful'
+        information is provided).
+
+    Notes
+    -----
+    This function checks if the results returned by a strategy method are not
+    null. It is not a comprehensive check for null values interspersed within
+    the results (i.e. some properties could be null while others are not, and
+    this is OK).
+    """
+    # Pre-processing
+    if isinstance(results, dict) and results.get("@list") is not None:
+        results = results.get("@list")  # Flatten @list for checks
+    if not isinstance(results, list):  # Convert to list for iteration
+        results = [results]
+    # Check results. Properties w/zero length values are considered null.
+    res = []
+    for result in results:
+        if isinstance(result, dict):  # schema:Thing is a dict
+            result = deepcopy(result)  # to avoid modifying the original
+            result.pop("@type", None)  # @type is never null, so omit
+            for key, value in list(result.items()):
+                if value is None:  # None has no length
+                    result.pop(key)
+            if len(result.values()) > 0:
+                not_null = [len(value) > 0 for value in result.values()]
+                res.append(any(not_null))
+            else:
+                res.append(False)  # all null
+        else:  # schema:Text, schema:URL, schema:Number, schema:Boolean, etc.
+            if isinstance(result, Number):
+                res.append(True)
+            elif isinstance(result, None.__class__):  # None has no length
+                res.append(False)
+            else:
+                res.append(len(result) > 0)
+    return any(res)
