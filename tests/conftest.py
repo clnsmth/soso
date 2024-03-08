@@ -177,7 +177,7 @@ def is_property_type(results, expected_types):
     if not isinstance(expected_types, list):  # Convert to list for iteration
         expected_types = [expected_types]
     # Check that the results are at least one of the expected types
-    outputs = []
+    res = []
     for result in results:
         is_expected_type = []
         for expected_type in expected_types:
@@ -200,8 +200,8 @@ def is_property_type(results, expected_types):
                     is_expected_type.append(is_type)
             else:
                 is_expected_type.append(False)
-        outputs.append(any(is_expected_type))
-    return any(outputs)
+        res.append(any(is_expected_type))
+    return any(res)
 
 
 def is_not_null(results):
