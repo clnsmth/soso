@@ -132,6 +132,16 @@ def rm_null_values(res):
     Any
         The results with all null values removed. None is returned if all
         values are null.
+
+    Notes
+    -----
+    Null values are defined as follows:
+    
+    - None
+    - An empty string
+    - An empty list
+    - An empty dictionary
+    - A dictionary with only one key, "@type"
     """
 
     def is_null(value):
