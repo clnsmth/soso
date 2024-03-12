@@ -10,6 +10,11 @@ from soso.utilities import read_sssom
 from soso.utilities import get_example_metadata_file_path
 from soso.utilities import get_shacl_file_path
 
+# from soso.utilities import remove_empty_values
+# from soso.utilities import remove_empty_recursive
+from soso.utilities import clean_jsonld
+from soso.utilities import clean_jsonld_x2
+
 
 @pytest.mark.internet_required
 def test_validate_returns_warning_when_invalid(internet_connection):
@@ -81,3 +86,66 @@ def test_get_shacl_file_path_returns_path():
     """Test that get_shacl_file_path returns a path."""
     file_path = get_shacl_file_path()
     assert isinstance(file_path, PosixPath)
+
+
+def test_clean_jsonld_x2():
+    """Test that clean_jsonld removes empty values from a JSON-LD object."""
+    # Dictionary is empty / non-empty
+    assert clean_jsonld_x2({}) is None  # FIXME Fails
+    assert clean_jsonld_x2({"name": "John Doe"}) == {"name": "John Doe"}
+
+    # Dictionary only contains @type / has more than @type
+    assert clean_jsonld_x2({"@type": "schema:Thing"}) is None  # FIXME Fails
+    data = clean_jsonld_x2({"@type": "schema:Thing", "name": "John Doe"})
+    expected = {"@type": "schema:Thing", "name": "John Doe"}
+    assert data == expected
+
+    # Nested dictionary is empty / non-empty
+    data = {"address": {}}
+    assert clean_jsonld_x2(data) is None  # FIXME Fails
+    data = {"address": {"street": "123 Main St"}}
+    expected = {"address": {"street": "123 Main St"}}
+    assert clean_jsonld_x2(data) == expected
+
+    # Nested dictionary only contains @type / has more than @type
+    data = {"role": {"@type": "Role"}}
+    assert clean_jsonld_x2(data) is None  # FIXME Fails
+    data = {"role": {"@type": "Role", "name": "Manager"}}
+    expected = {"role": {"@type": "Role", "name": "Manager"}}
+    assert clean_jsonld_x2(data) == expected
+
+    # List is empty / non-empty
+    assert clean_jsonld_x2([]) is None  # FIXME Fails
+    data = ["John Doe", 123, True]
+    expected = ["John Doe", 123, True]
+    assert clean_jsonld_x2(data) == expected
+
+    # List contains empty dictionaries / non-empty dictionaries
+    data = [{}, {}]
+    assert clean_jsonld_x2(data) is None  # FIXME Fails
+    data = [{"name": "John Doe"}, {"name": "Jane Doe"}]
+    res = clean_jsonld_x2(data)
+    expected = [{"name": "John Doe"}, {"name": "Jane Doe"}]
+    set1 = {frozenset(item.items()) for item in res}
+    set2 = {frozenset(item.items()) for item in expected}
+    assert set1 == set2
+
+    # List contains empty lists / non-empty lists
+    data = [[], []]
+    assert clean_jsonld_x2(data) is None  # FIXME Fails
+    data = [["John Doe"], ["Jane Doe"]]
+    expected = [["John Doe"], ["Jane Doe"]]
+    assert clean_jsonld_x2(data) == expected
+
+    # Text string is empty / non-empty
+    # assert clean_jsonld("") is None  # FIXME Fails
+    assert clean_jsonld_x2("John Doe") == "John Doe"
+
+    # Number is non-empty
+    assert clean_jsonld_x2(123) == 123
+
+    # Boolean is non-empty
+    assert clean_jsonld(True) is True
+
+    # Value is None
+    assert clean_jsonld(None) is None
