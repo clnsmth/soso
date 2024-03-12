@@ -9,6 +9,7 @@ from soso.utilities import get_sssom_file_path
 from soso.utilities import read_sssom
 from soso.utilities import get_example_metadata_file_path
 from soso.utilities import get_shacl_file_path
+from soso.utilities import rm_null_values
 
 
 @pytest.mark.internet_required
@@ -81,3 +82,67 @@ def test_get_shacl_file_path_returns_path():
     """Test that get_shacl_file_path returns a path."""
     file_path = get_shacl_file_path()
     assert isinstance(file_path, PosixPath)
+
+
+def test_rm_null_values():
+    """Test that rm_null_values removes null values from input data
+    objeccts (JSON-LD values represented as Python objects)."""
+    # Dictionary is empty / non-empty
+    assert rm_null_values({}) is None
+    assert rm_null_values({"name": "John Doe"}) == {"name": "John Doe"}
+
+    # Dictionary only contains @type / has more than @type
+    assert rm_null_values({"@type": "schema:Thing"}) is None
+    data = rm_null_values({"@type": "schema:Thing", "name": "John Doe"})
+    expected = {"@type": "schema:Thing", "name": "John Doe"}
+    assert data == expected
+
+    # Nested dictionary is empty / non-empty
+    data = {"address": {}}
+    assert rm_null_values(data) is None
+    data = {"address": {"street": "123 Main St"}}
+    expected = {"address": {"street": "123 Main St"}}
+    assert rm_null_values(data) == expected
+
+    # Nested dictionary only contains @type / has more than @type
+    data = {"role": {"@type": "Role"}}
+    assert rm_null_values(data) is None
+    data = {"role": {"@type": "Role", "name": "Manager"}}
+    expected = {"role": {"@type": "Role", "name": "Manager"}}
+    assert rm_null_values(data) == expected
+
+    # List is empty / non-empty
+    assert rm_null_values([]) is None
+    data = ["John Doe", 123, True]
+    expected = ["John Doe", 123, True]
+    assert rm_null_values(data) == expected
+
+    # List contains empty dictionaries / non-empty dictionaries
+    data = [{}, {}]
+    assert rm_null_values(data) is None
+    data = [{"name": "John Doe"}, {"name": "Jane Doe"}]
+    res = rm_null_values(data)
+    expected = [{"name": "John Doe"}, {"name": "Jane Doe"}]
+    set1 = {frozenset(item.items()) for item in res}
+    set2 = {frozenset(item.items()) for item in expected}
+    assert set1 == set2
+
+    # List contains empty lists / non-empty lists
+    data = [[], []]
+    assert rm_null_values(data) is None
+    data = [["John Doe"], ["Jane Doe"]]
+    expected = [["John Doe"], ["Jane Doe"]]
+    assert rm_null_values(data) == expected
+
+    # Text string is empty / non-empty
+    assert rm_null_values("") is None
+    assert rm_null_values("John Doe") == "John Doe"
+
+    # Number is non-empty
+    assert rm_null_values(123) == 123
+
+    # Boolean is non-empty
+    assert rm_null_values(True) is True
+
+    # None is None
+    assert rm_null_values(None) is None
