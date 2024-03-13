@@ -120,8 +120,13 @@ def test_is_not_null_for_dictionaries():
 def test_is_not_null_for_non_dictionaries():
     """Test that the is_not_null function returns True for non-null results,
     and False otherwise."""
-    # schema:Text, schema:URL, schema:Number, schema:Boolean, should pass
-    assert is_not_null("some text")
-    assert is_not_null("https://example.com")
-    assert is_not_null(123)
-    assert is_not_null(True)
+    # Non-null results should pass
+    assert is_not_null("some text")  # schema:Text
+    assert is_not_null("https://example.com")  # schema:URL
+    assert is_not_null(123)  # schema:Number
+    assert is_not_null(True)  # schema:Boolean
+    assert is_not_null(["some text"])  # List
+    # Null results should fail
+    assert is_not_null("") is False  # schema:Text & schema:URL
+    assert is_not_null(None) is False  # schema:Number & schema:Boolean
+    assert is_not_null([]) is False  # List
