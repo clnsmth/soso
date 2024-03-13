@@ -38,3 +38,17 @@ def test_convert_returns_no_none_values(strategy_names):
     for strategy in strategy_names:
         res = convert(file=get_example_metadata_file_path(strategy), strategy=strategy)
         assert all(value is not None for value in loads(res).values())
+
+
+def test_convert_verify_strategy_results(strategy_names):
+    """Test that the convert function returns the expected results by comparing
+    them with a snapshot of the expected results.
+
+    Note, this snapshot requires updating if the strategy's results change."""
+    for strategy in strategy_names:
+        with open("tests/data/" + strategy + ".json", "r", encoding="utf-8") as file:
+            expected_results = file.read()
+            res = convert(
+                file=get_example_metadata_file_path(strategy), strategy=strategy
+            )
+            assert res == expected_results
