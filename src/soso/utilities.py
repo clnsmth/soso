@@ -136,7 +136,7 @@ def rm_null_values(res):
     Notes
     -----
     Null values are defined as follows:
-    
+
     - None
     - An empty string
     - An empty list
