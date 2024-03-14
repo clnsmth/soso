@@ -1,5 +1,5 @@
 """Test the strategies."""
-
+import pytest
 from soso.interface import StrategyInterface
 from tests.conftest import is_property_type
 from tests.conftest import is_not_null
@@ -30,17 +30,15 @@ def test_strategy_reads_metadata(strategy_instance):
 def test_get_name_returns_expected_type(strategy_instance):
     """Test that the get_name method returns the expected type."""
     res = strategy_instance.get_name()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:Text"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:Text"])
 
 
 def test_get_description_returns_expected_type(strategy_instance):
     """Test that the get_description method returns the expected type."""
     res = strategy_instance.get_description()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:Text"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:Text"])
 
 
 def test_get_url_returns_expected_type(strategy_instance):
@@ -48,18 +46,16 @@ def test_get_url_returns_expected_type(strategy_instance):
     # url doesn't map to EML so use kwargs
     strategy_instance.kwargs = {"url": "https://example.com"}
     res = strategy_instance.get_url()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:URL"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:URL"])
 
 
 def test_get_same_as_returns_expected_type(strategy_instance):
     """Test that the get_same_as method returns the expected type."""
     strategy_instance.kwargs = {"sameAs": "https://example.com"}
     res = strategy_instance.get_same_as()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:URL"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:URL"])
 
 
 def test_get_version_returns_expected_type(strategy_instance):
@@ -68,9 +64,8 @@ def test_get_version_returns_expected_type(strategy_instance):
     for value in version_values:
         strategy_instance.kwargs = {"version": value}
         res = strategy_instance.get_version()
-        if res is not None:
-            assert is_not_null(res)
-            assert is_property_type(res, ["schema:Text", "schema:Number"])
+        assert is_not_null(res)
+        assert is_property_type(res, ["schema:Text", "schema:Number"])
 
 
 def test_get_is_accessible_for_free_returns_expected_type(strategy_instance):
@@ -78,44 +73,42 @@ def test_get_is_accessible_for_free_returns_expected_type(strategy_instance):
     type."""
     strategy_instance.kwargs = {"isAccessibleForFree": True}
     res = strategy_instance.get_is_accessible_for_free()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:Boolean"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:Boolean"])
 
 
 def test_get_keywords_returns_expected_type(strategy_instance):
     """Test that the get_keywords method returns the expected type."""
     res = strategy_instance.get_keywords()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:Text", "schema:DefinedTerm"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:Text", "schema:DefinedTerm"])
 
 
 def test_get_identifier_returns_expected_type(strategy_instance):
     """Test that the get_identifier method returns the expected type."""
     res = strategy_instance.get_identifier()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(
-            results=res,
-            expected_types=["schema:Text", "schema:URL", "schema:PropertyValue"],
-        )
+    assert is_not_null(res)
+    assert is_property_type(
+        results=res,
+        expected_types=["schema:Text", "schema:URL", "schema:PropertyValue"],
+    )
 
 
+@pytest.mark.skipif(
+    strategy_instance="EML", reason="Content missing from test metadata"
+)
 def test_get_citation_returns_expected_type(strategy_instance):
     """Test that the get_citation method returns the expected type."""
     res = strategy_instance.get_citation()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:Text", "schema:CreativeWork"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:Text", "schema:CreativeWork"])
 
 
 def test_get_variable_measured_returns_expected_type(strategy_instance):
     """Test that the get_variable_measured method returns the expected type."""
     res = strategy_instance.get_variable_measured()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:PropertyValue"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:PropertyValue"])
 
 
 def test_get_included_in_data_catalog_returns_expected_type(strategy_instance):
@@ -130,9 +123,8 @@ def test_get_included_in_data_catalog_returns_expected_type(strategy_instance):
         }
     }
     res = strategy_instance.get_included_in_data_catalog()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:DataCatalog"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:DataCatalog"])
 
 
 def test_get_subject_of_returns_expected_type(strategy_instance):
@@ -151,17 +143,15 @@ def test_get_subject_of_returns_expected_type(strategy_instance):
         }
     }
     res = strategy_instance.get_subject_of()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:DataDownload"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:DataDownload"])
 
 
 def test_get_distribution_returns_expected_type(strategy_instance):
     """Test that the get_distribution method returns the expected type."""
     res = strategy_instance.get_distribution()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:DataDownload"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:DataDownload"])
 
 
 def test_get_potential_action_returns_expected_type(strategy_instance):
@@ -228,89 +218,82 @@ def test_get_potential_action_returns_expected_type(strategy_instance):
         }
     }
     res = strategy_instance.get_potential_action()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:SearchAction"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:SearchAction"])
 
 
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_date_created_returns_expected_type(strategy_instance):
     """Test that the get_date_created method returns the expected type."""
     res = strategy_instance.get_date_created()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:Date", "schema:DateTime"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:Date", "schema:DateTime"])
 
 
 def test_get_date_modified_returns_expected_type(strategy_instance):
     """Test that the get_date_modified method returns the expected type."""
     res = strategy_instance.get_date_modified()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:Date", "schema:DateTime"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:Date", "schema:DateTime"])
 
 
 def test_get_date_published_returns_expected_type(strategy_instance):
     """Test that the get_date_published method returns the expected type."""
     res = strategy_instance.get_date_published()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:Date", "schema:DateTime"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:Date", "schema:DateTime"])
 
 
 def test_get_expires_returns_expected_type(strategy_instance):
     """Test that the get_expires method returns the expected type."""
     strategy_instance.kwargs = {"expires": "2019-06-12T14:44:15Z"}
     res = strategy_instance.get_expires()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:Date", "schema:DateTime"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:Date", "schema:DateTime"])
 
 
 def test_get_temporal_coverage_returns_expected_type(strategy_instance):
     """Test that the get_temporal_coverage method returns the expected type."""
     res = strategy_instance.get_temporal_coverage()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(
-            results=res,
-            expected_types=[
-                "schema:Text",
-                "schema:Date",
-                "schema:DateTime",
-                "time:ProperInterval",
-                "time:Instant",
-            ],
-        )
+    assert is_not_null(res)
+    assert is_property_type(
+        results=res,
+        expected_types=[
+            "schema:Text",
+            "schema:Date",
+            "schema:DateTime",
+            "time:ProperInterval",
+            "time:Instant",
+        ],
+    )
 
 
 def test_get_spatial_coverage_returns_expected_type(strategy_instance):
     """Test that the get_spatial_coverage method returns the expected type."""
     res = strategy_instance.get_spatial_coverage()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:Place"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:Place"])
 
 
 def test_get_creator_returns_expected_type(strategy_instance):
     """Test that the get_creator method returns the expected type."""
     res = strategy_instance.get_creator()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(
-            results=res,
-            expected_types=["schema:Person", "schema:Organization", "schema:Role"],
-        )
+    assert is_not_null(res)
+    assert is_property_type(
+        results=res,
+        expected_types=["schema:Person", "schema:Organization", "schema:Role"],
+    )
 
 
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_contributor_returns_expected_type(strategy_instance):
     """Test that the get_contributor method returns the expected type."""
     res = strategy_instance.get_contributor()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(
-            results=res,
-            expected_types=["schema:Person", "schema:Organization", "schema:Role"],
-        )
+    assert is_not_null(res)
+    assert is_property_type(
+        results=res,
+        expected_types=["schema:Person", "schema:Organization", "schema:Role"],
+    )
 
 
 def test_get_provider_returns_expected_type(strategy_instance):
@@ -319,9 +302,8 @@ def test_get_provider_returns_expected_type(strategy_instance):
         "provider": {"@id": "https://www.sample-data-repository.org"}
     }
     res = strategy_instance.get_provider()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:Organization", "@id"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:Organization", "@id"])
 
 
 def test_get_publisher_returns_expected_type(strategy_instance):
@@ -330,51 +312,49 @@ def test_get_publisher_returns_expected_type(strategy_instance):
         "publisher": {"@id": "https://www.sample-data-repository.org"}
     }
     res = strategy_instance.get_publisher()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:Organization", "@id"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:Organization", "@id"])
 
 
 def test_get_funding_returns_expected_type(strategy_instance):
     """Test that the get_funding method returns the expected type."""
     res = strategy_instance.get_funding()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:MonetaryGrant"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:MonetaryGrant"])
 
 
 def test_get_license_returns_expected_type(strategy_instance):
     """Test that the get_license method returns the expected type."""
     res = strategy_instance.get_license()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["schema:URL"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:URL"])
 
 
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_was_revision_of_returns_expected_type(strategy_instance):
     """Test that the get_was_revision_of method returns the expected type."""
     res = strategy_instance.get_was_revision_of()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["@id"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["@id"])
 
 
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_was_derived_from_returns_expected_type(strategy_instance):
     """Test that the get_was_derived_from method returns the expected type."""
     res = strategy_instance.get_was_derived_from()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["@id"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["@id"])
 
 
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_is_based_on_returns_expected_type(strategy_instance):
     """Test that the get_is_based_on method returns the expected type."""
     res = strategy_instance.get_is_based_on()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["@id"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["@id"])
 
 
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_was_generated_by_returns_expected_type(strategy_instance):
     """Test that the get_was_generated_by method returns the expected type."""
     strategy_instance.kwargs = {
@@ -387,6 +367,5 @@ def test_get_was_generated_by_returns_expected_type(strategy_instance):
         }
     }
     res = strategy_instance.get_was_generated_by()
-    if res is not None:
-        assert is_not_null(res)
-        assert is_property_type(res, ["provone:Execution"])
+    assert is_not_null(res)
+    assert is_property_type(res, ["provone:Execution"])
