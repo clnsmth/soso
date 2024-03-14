@@ -94,9 +94,7 @@ def test_get_identifier_returns_expected_type(strategy_instance):
     )
 
 
-@pytest.mark.skipif(
-    strategy_instance="EML", reason="Content missing from test metadata"
-)
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_citation_returns_expected_type(strategy_instance):
     """Test that the get_citation method returns the expected type."""
     res = strategy_instance.get_citation()
