@@ -3,6 +3,7 @@
 import urllib.error
 from importlib import resources
 from numbers import Number
+from json import dumps
 import warnings
 import pyshacl.validate
 import pandas as pd
@@ -213,3 +214,30 @@ def rm_null_values(res):
     if len(res) == 0:
         return None
     return cleaned_data
+
+
+def clean_context(graph):
+    """Delete unused vocabularies from the top level JSON-LD @context, so the
+    user is returned a clean graph.
+
+    Parameters
+    ----------
+    graph : dict
+        The JSON-LD graph.
+
+    Returns
+    -------
+    dict
+        The cleaned JSON-LD graph.
+    """
+    # Create a copy of the graph for comparison
+    graph_copy = graph.copy()
+    del graph_copy["@context"]
+    graph_copy = dumps(graph_copy)
+    # Remove vocabularies whose keys are not in the graph, @vocab is preserved
+    for key in list(graph["@context"]):
+        if (
+            key != "@vocab" and key + ":" not in graph_copy
+        ):  # ":" is added to avoid partial matches
+            del graph["@context"][key]
+    return graph

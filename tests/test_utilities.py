@@ -2,6 +2,7 @@
 
 import warnings
 from pathlib import PosixPath
+from json import dumps
 import pytest
 from pandas import DataFrame
 from soso.utilities import validate
@@ -10,6 +11,7 @@ from soso.utilities import read_sssom
 from soso.utilities import get_example_metadata_file_path
 from soso.utilities import get_shacl_file_path
 from soso.utilities import rm_null_values
+from soso.utilities import clean_context
 
 
 @pytest.mark.internet_required
@@ -146,3 +148,46 @@ def test_rm_null_values():
 
     # None is None
     assert rm_null_values(None) is None
+
+
+def test_clean_context():
+    """Test that the clean_context function removes unused vocabularies from
+    the @context."""
+    # A context with a superset of vocabularies
+    context = {
+        "@context": {
+            "@vocab": "https://schema.org/",
+            "prov": "http://www.w3.org/ns/prov#",
+            "provone": "http://purl.dataone.org/provone/2015/01/15/ontology#",
+            "rdfs": "https://www.w3.org/2001/sw/RDFCore/Schema/200212/",
+        }
+    }
+    # A graph using a subset of vocabularies. Note, rdfs is unused.
+    graph = {
+        "@context": context["@context"],
+        "@type": "Dataset",
+        "prov:wasGeneratedBy": {
+            "@type": "provone:Execution",
+            "prov:hadPlan": "https://somerepository.org/datasets/10.xxxx/"
+            "Dataset-2.v2/process-script.R",
+            "prov:used": {"@id": "https://doi.org/10.xxxx/Dataset-1"},
+        },
+    }
+    # Define the expected cleaned graph
+    cleaned_graph = {
+        "@context": {
+            "@vocab": "https://schema.org/",
+            "prov": "http://www.w3.org/ns/prov#",
+            "provone": "http://purl.dataone.org/provone/2015/01/15/ontology#",
+        },
+        "@type": "Dataset",
+        "prov:wasGeneratedBy": {
+            "@type": "provone:Execution",
+            "prov:hadPlan": "https://somerepository.org/datasets/10.xxxx/"
+            "Dataset-2.v2/process-script.R",
+            "prov:used": {"@id": "https://doi.org/10.xxxx/Dataset-1"},
+        },
+    }
+    # Test that unused vocabularies are removed from the @context, except
+    # @vocab which is always kept.
+    assert dumps(clean_context(graph)) == dumps(cleaned_graph)

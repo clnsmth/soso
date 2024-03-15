@@ -2,6 +2,7 @@
 
 from json import dumps
 from soso.strategies.eml import EML
+from soso.utilities import clean_context
 
 
 def convert(file, strategy, **kwargs):
@@ -86,5 +87,9 @@ def convert(file, strategy, **kwargs):
     for key, value in list(graph.items()):
         if value is None:
             del graph[key]
+
+    # Remove unused vocabularies from the @context, so the user is returned a
+    # clean graph.
+    graph = clean_context(graph)
 
     return dumps(graph)
