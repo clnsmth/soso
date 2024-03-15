@@ -352,11 +352,10 @@ def test_get_is_based_on_returns_expected_type(strategy_instance):
     assert is_property_type(res, ["@id"])
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_was_generated_by_returns_expected_type(strategy_instance):
     """Test that the get_was_generated_by method returns the expected type."""
     strategy_instance.kwargs = {
-        "prov:wasGeneratedBy": {
+        "wasGeneratedBy": {
             "@id": "https://example.org/executions/execution-42",
             "@type": "provone:Execution",
             "prov:hadPlan": "https://somerepository.org/datasets/10.xxxx/"

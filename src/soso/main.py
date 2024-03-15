@@ -35,7 +35,19 @@ def convert(file, strategy, **kwargs):
 
     # Build the graph
     graph = {
-        "@context": {"@vocab": "https://schema.org/"},
+        "@context": {
+            "@vocab": "https://schema.org/",
+            "dbpedia": "http://dbpedia.org/resource/",
+            "gsqtime": "https://vocabs.gsq.digital/object?uri=http://linked.data.gov.au/def/trs",
+            "gstime": "http://schema.geoschemas.org/contexts/temporal#",
+            "prov": "http://www.w3.org/ns/prov#",
+            "provone": "http://purl.dataone.org/provone/2015/01/15/ontology#",
+            "rdfs": "https://www.w3.org/2001/sw/RDFCore/Schema/200212/",
+            "spdx": "http://spdx.org/rdf/terms#",
+            "time": "http://www.w3.org/2006/time#",
+            "ts": "http://resource.geosciml.org/vocabulary/timescale/",
+            "xsd": "https://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html",
+        },
         "@type": "Dataset",
         "name": strategy.get_name(),
         "description": strategy.get_description(),
