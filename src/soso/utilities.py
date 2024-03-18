@@ -116,7 +116,7 @@ def read_sssom(strategy):
     return sssom
 
 
-def rm_null_values(res):
+def delete_null_values(res):
     """
     Remove null values from results returned by strategy methods. This
     function is to help developers of strategy methods clean their results
@@ -216,7 +216,7 @@ def rm_null_values(res):
     return cleaned_data
 
 
-def clean_context(graph):
+def delete_unused_vocabularies(graph):
     """Delete unused vocabularies from the top level JSON-LD @context, so the
     user is returned a clean graph.
 

@@ -2,7 +2,7 @@
 
 from json import dumps
 from soso.strategies.eml import EML
-from soso.utilities import clean_context
+from soso.utilities import delete_unused_vocabularies
 
 
 def convert(file, strategy, **kwargs):
@@ -90,6 +90,6 @@ def convert(file, strategy, **kwargs):
 
     # Remove unused vocabularies from the @context, so the user is returned a
     # clean graph.
-    graph = clean_context(graph)
+    graph = delete_unused_vocabularies(graph)
 
     return dumps(graph)
