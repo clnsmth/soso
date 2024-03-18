@@ -217,8 +217,9 @@ def delete_null_values(res):
 
 
 def delete_unused_vocabularies(graph):
-    """Delete unused vocabularies from the top level JSON-LD @context, so the
-    user is returned a clean graph.
+    """Delete unused vocabularies from the top level JSON-LD @context. This
+    function is to help clean the graph created by `main.convert` before
+    returning it to the user.
 
     Parameters
     ----------
@@ -228,7 +229,8 @@ def delete_unused_vocabularies(graph):
     Returns
     -------
     dict
-        The cleaned JSON-LD graph.
+        The JSON-LD graph, with unused vocabularies removed from the top level
+        @context.
     """
     # Create a copy of the graph for comparison
     graph_copy = graph.copy()
