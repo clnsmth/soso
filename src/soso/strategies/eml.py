@@ -3,7 +3,7 @@
 from mimetypes import guess_type
 from lxml import etree
 from soso.interface import StrategyInterface
-from soso.utilities import rm_null_values
+from soso.utilities import delete_null_values
 
 
 class EML(StrategyInterface):
@@ -52,27 +52,27 @@ class EML(StrategyInterface):
 
     def get_name(self):
         name = self.metadata.xpath(".//dataset/title")
-        return rm_null_values(name[0].text)
+        return delete_null_values(name[0].text)
 
     def get_description(self):
         description = self.metadata.xpath(".//dataset/abstract")
-        return rm_null_values(description[0].text)
+        return delete_null_values(description[0].text)
 
     def get_url(self):
         url = self.kwargs.get("url")
-        return rm_null_values(url)
+        return delete_null_values(url)
 
     def get_same_as(self):
         same_as = self.kwargs.get("sameAs")
-        return rm_null_values(same_as)
+        return delete_null_values(same_as)
 
     def get_version(self):
         version = self.kwargs.get("version")
-        return rm_null_values(version)
+        return delete_null_values(version)
 
     def get_is_accessible_for_free(self):
         is_accessible_for_free = self.kwargs.get("isAccessibleForFree")
-        return rm_null_values(is_accessible_for_free)
+        return delete_null_values(is_accessible_for_free)
 
     def get_keywords(self):
         keywords = []
@@ -85,15 +85,15 @@ class EML(StrategyInterface):
                 "url": item.text,
             }
             keywords.append(defined_term)
-        return rm_null_values(keywords)
+        return delete_null_values(keywords)
 
     def get_identifier(self):
         identifier = self.metadata.xpath("@packageId")
-        return rm_null_values(identifier[0])
+        return delete_null_values(identifier[0])
 
     def get_citation(self):
         citation = self.kwargs.get("citation")
-        return rm_null_values(citation)
+        return delete_null_values(citation)
 
     def get_variable_measured(self):
         variable_measured = []
@@ -113,15 +113,15 @@ class EML(StrategyInterface):
                 key: value for key, value in property_value.items() if value is not None
             }
             variable_measured.append(property_value)
-        return rm_null_values(variable_measured)
+        return delete_null_values(variable_measured)
 
     def get_included_in_data_catalog(self):
         included_in_data_catalog = self.kwargs.get("includedInDataCatalog")
-        return rm_null_values(included_in_data_catalog)
+        return delete_null_values(included_in_data_catalog)
 
     def get_subject_of(self):
         subject_of = self.kwargs.get("subjectOf")
-        return rm_null_values(subject_of)
+        return delete_null_values(subject_of)
 
     def get_distribution(self):
         distribution = []
@@ -144,27 +144,27 @@ class EML(StrategyInterface):
                     "encodingFormat": get_data_entity_encoding_format(item),
                 }
                 distribution.append(data_download)
-        return rm_null_values(distribution)
+        return delete_null_values(distribution)
 
     def get_potential_action(self):
         potential_action = self.kwargs.get("potentialAction")
-        return rm_null_values(potential_action)
+        return delete_null_values(potential_action)
 
     def get_date_created(self):
         date_created = self.kwargs.get("dateCreated")
-        return rm_null_values(date_created)
+        return delete_null_values(date_created)
 
     def get_date_modified(self):
         date_modified = self.metadata.xpath(".//dataset/pubDate")
-        return rm_null_values(date_modified[0].text)
+        return delete_null_values(date_modified[0].text)
 
     def get_date_published(self):
         date_published = self.metadata.xpath(".//dataset/pubDate")
-        return rm_null_values(date_published[0].text)
+        return delete_null_values(date_published[0].text)
 
     def get_expires(self):
         expires = self.kwargs.get("expires")
-        return rm_null_values(expires)
+        return delete_null_values(expires)
 
     def get_temporal_coverage(self):
         range_of_dates = self.metadata.xpath(
@@ -183,7 +183,7 @@ class EML(StrategyInterface):
                 temporal_coverage = None
             else:
                 temporal_coverage = convert_single_date_time(single_date_time[0])
-        return rm_null_values(temporal_coverage)
+        return delete_null_values(temporal_coverage)
 
     def get_spatial_coverage(self):
         geo = []
@@ -196,7 +196,7 @@ class EML(StrategyInterface):
             elif object_type == "Polygon":
                 geo.append(get_polygon(item))
         spatial_coverage = {"@type": "Place", "geo": geo}
-        return rm_null_values(spatial_coverage)
+        return delete_null_values(spatial_coverage)
 
     def get_creator(self):
         creator = []
@@ -207,7 +207,7 @@ class EML(StrategyInterface):
             creator = {"@list": creator}  # to preserve order
         else:
             creator = None  # for readability
-        return rm_null_values(creator)
+        return delete_null_values(creator)
 
     def get_contributor(self):
         contributor = []
@@ -223,15 +223,15 @@ class EML(StrategyInterface):
             contributor = {"@list": contributor}  # to preserve order
         else:
             contributor = None  # for readability
-        return rm_null_values(contributor)
+        return delete_null_values(contributor)
 
     def get_provider(self):
         provider = self.kwargs.get("provider")
-        return rm_null_values(provider)
+        return delete_null_values(provider)
 
     def get_publisher(self):
         publisher = self.kwargs.get("publisher")
-        return rm_null_values(publisher)
+        return delete_null_values(publisher)
 
     def get_funding(self):
         funding = []
@@ -249,15 +249,15 @@ class EML(StrategyInterface):
             }
             funding.append(res)
         funding = None if len(funding) == 0 else funding  # for readability
-        return rm_null_values(funding)
+        return delete_null_values(funding)
 
     def get_license(self):
         license_url = self.metadata.findtext(".//dataset/licensed/url")
-        return rm_null_values(license_url)
+        return delete_null_values(license_url)
 
     def get_was_revision_of(self):
         was_revision_of = self.kwargs.get("wasRevisionOf")
-        return rm_null_values(was_revision_of)
+        return delete_null_values(was_revision_of)
 
     def get_was_derived_from(self):
         was_derived_from = []
@@ -268,15 +268,15 @@ class EML(StrategyInterface):
                 was_derived_from.append({"@id": url})
         if len(was_derived_from) == 0:
             was_derived_from = None  # for readability
-        return rm_null_values(was_derived_from)
+        return delete_null_values(was_derived_from)
 
     def get_is_based_on(self):
         is_based_on = self.get_was_derived_from()  # duplicate for discovery
-        return rm_null_values(is_based_on)
+        return delete_null_values(is_based_on)
 
     def get_was_generated_by(self):
         was_generated_by = self.kwargs.get("wasGeneratedBy")
-        return rm_null_values(was_generated_by)
+        return delete_null_values(was_generated_by)
 
 
 # Below are utility functions for the EML strategy.
