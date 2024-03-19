@@ -462,3 +462,59 @@ def test_get_person_or_organization_returns_value_and_type():
     res = get_person_or_organization(root)
     assert isinstance(res, dict)
     assert res["@type"] == "Organization"
+
+
+
+from soso.strategies.eml import EML
+from soso.utilities import get_example_metadata_file_path
+from soso.main import convert
+import json
+def test_use_cases():
+    # Use case 1: Access the metadata file to perform custom parsing and then
+    # integrate into the SOSO graph
+    strategy_instance = EML(file=get_example_metadata_file_path("EML"))  # Initialize the strategy instance and read the metadata file.
+    xml = strategy_instance.metadata  # the metadata file is now accessible
+    title = xml.find(".//title").text  # a custom operation is performed on the metadata file
+    title = "Custom title"  # overriding the title to detect change in final graph
+    res = convert(
+        file=get_example_metadata_file_path("EML"),
+        strategy="eml",
+        version=title   # title doesn't have kwargs implemented yet so using version, which does
+    )
+    res = json.loads(res)
+    assert res["version"] == "Custom title"
+
+    # Use case 2: Define a new get_name method for the EML strategy and use it to
+    # override the default get_name method
+    def get_name(self):
+        return "Custom name"
+    EML.get_name = get_name
+    res = convert(
+        file=get_example_metadata_file_path("EML"),
+        strategy="eml"
+    )
+    res = json.loads(res)
+    assert res["name"] == "Custom name"
+
+    # Use case 3: Full workflow using method overriding via inheritance
+    # Define new methods for the EML strategy
+    def get_version(self):
+        version = get_example_metadata_file_path("EML").stem  # how we'd normally get the version
+        # Note, you can access the metadata file using self.metadata
+        return version
+
+    def get_publisher(self):
+        return "The repository identifier"
+
+    EML.get_version = get_version
+    EML.get_publisher = get_publisher
+
+    # Loop through metadata files calling the newly customized EML strategy
+    for file in [get_example_metadata_file_path("EML")]:
+        res = convert(
+            file=get_example_metadata_file_path("EML"),
+            strategy="eml"
+        )
+        res = json.loads(res)
+        assert res["version"] == "eml"
+        assert res["publisher"] == "The repository identifier"
