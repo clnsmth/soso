@@ -504,7 +504,7 @@ def test_use_cases():
         return version
 
     def get_publisher(self):
-        return "The repository identifier"
+        return self.kwargs["repository_id"]  # arbitrary data is accessed via kwargs
 
     EML.get_version = get_version
     EML.get_publisher = get_publisher
@@ -513,7 +513,8 @@ def test_use_cases():
     for file in [get_example_metadata_file_path("EML")]:
         res = convert(
             file=get_example_metadata_file_path("EML"),
-            strategy="eml"
+            strategy="eml",
+            repository_id="The repository identifier"  # arbitrary data is input via kwargs
         )
         res = json.loads(res)
         assert res["version"] == "eml"
