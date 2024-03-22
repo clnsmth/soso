@@ -15,17 +15,18 @@ class EML(StrategyInterface):
         The path to the metadata file. This should be an XML file in EML
         format.
     **kwargs : dict
-        Additional keyword arguments that can be utilized to define SOSO
-        properties that don't directly correspond to metadata fields. See
-        Notes for more information.
+        Additional keyword arguments for passing information to the EML
+        `strategy`. This can help in the case of unmappable properties. See the
+        Notes section below.
 
     Notes
     -----
-    Not all SOSO properties have a direct mapping to EML metadata. Such properties
-    can be specified using `kwargs`, where the keys represent property names, and
-    the values define the property types (provided as strings or dictionaries).
-    Refer to the `SOSO guidelines <https://github.com/ESIPFed/science-on-schema.org/blob
-    /master/guides/Dataset.md>`_ for detailed insights into each property.
+    Some properties used by SOSO don't directly map to EML. These properties
+    can still be included by customizing the strategy methods.  The user
+    documentation has more information on this process. For a deeper
+    understanding of each SOSO property,  refer to the `SOSO guidelines
+    <https://github.com/ESIPFed/science-on-schema.org/blob/master/guides/
+    Dataset.md>`_.
 
     Unmappable properties:
 
@@ -59,19 +60,19 @@ class EML(StrategyInterface):
         return delete_null_values(description[0].text)
 
     def get_url(self):
-        url = self.kwargs.get("url")
+        url = None  # EML does not map to schema:url
         return delete_null_values(url)
 
     def get_same_as(self):
-        same_as = self.kwargs.get("sameAs")
+        same_as = None  # EML does not map to schema:sameAs
         return delete_null_values(same_as)
 
     def get_version(self):
-        version = self.kwargs.get("version")
+        version = None  # EML does not map to schema:version
         return delete_null_values(version)
 
     def get_is_accessible_for_free(self):
-        is_accessible_for_free = self.kwargs.get("isAccessibleForFree")
+        is_accessible_for_free = None  # EML does not map to schema:isAccessibleForFree
         return delete_null_values(is_accessible_for_free)
 
     def get_keywords(self):
@@ -92,7 +93,7 @@ class EML(StrategyInterface):
         return delete_null_values(identifier[0])
 
     def get_citation(self):
-        citation = self.kwargs.get("citation")
+        citation = None  # EML does not map to schema:citation
         return delete_null_values(citation)
 
     def get_variable_measured(self):
@@ -116,11 +117,13 @@ class EML(StrategyInterface):
         return delete_null_values(variable_measured)
 
     def get_included_in_data_catalog(self):
-        included_in_data_catalog = self.kwargs.get("includedInDataCatalog")
+        included_in_data_catalog = (
+            None  # EML does not map to schema:includedInDataCatalog
+        )
         return delete_null_values(included_in_data_catalog)
 
     def get_subject_of(self):
-        subject_of = self.kwargs.get("subjectOf")
+        subject_of = None  # EML does not map to schema:subjectOf
         return delete_null_values(subject_of)
 
     def get_distribution(self):
@@ -147,11 +150,11 @@ class EML(StrategyInterface):
         return delete_null_values(distribution)
 
     def get_potential_action(self):
-        potential_action = self.kwargs.get("potentialAction")
+        potential_action = None  # EML does not map to schema:potentialAction
         return delete_null_values(potential_action)
 
     def get_date_created(self):
-        date_created = self.kwargs.get("dateCreated")
+        date_created = None  # EML does not map to schema:dateCreated
         return delete_null_values(date_created)
 
     def get_date_modified(self):
@@ -163,7 +166,7 @@ class EML(StrategyInterface):
         return delete_null_values(date_published[0].text)
 
     def get_expires(self):
-        expires = self.kwargs.get("expires")
+        expires = None  # EML does not map to schema:expires
         return delete_null_values(expires)
 
     def get_temporal_coverage(self):
@@ -226,11 +229,11 @@ class EML(StrategyInterface):
         return delete_null_values(contributor)
 
     def get_provider(self):
-        provider = self.kwargs.get("provider")
+        provider = None  # EML does not map to schema:provider
         return delete_null_values(provider)
 
     def get_publisher(self):
-        publisher = self.kwargs.get("publisher")
+        publisher = None  # EML does not map to schema:publisher
         return delete_null_values(publisher)
 
     def get_funding(self):
@@ -256,7 +259,7 @@ class EML(StrategyInterface):
         return delete_null_values(license_url)
 
     def get_was_revision_of(self):
-        was_revision_of = self.kwargs.get("wasRevisionOf")
+        was_revision_of = None  # EML does not map to prov:wasRevisionOf
         return delete_null_values(was_revision_of)
 
     def get_was_derived_from(self):
@@ -275,7 +278,7 @@ class EML(StrategyInterface):
         return delete_null_values(is_based_on)
 
     def get_was_generated_by(self):
-        was_generated_by = self.kwargs.get("wasGeneratedBy")
+        was_generated_by = None  # EML does not map to prov:wasGeneratedBy
         return delete_null_values(was_generated_by)
 
 
