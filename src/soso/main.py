@@ -17,9 +17,10 @@ def convert(file, strategy, **kwargs):
         The conversion strategy to be employed. Available strategies include:
         "EML".
     **kwargs : dict
-        Additional keyword arguments for creating SOSO properties not covered
-        by the chosen `strategy`. Check the Notes section in the strategy's
-        documentation for more information.
+        Additional keyword arguments for passing information to the chosen
+        `strategy`. This can help in the case of unmappable properties. See the
+        Notes section in the strategy's documentation for more information.
+
 
     Returns
     -------

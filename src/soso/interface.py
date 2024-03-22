@@ -11,8 +11,9 @@ class StrategyInterface:
         another suitable representation. This object is utilized by strategy
         methods to generate SOSO properties.
     kwargs : dict or None
-        Additional keyword arguments that can be utilized to define SOSO
-        properties that don't directly correspond to metadata fields.
+        Additional keyword arguments for passing information to the chosen
+        `strategy`. This can help in the case of unmappable properties. See the
+        Notes section in the strategy's documentation for more information.
 
     Returns
     -------
