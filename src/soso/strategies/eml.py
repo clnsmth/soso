@@ -21,13 +21,14 @@ class EML(StrategyInterface):
 
     Notes
     -----
-    Not all SOSO properties have a direct mapping to EML metadata. Such properties
-    can be specified using `kwargs`, where the keys represent property names, and
-    the values define the property types (provided as strings or dictionaries).
-    Refer to the `SOSO guidelines <https://github.com/ESIPFed/science-on-schema.org/blob
-    /master/guides/Dataset.md>`_ for detailed insights into each property.
+    Not all SOSO properties have a direct mapping to EML metadata. Such
+    properties can be specified using `kwargs` or by overriding the method.
+    For `kwargs`, the keys represent property names, and the values define the
+    property types. Refer to the `SOSO guidelines <https://github.com/ESIPFed
+    /science-on-schema.org/blob/master/guides/Dataset.md>`_ for detailed
+    insights into each property.
 
-    Unmappable properties:
+    Unmappable properties that can be defined using `kwargs`:
 
     - url
     - sameAs
@@ -35,13 +36,17 @@ class EML(StrategyInterface):
     - isAccessibleForFree
     - citation
     - includedInDataCatalog
-    - subjectOf
-    - potentialAction
+    - contentURL - This property is nested within subjectOf, which is
+      otherwise fully mapped.
     - dateCreated
     - expires
     - provider
     - publisher
     - wasRevisionOf
+
+    Unmappable properties that can be defined by overriding the method:
+
+    - potentialAction
     - wasGeneratedBy
     """
 
