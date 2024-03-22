@@ -61,6 +61,26 @@
       <electronicMailAddress>BLE-IM@utexas.edu</electronicMailAddress>
       <onlineUrl>https://ble.lternet.edu/</onlineUrl>
     </metadataProvider>
+    <associatedParty>
+      <individualName>
+        <givenName>Vanessa L</givenName>
+        <surName>Lougheed</surName>
+      </individualName>
+      <organizationName>The University of Texas at El Paso</organizationName>
+      <address>
+        <deliveryPoint>500 W University Ave Department of Biological Sciences</deliveryPoint>
+        <city>El Paso</city>
+        <administrativeArea>TX</administrativeArea>
+        <postalCode>79902</postalCode>
+        <country>USA</country>
+      </address>
+      <phone>915-747-6887</phone>
+      <electronicMailAddress>vlougheed@utep.edu</electronicMailAddress>
+      <onlineUrl>https://expertise.utep.edu/node/26254&#xd;
+      </onlineUrl>
+      <userId directory="ORCID">https://orcid.org/0000-0002-6091-1151</userId>
+      <role>contentProvider</role>
+    </associatedParty>
     <pubDate>2019</pubDate>
     <language>English</language>
     <abstract>Multiple aquatic ecosystems (pond, lake, river, lagoon, ocean) on the Arctic Coastal Plain (ACP) near Utqiaġvik, AK were visited to determine their relative contribution to landscape-level atmospheric CO2 flux and how this may have changed over time. pCO2 (partial pressure of carbon dioxide) was monitored in late summer (late July to mid-August) over a period of four years (2013, 2015, 2017, 2018) from open water areas and is related to habitat type, dissolved organic carbon (DOC) and environmental factors (temperature, radiation, rainfall). Data include both daily averages from most sites, as well as spatial representation of pCO2 in Elson Lagoon and diel cycles of pCO2 from a tundra pond. Pond NEP (net ecosystem production) is estimated by free water metabolism and presented as daily estimates over a four summer period.</abstract>
@@ -386,6 +406,34 @@ Permission is hereby granted, free of charge, to any person or organization obta
   Springer-Verlag, New York.
 </para>
         </description>
+      </methodStep>
+      <methodStep>
+        <description>
+          <para>This method step describes provenance-based metadata as specified in the LTER EML Best Practices.</para>
+          <para>This provenance metadata does not contain entity specific information.</para>
+          <para>This is arbitrary content that does not in any way relate to this dataset. It is included here for demonstration purposes only.</para>
+        </description>
+        <dataSource>
+          <title>A source dataset title</title>
+          <creator>
+            <individualName>
+              <givenName>Jane</givenName>
+              <surName>Dough</surName>
+            </individualName>
+          </creator>
+          <distribution>
+            <online>
+              <onlineDescription>This online link references an EML document that describes data used in the creation of this derivative data package.</onlineDescription>
+              <url function="information">https://sample-data-repository/dataset/xxx</url>
+            </online>
+          </distribution>
+          <contact>
+            <individualName>
+              <givenName>Jane</givenName>
+              <surName>Dough</surName>
+            </individualName>
+          </contact>
+        </dataSource>
       </methodStep>
     </methods>
     <project>
