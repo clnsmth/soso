@@ -201,7 +201,6 @@ def test_get_creator_returns_expected_type(strategy_instance):
     )
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_contributor_returns_expected_type(strategy_instance):
     """Test that the get_contributor method returns the expected type."""
     res = strategy_instance.get_contributor()
@@ -250,7 +249,6 @@ def test_get_was_revision_of_returns_expected_type(strategy_instance):
     assert is_property_type(res, ["@id"])
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_was_derived_from_returns_expected_type(strategy_instance):
     """Test that the get_was_derived_from method returns the expected type."""
     res = strategy_instance.get_was_derived_from()
@@ -258,7 +256,6 @@ def test_get_was_derived_from_returns_expected_type(strategy_instance):
     assert is_property_type(res, ["@id"])
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_is_based_on_returns_expected_type(strategy_instance):
     """Test that the get_is_based_on method returns the expected type."""
     res = strategy_instance.get_is_based_on()
