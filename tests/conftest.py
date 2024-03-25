@@ -54,10 +54,10 @@ def soso_properties():
         "publisher",
         "funding",
         "license",
-        "wasRevisionOf",
-        "wasDerivedFrom",
+        "prov:wasRevisionOf",
+        "prov:wasDerivedFrom",
         "isBasedOn",
-        "wasGeneratedBy",
+        "prov:wasGeneratedBy",
     ]
 
 
