@@ -14,7 +14,10 @@ from soso.strategies.eml import (
     convert_user_id,
     get_data_entity_encoding_format,
     get_person_or_organization,
+    get_encoding_format,
+    EML,
 )
+from soso.utilities import get_example_metadata_file_path
 
 
 def test_get_content_url_returns_expected_value():
@@ -462,3 +465,12 @@ def test_get_person_or_organization_returns_value_and_type():
     res = get_person_or_organization(root)
     assert isinstance(res, dict)
     assert res["@type"] == "Organization"
+
+
+def test_get_encoding_format():
+    """Test that the get_encoding_format function returns the expected
+    value."""
+    eml = EML(file=get_example_metadata_file_path("EML"))
+    res = get_encoding_format(metadata=eml.metadata)
+    expected = ["application/xml", "https://eml.ecoinformatics.org/eml-2.2.0"]
+    assert res == expected
