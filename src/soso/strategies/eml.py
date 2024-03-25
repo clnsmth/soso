@@ -45,6 +45,9 @@ class EML(StrategyInterface):
     - publisher
     - wasRevisionOf
     - wasGeneratedBy
+    - additionalProperty - This property is nested within the spatialCoverage
+      property, and can be used to declare the coordinate reference system
+      of the spatial coverage. The default is WGS84.
     """
 
     def __init__(self, file, **kwargs):
