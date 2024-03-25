@@ -151,7 +151,7 @@ class EML(StrategyInterface):
                     "name": item.findtext(".//entityName"),
                     "description": item.findtext(".//entityDescription"),
                     "contentSize": get_content_size(item),
-                    "contentURL": get_content_url(item),
+                    "contentUrl": get_content_url(item),
                     "encodingFormat": get_data_entity_encoding_format(item),
                 }
                 distribution.append(data_download)
