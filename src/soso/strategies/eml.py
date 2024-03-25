@@ -123,7 +123,14 @@ class EML(StrategyInterface):
         return delete_null_values(included_in_data_catalog)
 
     def get_subject_of(self):
-        subject_of = None  # EML does not map to schema:subjectOf
+        subject_of = {
+            "@type": "DataDownload",
+            "name": "EML metadata for dataset",
+            "description": "EML metadata describing the dataset",
+            "encodingFormat": ["application/xml", "https://eml.ecoinformatics.org/eml-2.2.0"],
+            "contentUrl": None,  # EML does not map to schema:contentUrl
+            "dateModified": self.get_date_modified()
+        }
         return delete_null_values(subject_of)
 
     def get_distribution(self):
