@@ -77,10 +77,10 @@ def convert(file, strategy, **kwargs):
         "publisher": strategy.get_publisher(),
         "funding": strategy.get_funding(),
         "license": strategy.get_license(),
-        "wasRevisionOf": strategy.get_was_revision_of(),
-        "wasDerivedFrom": strategy.get_was_derived_from(),
+        "prov:wasRevisionOf": strategy.get_was_revision_of(),
+        "prov:wasDerivedFrom": strategy.get_was_derived_from(),
         "isBasedOn": strategy.get_is_based_on(),
-        "wasGeneratedBy": strategy.get_was_generated_by(),
+        "prov:wasGeneratedBy": strategy.get_was_generated_by(),
     }
 
     # Remove properties where get methods returned None, so the user is

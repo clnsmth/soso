@@ -9,6 +9,9 @@ def test_convert_returns_str(strategy_names):
     """Test that the convert function returns a string."""
     for strategy in strategy_names:
         res = convert(file=get_example_metadata_file_path(strategy), strategy=strategy)
+        # Write to file for debugging
+        with open("tests/data/" + strategy + ".json", "w", encoding="utf-8") as file:
+            file.write(res)
         assert isinstance(res, str)
 
 
