@@ -36,7 +36,8 @@ class EML(StrategyInterface):
     - isAccessibleForFree
     - citation
     - includedInDataCatalog
-    - subjectOf
+    - contentURL - This property is nested within subjectOf, which is
+      otherwise fully mapped.
     - potentialAction
     - dateCreated
     - expires
@@ -127,9 +128,9 @@ class EML(StrategyInterface):
             "@type": "DataDownload",
             "name": "EML metadata for dataset",
             "description": "EML metadata describing the dataset",
-            "encodingFormat": ["application/xml", "https://eml.ecoinformatics.org/eml-2.2.0"],
+            "encodingFormat": get_encoding_format(self.metadata),
             "contentUrl": None,  # EML does not map to schema:contentUrl
-            "dateModified": self.get_date_modified()
+            "dateModified": self.get_date_modified(),
         }
         return delete_null_values(subject_of)
 
