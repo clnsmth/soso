@@ -115,7 +115,6 @@ def test_get_included_in_data_catalog_returns_expected_type(strategy_instance):
     assert is_property_type(res, ["schema:DataCatalog"])
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_subject_of_returns_expected_type(strategy_instance):
     """Test that the get_subject_of method returns the expected type."""
     res = strategy_instance.get_subject_of()

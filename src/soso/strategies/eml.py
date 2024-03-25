@@ -36,7 +36,8 @@ class EML(StrategyInterface):
     - isAccessibleForFree
     - citation
     - includedInDataCatalog
-    - subjectOf
+    - contentURL - This property is nested within subjectOf, which is
+      otherwise fully mapped.
     - potentialAction
     - dateCreated
     - expires
@@ -123,7 +124,14 @@ class EML(StrategyInterface):
         return delete_null_values(included_in_data_catalog)
 
     def get_subject_of(self):
-        subject_of = None  # EML does not map to schema:subjectOf
+        subject_of = {
+            "@type": "DataDownload",
+            "name": "EML metadata for dataset",
+            "description": "EML metadata describing the dataset",
+            "encodingFormat": get_encoding_format(self.metadata),
+            "contentUrl": None,  # EML does not map to schema:contentUrl
+            "dateModified": self.get_date_modified(),
+        }
         return delete_null_values(subject_of)
 
     def get_distribution(self):
