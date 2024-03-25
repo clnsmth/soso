@@ -663,3 +663,20 @@ def get_person_or_organization(responsible_party):
             "identifier": convert_user_id(responsible_party.xpath("userId")),
         }
     return res
+
+
+def get_encoding_format(metadata):
+    """
+    Parameters
+    ----------
+    metadata : object or None
+        The metadata object as an XML tree.
+
+    Returns
+    -------
+    str
+        The encoding format of an EML metadata record.
+    """
+    schema_location = metadata.getroot().nsmap.get("eml", None)
+    encoding_format = ["application/xml", schema_location]
+    return encoding_format
