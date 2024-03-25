@@ -677,6 +677,6 @@ def get_encoding_format(metadata):
     str
         The encoding format of an EML metadata record.
     """
-    schema_location = metadata.getroot().nsmap.get('eml', None)
+    schema_location = metadata.getroot().nsmap.get("eml", None)
     encoding_format = ["application/xml", schema_location]
     return encoding_format
