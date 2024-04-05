@@ -109,6 +109,7 @@ class EML(StrategyInterface):
                 "alternateName": item.findtext("attributeLabel"),
                 "propertyID": item.findtext(".//valueURI"),
                 "description": item.findtext("attributeDefinition"),
+                "measurementTechnique": get_methods(item),
                 "unitText": item.findtext(".//standardUnit")
                 or item.findtext(".//customUnit"),
                 "minValue": item.findtext(".//minimum"),
@@ -691,3 +692,24 @@ def get_encoding_format(metadata):
     schema_location = metadata.getroot().nsmap.get("eml", None)
     encoding_format = ["application/xml", schema_location]
     return encoding_format
+
+
+def get_methods(xml):
+    """
+    Parameters
+    ----------
+    xml : lxml.etree._Element
+
+    Returns
+    -------
+    str or None
+        The methods section of an EML metadata record with XML tags removed,
+        and leading and trailing whitespace removed. None if the methods
+        section is not found.
+    """
+    methods = xml.xpath(".//methods")
+    if len(methods) == 0:
+        return None
+    methods = etree.tostring(methods[0], encoding="utf-8", method="text")
+    methods = methods.decode("utf-8").strip()
+    return methods

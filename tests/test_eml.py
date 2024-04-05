@@ -16,6 +16,7 @@ from soso.strategies.eml import (
     get_person_or_organization,
     get_encoding_format,
     EML,
+    get_methods,
 )
 from soso.utilities import get_example_metadata_file_path
 
@@ -474,3 +475,32 @@ def test_get_encoding_format():
     res = get_encoding_format(metadata=eml.metadata)
     expected = ["application/xml", "https://eml.ecoinformatics.org/eml-2.2.0"]
     assert res == expected
+
+
+def test_get_methods():
+    """Test that the get_methods function returns the expected value."""
+    # Strings are returned if the "methods" element is present.
+    xml_content = """
+    <root>
+        <methods>
+            <methodStep>
+                <description>Step 1</description>
+            </methodStep>
+            <methodStep>
+                <description>Step 2</description>
+            </methodStep>
+        </methods>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    expected = "Step 1\n            \n            \n                Step 2"
+    assert get_methods(root) == expected
+
+    # None is returned if the "methods" element is not present.
+    xml_content = """
+    <root>
+        <other_element>Content</other_element>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert get_methods(root) is None
