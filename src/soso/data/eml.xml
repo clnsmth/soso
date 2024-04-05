@@ -877,6 +877,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
             <code>-9999</code>
             <codeExplanation>Data not collected</codeExplanation>
           </missingValueCode>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
         </attribute>
         <attribute id="d1-e1-att12">
           <attributeName>WaterTemp_C</attributeName>
@@ -901,6 +906,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
             <code>-9999</code>
             <codeExplanation>Data not collected</codeExplanation>
           </missingValueCode>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
           <annotation>
             <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
             <valueURI label="Water Temperature">http://purl.dataone.org/odo/ECSO_00001227</valueURI>
@@ -922,6 +932,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
               </numericDomain>
             </ratio>
           </measurementScale>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
           <annotation>
             <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
             <valueURI label="carbon dioxide partial pressure">http://purl.dataone.org/odo/ECSO_00000636</valueURI>
@@ -946,6 +961,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
               </numericDomain>
             </ratio>
           </measurementScale>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
           <annotation>
             <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
             <valueURI label="wind speed">http://purl.dataone.org/odo/ECSO_00001233</valueURI>
@@ -974,6 +994,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
             <code>-9999</code>
             <codeExplanation>Data not collected</codeExplanation>
           </missingValueCode>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
           <annotation>
             <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
             <valueURI label="air temperature">http://purl.dataone.org/odo/ECSO_00001225</valueURI>
@@ -999,6 +1024,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
             <code>-9999</code>
             <codeExplanation>Data not collected</codeExplanation>
           </missingValueCode>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
         </attribute>
         <attribute id="d1-e1-att17">
           <attributeName>Fmmol_mmol_m2_day</attributeName>
@@ -1205,6 +1235,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
             <code>-9999</code>
             <codeExplanation>Data not collected</codeExplanation>
           </missingValueCode>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
           <annotation>
             <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
             <valueURI label="carbon dioxide partial pressure">http://purl.dataone.org/odo/ECSO_00000636</valueURI>
@@ -1233,6 +1268,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
             <code>-9999</code>
             <codeExplanation>Data not collected</codeExplanation>
           </missingValueCode>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
           <annotation>
             <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
             <valueURI label="Water Temperature">http://purl.dataone.org/odo/ECSO_00001227</valueURI>
@@ -1258,6 +1298,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
             <code>-9999</code>
             <codeExplanation>Data not collected</codeExplanation>
           </missingValueCode>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
           <annotation>
             <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
             <valueURI label="dissolved organic carbon">http://purl.dataone.org/odo/ECSO_00000571</valueURI>
@@ -1391,6 +1436,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
             <code>-9999</code>
             <codeExplanation>Data not collected</codeExplanation>
           </missingValueCode>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
           <annotation>
             <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
             <valueURI label="solar radiation">http://purl.dataone.org/odo/ECSO_00001103</valueURI>
@@ -1419,6 +1469,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
             <code>-9999</code>
             <codeExplanation>Data not collected</codeExplanation>
           </missingValueCode>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
           <annotation>
             <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
             <valueURI label="air temperature">http://purl.dataone.org/odo/ECSO_00001225</valueURI>
@@ -1444,6 +1499,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
             <code>-9999</code>
             <codeExplanation>Data not collected</codeExplanation>
           </missingValueCode>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
           <annotation>
             <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
             <valueURI label="carbon dioxide partial pressure">http://purl.dataone.org/odo/ECSO_00000636</valueURI>
@@ -1468,6 +1528,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
               </numericDomain>
             </ratio>
           </measurementScale>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
         </attribute>
         <attribute id="d1-e3-att10">
           <attributeName>WaterTemp_C</attributeName>
@@ -1492,6 +1557,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
             <code>-9999</code>
             <codeExplanation>Data not collected</codeExplanation>
           </missingValueCode>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
           <annotation>
             <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
             <valueURI label="Water Temperature">http://purl.dataone.org/odo/ECSO_00001227</valueURI>
@@ -1611,6 +1681,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
               </numericDomain>
             </interval>
           </measurementScale>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
         </attribute>
         <attribute id="d1-e4-att6">
           <attributeName>PAR_umol_m2_day</attributeName>
@@ -1632,6 +1707,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
             <code>-9999</code>
             <codeExplanation>Data not collected</codeExplanation>
           </missingValueCode>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
           <annotation>
             <propertyURI label="containsMeasurementsOfType">http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#containsMeasurementsOfType</propertyURI>
             <valueURI label="photosynthetically active radiation">http://purl.dataone.org/odo/ECSO_00001573</valueURI>
@@ -1657,6 +1737,11 @@ This project established a new Long Term Ecological Research (LTER) site along t
             <code>-9999</code>
             <codeExplanation>Data not collected</codeExplanation>
           </missingValueCode>
+          <methods>
+            <methodStep>
+              <description>An explanation of the methods involved in the collection of this attribute.</description>
+            </methodStep>
+          </methods>
         </attribute>
       </attributeList>
       <numberOfRecords>286</numberOfRecords>
