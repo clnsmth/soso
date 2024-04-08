@@ -268,6 +268,10 @@ class EML(StrategyInterface):
 
     def get_license(self):
         license_url = self.metadata.findtext(".//dataset/licensed/url")
+        if (
+            "spdx.org" in license_url and ".html" in license_url
+        ):  # convert SPDX URL to URI
+            license_url = license_url[:-5]
         return delete_null_values(license_url)
 
     def get_was_revision_of(self):
