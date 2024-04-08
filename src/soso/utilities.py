@@ -7,6 +7,7 @@ from json import dumps
 import warnings
 import pyshacl.validate
 import pandas as pd
+import requests
 
 
 def validate(graph):
@@ -243,3 +244,39 @@ def delete_unused_vocabularies(graph):
         ):  # ":" is added to avoid partial matches
             del graph["@context"][key]
     return graph
+
+
+def generate_citation_from_doi(url, style, locale):
+    """
+    Generates a citation
+
+    Parameters
+    ----------
+    url : str
+        The URL prefixed DOI.
+    style : str
+        The citation style. For example, "apa". Options are listed
+        `here <https://github.com/citation-style-language/styles>`_.
+    locale : str
+        The locale. For example, "en-US". Options are listed
+        `here <https://github.com/citation-style-language/locales>`_.
+
+    Returns
+    -------
+    str or None
+        The citation in the specified style and locale. None is returned if the
+        DOI is invalid or if the citation could not be generated.
+
+    Notes
+    -----
+    This function supports the DOI registration agencies and methods listed
+    `here <https://citation.crosscite.org/docs.html#sec-4>`_.
+    """
+    try:
+        headers = {"Accept": "text/x-bibliography; style=" + style, "locale": locale}
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        return response.text
+    except requests.exceptions.RequestException as citation_error:
+        print(f"An error occurred while generating the citation: " f"{citation_error}")
+        return None
