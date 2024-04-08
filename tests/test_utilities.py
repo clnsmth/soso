@@ -12,6 +12,7 @@ from soso.utilities import get_example_metadata_file_path
 from soso.utilities import get_shacl_file_path
 from soso.utilities import delete_null_values
 from soso.utilities import delete_unused_vocabularies
+from soso.utilities import generate_citation_from_doi
 
 
 @pytest.mark.internet_required
@@ -191,3 +192,17 @@ def test_clean_context():
     # Test that unused vocabularies are removed from the @context, except
     # @vocab which is always kept.
     assert dumps(delete_unused_vocabularies(graph)) == dumps(cleaned_graph)
+
+
+def test_generate_citation_from_doi():
+    """Test that the generate_citation_from_doi function returns a citation
+    for a valid DOI and set of parameters, and that it returns None
+    otherwise."""
+    # success
+    doi = "https://doi.org/10.6073/pasta/e6c261fbd143e720af5a46a9a131a616"
+    citation = generate_citation_from_doi(doi, style="apa", locale="en-US")
+    assert isinstance(citation, str) and len(citation) > 0
+    # failure
+    doi = "10.6073/pasta/e6c261fbd143e720af5a46a9a131a616"
+    citation = generate_citation_from_doi(doi, style="apa", locale="en-US")
+    assert citation is None
