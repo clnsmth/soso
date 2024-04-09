@@ -17,6 +17,7 @@ from soso.strategies.eml import (
     get_encoding_format,
     EML,
     get_methods,
+    get_checksum,
 )
 from soso.utilities import get_example_metadata_file_path
 
@@ -504,3 +505,41 @@ def test_get_methods():
     """
     root = etree.fromstring(xml_content)
     assert get_methods(root) is None
+
+
+def test_get_checksum():
+    """Test that the get_checksum function returns the expected value."""
+
+    # Recognized checksum algorithms are returned as a list of dict.
+    xml_content = """
+        <root>
+            <physical>
+                <authentication method="https://spdx.org/rdf/terms/#checksumAlgorithm_sha256">123456789</authentication>
+            </physical>
+        </root>"""
+    root = etree.fromstring(xml_content)
+    assert isinstance(get_checksum(root), list)
+    assert len(get_checksum(root)) != 0
+
+    # Unrecognized checksum algorithms are not returned.
+    xml_content = """
+    <root>
+        <physical>
+            <authentication method="MD5">123456789</authentication>
+        </physical>
+    </root>"""
+    root = etree.fromstring(xml_content)
+    assert isinstance(get_checksum(root), list)
+    assert len(get_checksum(root)) == 0
+
+    # Multiple recognized checksum algorithms are returned as a list of dict.
+    xml_content = """
+    <root>
+        <physical>
+            <authentication method="https://spdx.org/rdf/terms/#checksumAlgorithm_sha256">123456789</authentication>
+            <authentication method="https://spdx.org/rdf/terms/#checksumAlgorithm_md5">123456789</authentication>
+        </physical>
+    </root>"""
+    root = etree.fromstring(xml_content)
+    assert isinstance(get_checksum(root), list)
+    assert len(get_checksum(root)) == 2
