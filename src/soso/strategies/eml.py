@@ -157,6 +157,7 @@ class EML(StrategyInterface):
                     "contentSize": get_content_size(item),
                     "contentUrl": get_content_url(item),
                     "encodingFormat": get_data_entity_encoding_format(item),
+                    "spdx:checksum": get_checksum(item),
                 }
                 distribution.append(data_download)
         return delete_null_values(distribution)
@@ -717,3 +718,30 @@ def get_methods(xml):
     methods = etree.tostring(methods[0], encoding="utf-8", method="text")
     methods = methods.decode("utf-8").strip()
     return methods
+
+
+def get_checksum(data_entity_element):
+    """
+    Parameters
+    ----------
+    data_entity_element : lxml.etree._Element
+        The data entity element to get the checksum(s) from.
+
+    Returns
+    -------
+    list of dict or None
+        A list of dictionaries formatted as spdx:Checksum, for each method
+        attribute of the authentication element containing an spdx:algorithm.
+        Otherwise None.
+    """
+    checksum = []
+    for item in data_entity_element.xpath(".//physical/authentication"):
+        if "spdx.org" in item.get("method"):
+            algorithm = item.get("method").split("#")[-1]
+            res = {
+                "@type": "spdx:Checksum",
+                "spdx:checksumValue": item.text,
+                "spdx:algorithm": {"@id": "spdx:" + algorithm},
+            }
+            checksum.append(res)
+    return checksum

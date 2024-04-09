@@ -627,7 +627,7 @@ This project established a new Long Term Ecological Research (LTER) site along t
       <physical>
         <objectName>regional_survey.csv</objectName>
         <size unit="byte">31626</size>
-        <authentication method="MD5">65c40c28f5373fd8ad5da428f4b2afeb</authentication>
+        <authentication method="https://spdx.org/rdf/terms/#checksumAlgorithm_md5">65c40c28f5373fd8ad5da428f4b2afeb</authentication>
         <dataFormat>
           <textFormat>
             <numHeaderLines>1</numHeaderLines>
@@ -1108,7 +1108,7 @@ This project established a new Long Term Ecological Research (LTER) site along t
       <physical>
         <objectName>Elson_2015_spatial_survey.csv</objectName>
         <size unit="byte">224030</size>
-        <authentication method="MD5">5d7d2753c65ee3eb921742d7d1e580b8</authentication>
+        <authentication method="https://spdx.org/rdf/terms/#checksumAlgorithm_md5">5d7d2753c65ee3eb921742d7d1e580b8</authentication>
         <dataFormat>
           <textFormat>
             <numHeaderLines>1</numHeaderLines>
@@ -1317,7 +1317,7 @@ This project established a new Long Term Ecological Research (LTER) site along t
       <physical>
         <objectName>IBP_C_diel_pCO2.csv</objectName>
         <size unit="byte">71190</size>
-        <authentication method="MD5">d3a158536bc6bcc4b354e8c3220b8801</authentication>
+        <authentication method="https://spdx.org/rdf/terms/#checksumAlgorithm_md5">d3a158536bc6bcc4b354e8c3220b8801</authentication>
         <dataFormat>
           <textFormat>
             <numHeaderLines>1</numHeaderLines>
@@ -1576,7 +1576,7 @@ This project established a new Long Term Ecological Research (LTER) site along t
       <physical>
         <objectName>IBP_C_Daily_NEP.csv</objectName>
         <size unit="byte">14092</size>
-        <authentication method="MD5">3e953a033cc23f2c35f58a0cd14c73a1</authentication>
+        <authentication method="https://spdx.org/rdf/terms/#checksumAlgorithm_md5">3e953a033cc23f2c35f58a0cd14c73a1</authentication>
         <dataFormat>
           <textFormat>
             <numHeaderLines>1</numHeaderLines>
