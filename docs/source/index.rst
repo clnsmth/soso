@@ -41,7 +41,9 @@ Incorporate properties not present in the metadata record but expressible in SOS
 Features
 --------
 
-[TODO: List the prominent functionalities of this package.]
+* Convert common metadata standards to SOSO.
+* Customize for unique use cases.
+
 
 The User Guide
 --------------
