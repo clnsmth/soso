@@ -35,47 +35,45 @@ System Architecture
 Strategy Pattern
 ~~~~~~~~~~~~~~~~
 
-The system architecture implements the `Strategy Pattern`_, a behavioral design pattern that allows us to define a set of algorithms for converting metadata, encapsulate each one, and make them interchangeable. This pattern enables the client code to choose an algorithm or strategy at runtime without needing to know the details of each algorithm's implementation. This flexibility applies not only to clients converting metadata to SOSO but also to a test interface implementing a consistent set of checks.
-
-In our implementation, each metadata standard's conversion code is encapsulated in a module referred to as a conversion strategy. The user selects which strategy to activate within a workflow, determining the conversion approach.
+The system architecture implements the `Strategy Pattern`_, a behavioral design pattern that allows us to define a set of algorithms for converting metadata, encapsulate each one, and make them interchangeable. This pattern enables the client code to choose an algorithm or strategy at runtime without needing to know the details of each algorithm's implementation. This flexibility applies not only to metadata conversion but also to a test interface implementing a consistent set of checks.
 
 .. _Strategy Pattern: https://en.wikipedia.org/wiki/Strategy_pattern
 
 Implementation Overview:
 
-* Strategy Interface (`src/soso/interface.py`): This interface declares a method signature that all modules must implement, serving as a common contract between modules.
-* Conversion Strategies (`src/soso/strategies/`): These strategies are classes that implement the interface and are organized into different modules. Each module may include additional utility functions to aid implementation.
-* Client Code (`src/soso/main.py`): The primary client-side logic manages the main workflow. The user's chosen strategy is instantiated dynamically at runtime, with additional inputs such as the metadata document and any relevant information used by the strategy implementation.
+* Strategy Interface (`src/soso/interface.py`): This interface declares a method signature that all modules must implement, serving as a common contract between modules. We’ve structured the methods around the creation of SOSO properties, since these are conceptually understandable and contained.
+* Strategies (`src/soso/strategies/`): These strategies are classes that implement the interface and are organized into different modules. Each module may include additional utility functions to aid implementation.
+* Context (`src/soso/main.py`): The primary client-side logic manages the main workflow. The user's chosen strategy is instantiated dynamically at runtime, with additional inputs such as the metadata document and any relevant information used by the strategy implementation.
 
-[Include a Sequence Diagram for an example use case here]
+.. image:: class_diagram.png
+   :alt: Strategy Pattern
+   :align: center
+   :width: 400
 
 With this pattern, new support for metadata standards or versions can be easily added as strategy modules without modifying the client code or test suite.
 
-Note, we've structured the methods of strategy modules around the creation of individual SOSO properties. This choice is made because properties are conceptually understandable, contained, and make a suitable unit for organizing the code.
+Users typically define workflows that involve iterating over a series of metadata files. Each file, along with its corresponding strategy, is passed to `main.convert`, which returns a SOSO record.
+
+.. image:: sequence_diagram.png
+   :alt: Strategy Pattern
+   :align: center
+   :width: 400
 
 Metadata Mapping
 ~~~~~~~~~~~~~~~~
 
-We utilize the `Simple Standard for Sharing Ontological Mappings`_ (SSSOM, version 0.15.0) for semantic mapping SOSO to metadata standards. SSSOM provides a framework for expressing the match accuracy and other essential information, guiding developer implementations and enabling users to control the accuracy of outputs.
-
-Users control output accuracy by setting a threshold argument to the `convert.main` function. Only properties meeting this threshold (defined in the SSSOM file for the metadata standard) are returned in the final SOSO record. Those not meeting this threshold are omitted.
+We utilize the `Simple Standard for Sharing Ontological Mappings`_ (SSSOM, version 0.15.0) for semantic mapping SOSO to metadata standards. SSSOM provides a framework for expressing the match accuracy and other essential information, guiding developer implementations and enabling users the potential to control the accuracy of outputs.
 
 .. _Simple Standard for Sharing Ontological Mappings: https://mapping-commons.github.io/sssom/about/
-
-[Sequence Diagram for example use case]
 
 Testing
 ~~~~~~~
 
-The test suite leverages the strategy design pattern to provide a standardized set of checks that all strategies must pass through.
+The test suite utilizes the strategy design pattern to implement a standardized set of checks that all strategies must undergo.
 
-It includes checks for various criteria, such as expected property types, ensuring that properties returned by each strategy adhere to the expected data types defined in the SOSO schema. It verifies the return of non-empty "meaningless" results, which helps prevent the accumulation of detritus in the resultant SOSO record.
+It verifies that returned properties adhere to the expected data types specified by the SOSO conventions. Furthermore, it ensures that non-empty "meaningless" results are not returned, thereby preventing the accumulation of unnecessary detritus in the resultant SOSO record.
 
-Furthermore, the test suite conducts integration tests against full SOSO records expected to be returned by each strategy. These tests validate all changes, whether intended or unintended, ensuring that the output aligns with the overall structure and requirements.
-
-Additionally, the test suite runs tests on utility functions specific to strategies to ensure their correctness and reliability.
-
-[Sequence diagram]
+Additionally, the test suite conducts integration tests against full SOSO records anticipated to be generated by each strategy when processing a representative input metadata file. These tests validate all changes, whether intentional or unintentional, ensuring that the output conforms to the overarching requirements.
 
 Customization
 ~~~~~~~~~~~~~
@@ -86,8 +84,6 @@ The Strategy Pattern employed in our application enables a high degree of user c
 * Properties that don't map to metadata but require external data, such as dataset landing page URLs.
 
 These cases are efficiently addressed through a combination of inputting data via `kwargs` and implementing custom processing via method overrides, as demonstrated in the example below.
-
-[Include a Sequence Diagram illustrating user customization capabilities]
 
 Alternative Implementations Considered
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
