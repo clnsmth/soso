@@ -15,20 +15,20 @@ Release v\ |version|. (:ref:`Installation <quickstart>`)
     :target: https://app.codecov.io/github/clnsmth/soso?branch=convert
     :alt: Code coverage status
 
-For creating `Science On Schema.Org`_ (SOSO) markup to improve data discovery through search engines.
+For creating `Science On Schema.Org`_ (SOSO) markup from common metadata standards.
 
 .. _Science On Schema.Org: https://github.com/ESIPFed/science-on-schema.org
 
 -------------------
 
-To convert a metadata record to SOSO, users specify the corresponding conversion strategy aligned with the metadata standard, such as EML or ISO 19115.
+To convert a metadata record, specify the file path and conversion strategy (standard).
 
     >>> from soso.main import convert
     >>> r = convert(file='metadata.xml', strategy='eml')
     >>> r
     '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
 
-Incorporate properties not present in the metadata record but expressible in SOSO. This entails overriding methods to handle additional input data.
+Not all SOSO properties are present in the metadata. To include these, use method overriding to process custom arguments.
 
     >>> from soso.strategies.eml import EML
     >>> def get_version(self):
