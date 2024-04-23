@@ -38,13 +38,6 @@ Not all SOSO properties are present in the metadata. To include these, use metho
     >>> r
     '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
 
-Features
---------
-
-* Convert common metadata standards to SOSO.
-* Customize for unique use cases.
-
-
 The User Guide
 --------------
 
