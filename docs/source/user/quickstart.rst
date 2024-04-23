@@ -8,9 +8,9 @@ Welcome to the Quickstart guide! Whether you're a beginner or experienced develo
 Installation
 ------------
 
-Currently, soso is only available on GitHub.  To install it, you need to have `pip <https://pip.pypa.io/en/stable/installation/>`_ installed.
+Currently, `soso` is only available on GitHub.  To install it, you need to have `pip <https://pip.pypa.io/en/stable/installation/>`_ installed.
 
-Once pip is installed, you can install clnsmth-py311 by running the following command in your terminal::
+Once pip is installed, you can install `soso` by running the following command in your terminal::
 
     $ pip install git+https://github.com/clnsmth/soso.git#egg=soso
 
