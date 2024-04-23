@@ -24,7 +24,7 @@ For creating `Science On Schema.Org`_ (SOSO) markup in dataset landing pages to 
 The primary function is to convert metadata records into SOSO markup. To perform a conversion, specify the file path of the metadata and the desired conversion strategy. Each metadata standard corresponds to a specific strategy.
 
     >>> from soso.main import convert
-    >>> r = convert(file='metadata.xml', strategy='eml')
+    >>> r = convert(file='metadata.xml', strategy='EML')
     >>> r
     '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
 
@@ -34,7 +34,7 @@ Some SOSO properties may not be derived from metadata records alone. In such cas
     >>> def get_url(self):                   # define a new method
     ...     return self.kwargs['url']
     >>> EML.get_url = get_url                # override the method
-    >>> r = convert(file='metadata.xml', strategy='eml', url='https://www.sample-data-repository.org/dataset/472032')  # use kwargs
+    >>> r = convert(file='metadata.xml', strategy='EML', url='https://www.sample-data-repository.org/dataset/472032')  # use kwargs
     >>> r
     '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
 
