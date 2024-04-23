@@ -15,7 +15,7 @@ Release v\ |version|. (:ref:`Installation <quickstart>`)
     :target: https://app.codecov.io/github/clnsmth/soso?branch=convert
     :alt: Code coverage status
 
-For creating `Science On Schema.Org`_ (SOSO) markup from common metadata standards.
+For creating `Science On Schema.Org`_ (SOSO) markup in dataset landing pages to improve data discovery through search engines.
 
 .. _Science On Schema.Org: https://github.com/ESIPFed/science-on-schema.org
 
