@@ -31,9 +31,9 @@ To convert a metadata record, specify the file path and conversion strategy (sta
 Not all SOSO properties are present in the metadata. To include these, use method overriding to process custom arguments.
 
     >>> from soso.strategies.eml import EML
-    >>> def get_version(self):
+    >>> def get_url(self):
     ...     return self.kwargs['url']
-    >>> EML.get_version = get_url
+    >>> EML.get_url = get_url
     >>> r = convert(file='metadata.xml', strategy='eml', url='https://www.sample-data-repository.org/dataset/472032')
     >>> r
     '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
