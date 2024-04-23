@@ -23,7 +23,7 @@ Metadata Conversion
 The primary function is to convert metadata records into SOSO markup. To perform a conversion, specify the file path of the metadata and the desired conversion strategy. Each metadata standard corresponds to a specific strategy.
 
     >>> from soso.main import convert
-    >>> r = convert(file='metadata.xml', strategy='eml')
+    >>> r = convert(file='metadata.xml', strategy='EML')
     >>> r
     '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
 

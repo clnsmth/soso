@@ -30,7 +30,7 @@ def convert(file, strategy, **kwargs):
 
     # Load the strategy based on user choice. Pass kwargs, so the strategy can
     # operate on them.
-    if strategy == "eml":
+    if strategy.lower() == "eml":
         strategy = EML(file, **kwargs)
     else:
         raise ValueError("Invalid choice!")
