@@ -132,8 +132,8 @@ def is_property_type(results, expected_types):
     results : Any
         The results of a strategy method to check.
     expected_types : List
-        The expected types, as a list of strings. See below for the currently
-        supported types.
+        The expected types, as a list of strings. See notes below for the
+        currently supported types.
 
     Returns
     -------
@@ -142,6 +142,17 @@ def is_property_type(results, expected_types):
 
     Notes
     -----
+    This function verifies expected SOSO property types against their Python
+    equivalents. It compares DataType(s) such as schema:Text and
+    schema:Boolean with their Python counterparts (e.g., str, bool), and
+    validates schema:Thing(s) (e.g., schema:DefinedTerm) as Python
+    dictionaries containing the expected type specifier string (e.g.
+    DefinedTerm). Namespace prefixes are disregarded for schema:Thing(s),
+    as they are often declared in the JSON-LD document's @context. Clients
+    can specify different types for a SOSO property by passing a list of
+    strings (e.g., [schema:Text, schema:DefinedTerm]) as an argument to
+    the function.
+
     Expected types are one or more of:
 
     - schema:Text
