@@ -201,3 +201,10 @@ For the pip requirements::
 
 .. _Poetry: https://python-poetry.org/
 .. _Conda: https://conda.io/projects/conda/en/latest/
+
+Keeping Current with Science-On-Schema.Org
+------------------------------------------
+
+Project maintainers are responsible for ensuring mappings stay current with new SOSO conventions. Maintainers should monitor the `Science-On-Schema.org GitHub repository`_ and open a general notice as an issue on our GitHub whenever new changes may impact existing mappings and implementations. This issue serves as a collective call to action for the developer community, encouraging collaboration to update implementations.
+
+.. _Science-On-Schema.org GitHub repository: https://github.com/ESIPFed/science-on-schema.org
