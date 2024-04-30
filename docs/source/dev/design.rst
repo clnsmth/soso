@@ -199,4 +199,33 @@ Utilities
 
 Strategy-specific utility functions are tested in their own test suite module named `test_[strategy].py`. General utility functions used across different strategies are tested in `test_utilities.py`.
 
+Customization
+~~~~~~~~~~~~~
+
+Parameter Inputs
+^^^^^^^^^^^^^^^^
+
+Some SOSO properties do not have direct mappings to metadata standards but can be supplemented with external information. For instance, the `schema:url` property, which specifies the dataset landing page URL, might not be included in the metadata record but is accessible through the repository system managing the metadata.
+
+To incorporate such information into a SOSO record, users can provide it as a `kwargs` input to the `main.convert` function, matching a defined parameter specific to the strategy. The strategy then utilizes this parameter to create the corresponding property.
+
+We have opted to implement this feature at both the `main.convert` and strategy levels to accommodate potential variations in property mappings across metadata standards. This ensures that parameters relevant only to certain standards are not exposed at the general `main.convert` API level.
+
+Allowing users to define properties in this manner is simpler than requiring them to override strategy methods, particularly in cases where there is a straightforward transfer of information from the parameter to the SOSO property. However, for more complex inputs and processing, method overrides may still be necessary.
+
+To add support for creating a property using this approach:
+
+1. Open the strategy source code in `src/soso/strategies`.
+2. Add a parameter to the docstrings, using the SOSO property name whenever possible for clarity.
+3. Specify the input type of the parameter as `Any`, to accommodate the many input types a property can have.
+4. Clearly describe the target SOSO property being created via this parameter to avoid confusion with similarly named properties elsewhere in the SOSO schema.
+5. Remove the property from the list of unmappable properties in the strategy docstrings.
+6. Add the parameter to the strategy's `__init__` call signature and set the default value to `None`. Also, ensure the parameter is instantiated in the class instance.
+7. In the corresponding get method that processes the parameter, replace the default `None` value with a reference to the parameter value.
+8. Include any necessary processing steps in the method to return the SOSO property.
+9. Add test data to the test instance of the strategy in `conftest.strategy_instance` using `conftest.get_kwargs`. Defining test data in this manner ensures that both strategy-specific unit tests and integration tests are conducted.
+10. Remove the `@skipif` tag for the corresponding strategy in test_strategies.py, as tests for this property are no longer skipped.
+
+
+
 
