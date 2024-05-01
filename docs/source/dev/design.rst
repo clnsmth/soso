@@ -213,18 +213,15 @@ We have opted to implement this feature at both the `main.convert` and strategy 
 
 Allowing users to define properties in this manner is simpler than requiring them to override strategy methods, particularly in cases where there is a straightforward transfer of information from the parameter to the SOSO property. However, for more complex inputs and processing, method overrides may still be necessary.
 
-To add support for creating a property using this approach:
+Some implementation notes on creating a property using this approach:
 
-1. Open the strategy source code in `src/soso/strategies`.
-2. Add a parameter to the docstrings, using the SOSO property name whenever possible for clarity.
-3. Specify the input type of the parameter as `Any`, to accommodate the many input types a property can have.
-4. Clearly describe the target SOSO property being created via this parameter to avoid confusion with similarly named properties elsewhere in the SOSO schema.
-5. Remove the property from the list of unmappable properties in the strategy docstrings.
-6. Add the parameter to the strategy's `__init__` call signature and set the default value to `None`. Also, ensure the parameter is instantiated in the class instance.
-7. In the corresponding get method that processes the parameter, replace the default `None` value with a reference to the parameter value.
-8. Include any necessary processing steps in the method to return the SOSO property.
-9. Add test data to the test instance of the strategy in `conftest.strategy_instance` using `conftest.get_kwargs`. Defining test data in this manner ensures that both strategy-specific unit tests and integration tests are conducted.
-10. Remove the `@skipif` tag for the corresponding strategy in test_strategies.py, as tests for this property are no longer skipped.
+Some implementation notes:
+
+* Include the parameter in the strategy docstrings, preferably using the SOSO property name for clarity.
+* Specify the input type of the parameter as `Any` to accommodate various input types the property may have.
+* Define the target SOSO property created through this parameter to avoid confusion with similarly named properties elsewhere in the SOSO schema.
+* Incorporate test data into the strategy's test instance in `conftest.strategy_instance` using `conftest.get_kwargs`. This ensures testing of both strategy-specific unit tests and integration tests.
+
 
 
 
