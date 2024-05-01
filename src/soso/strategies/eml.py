@@ -68,7 +68,7 @@ class EML(StrategyInterface):
         return delete_null_values(description[0].text)
 
     def get_url(self):
-        url = self.url
+        url = self.url  # define unmappable property with parameter
         return delete_null_values(url)
 
     def get_same_as(self):
