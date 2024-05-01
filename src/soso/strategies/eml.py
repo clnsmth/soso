@@ -15,20 +15,22 @@ class EML(StrategyInterface):
         The path to the metadata file. This should be an XML file in EML
         format.
     **kwargs : dict
-        Additional keyword arguments for passing information to the EML
-        `strategy`. This can help in the case of unmappable properties. See the
-        Notes section below.
+        Additional keyword arguments intended for use alongside method
+        overrides, particularly useful for handling unmappable properties.
+        See the Notes section below for further details.
 
     Notes
     -----
-    Some properties used by SOSO don't directly map to EML. These properties
-    can still be included by customizing the strategy methods.  The user
-    documentation has more information on this process. For a deeper
-    understanding of each SOSO property,  refer to the `SOSO guidelines
-    <https://github.com/ESIPFed/science-on-schema.org/blob/master/guides/
-    Dataset.md>`_.
+    Some properties used by SOSO don't directly map to EML. However, these
+    properties can still be included by either providing the information as
+    arguments to the parameters listed above or by inputting the information
+    as `kwargs` to customized strategy methods. The user documentation has
+    more information on this process. For a deeper understanding of each SOSO
+    property,  refer to the `SOSO guidelines
+    <https://github.com/ESIPFed/science-on-schema.org/blob/master/guides/Dataset.md>`_.
 
-    Unmappable properties:
+    Below are unmappable properties that must be defined through a combination
+    of `kwargs` inputs and method overrides:
 
     - url
     - sameAs
