@@ -83,7 +83,7 @@ The Strategy Pattern employed in our application enables a high degree of user c
 * Properties requiring additional processing due to data repository-specific implementations of metadata standards.
 * Properties that don't map to metadata but require external data, such as dataset landing page URLs.
 
-These cases are efficiently addressed through a combination of inputting data via `kwargs` and implementing custom processing via method overrides, as demonstrated in the example below.
+These cases are addressed by either providing the information to a strategy as arguments to parameters, or by inputting the information as `kwargs` to customized strategy methods. The user documentation has more information on this process.
 
 Alternative Implementations Considered
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
