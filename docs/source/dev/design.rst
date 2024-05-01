@@ -215,8 +215,6 @@ Allowing users to define properties in this manner is simpler than requiring the
 
 Some implementation notes on creating a property using this approach:
 
-Some implementation notes:
-
 * Include the parameter in the strategy docstrings, preferably using the SOSO property name for clarity.
 * Specify the input type of the parameter as `Any` to accommodate various input types the property may have.
 * Define the target SOSO property created through this parameter to avoid confusion with similarly named properties elsewhere in the SOSO schema.
