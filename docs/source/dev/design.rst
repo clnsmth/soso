@@ -220,6 +220,19 @@ Some implementation notes on creating a property using this approach:
 * Define the target SOSO property created through this parameter to avoid confusion with similarly named properties elsewhere in the SOSO schema.
 * Incorporate test data into the strategy's test instance in `conftest.strategy_instance` using `conftest.get_kwargs`. This ensures testing of both strategy-specific unit tests and integration tests.
 
+`kwargs` and Method Overrides
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If unmappable properties cannot be provided to a strategy through parameter inputs (as described above), more advanced approaches become necessary. This typically occurs when the input information is complex and requires customized processing. For instance, `schema:potentialAction` provides access to data, but its many complex and nested sub-properties often depend on the nuances of the repository system storing the data.
+
+To incorporate such information into a SOSO record, users can supply it as arbitrary `kwargs` inputs to the `main.convert` function. These inputs are then passed to identically named `kwargs` inputs in the specific strategy. The corresponding strategy method, customized and overridden by the user, then handles the processing. This approach allows users to define properties in a highly customizable manner.
+
+Here are some things to keep in mind when implementing this:
+
+* Method overrides apply to top-level SOSO properties defined in `interface.StrategyInterface` and called in `main.convert`. Properties outside of this scope will not be included in the final SOSO record.
+* This approach can be used to override any strategy methods, not just those for unmappable properties.
+
+
 
 
 
