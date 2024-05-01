@@ -279,5 +279,7 @@ def get_kwargs(strategy=None):
         A dictionary of keyword arguments.
     """
     if strategy == "eml":
-        return {}
+        return {
+            "url": "https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-ble.1.7"
+        }
     return {}

@@ -14,6 +14,8 @@ class EML(StrategyInterface):
     file : str
         The path to the metadata file. This should be an XML file in EML
         format.
+    url : Any
+        The location of a page describing the dataset.
     **kwargs : dict
         Additional keyword arguments intended for use alongside method
         overrides, particularly useful for handling unmappable properties.
@@ -32,7 +34,6 @@ class EML(StrategyInterface):
     Below are unmappable properties that must be defined through a combination
     of `kwargs` inputs and method overrides:
 
-    - url
     - sameAs
     - version
     - isAccessibleForFree
@@ -52,9 +53,10 @@ class EML(StrategyInterface):
       of the spatial coverage. The default is WGS84.
     """
 
-    def __init__(self, file, **kwargs):
+    def __init__(self, file, url=None, **kwargs):
         """Initialize the strategy."""
         super().__init__(metadata=etree.parse(file))
+        self.url = url
         self.kwargs = kwargs
 
     def get_name(self):
@@ -66,7 +68,7 @@ class EML(StrategyInterface):
         return delete_null_values(description[0].text)
 
     def get_url(self):
-        url = None  # EML does not map to schema:url
+        url = self.url  # define unmappable property with parameter
         return delete_null_values(url)
 
     def get_same_as(self):
