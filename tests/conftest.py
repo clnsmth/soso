@@ -18,7 +18,9 @@ def strategy_names():
 def strategy_instance(request):
     """Return the strategy instances."""
     if request.param is EML:
-        res = request.param(file=get_example_metadata_file_path("EML"))
+        res = request.param(
+            file=get_example_metadata_file_path("EML"), **get_kwargs("eml")
+        )
     return res
 
 
@@ -262,3 +264,20 @@ def is_not_null(results):
             else:
                 res.append(len(result) > 0)
     return any(res)
+
+
+def get_kwargs(strategy=None):
+    """
+    Parameters
+    ----------
+    strategy : str
+        The strategy name.
+
+    Returns
+    -------
+    dict
+        A dictionary of keyword arguments.
+    """
+    if strategy == "eml":
+        return {}
+    return {}
