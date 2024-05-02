@@ -283,5 +283,6 @@ def get_kwargs(strategy=None):
             "url": "https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-ble.1.7",
             "same_as": "https://search.dataone.org/view/https%3A%2F%2Fpasta."
             "lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fknb-lter-ble%2F1%2F7",
+            "version": 7,
         }
     return {}
