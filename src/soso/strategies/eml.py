@@ -15,10 +15,10 @@ class EML(StrategyInterface):
         The path to the metadata file. This should be an XML file in EML
         format.
     url : Any
-        The location of a page describing the dataset.
+        The location of a page describing the dataset (schema:url).
     same_as : Any
-        Other URLs that can be used to access the dataset page, usually in
-        a different repository.
+        Other URLs that can be used to access the dataset page, usually in a
+        different repository (schema:sameAs).
     **kwargs : dict
         Additional keyword arguments intended for use alongside method
         overrides, particularly useful for handling unmappable properties.
