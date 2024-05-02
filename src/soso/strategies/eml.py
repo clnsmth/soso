@@ -21,6 +21,8 @@ class EML(StrategyInterface):
         different repository (schema:sameAs).
     version : Any
         The version number or identifier for the dataset (schema:version).
+    is_accessible_for_free : Any
+        If the dataset is accessible for free (schema:isAccessibleForFree).
     **kwargs : dict
         Additional keyword arguments intended for use alongside method
         overrides, particularly useful for handling unmappable properties.
@@ -39,7 +41,6 @@ class EML(StrategyInterface):
     Below are unmappable properties that must be defined through a combination
     of `kwargs` inputs and method overrides:
 
-    - isAccessibleForFree
     - citation
     - includedInDataCatalog
     - contentURL - This property is nested within subjectOf, which is
@@ -56,12 +57,21 @@ class EML(StrategyInterface):
       of the spatial coverage. The default is WGS84.
     """
 
-    def __init__(self, file, url=None, same_as=None, version=None, **kwargs):
+    def __init__(
+        self,
+        file,
+        url=None,
+        same_as=None,
+        version=None,
+        is_accessible_for_free=None,
+        **kwargs,
+    ):
         """Initialize the strategy."""
         super().__init__(metadata=etree.parse(file))
         self.url = url
         self.same_as = same_as
         self.version = version
+        self.is_accessible_for_free = is_accessible_for_free
         self.kwargs = kwargs
 
     def get_name(self):
@@ -85,7 +95,9 @@ class EML(StrategyInterface):
         return delete_null_values(version)
 
     def get_is_accessible_for_free(self):
-        is_accessible_for_free = None  # EML does not map to schema:isAccessibleForFree
+        is_accessible_for_free = (
+            self.is_accessible_for_free
+        )  # define unmappable property with parameter
         return delete_null_values(is_accessible_for_free)
 
     def get_keywords(self):
