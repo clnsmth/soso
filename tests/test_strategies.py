@@ -55,7 +55,6 @@ def test_get_same_as_returns_expected_type(strategy_instance):
     assert is_property_type(res, ["schema:URL"])
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_version_returns_expected_type(strategy_instance):
     """Test that the get_version method returns the expected type."""
     res = strategy_instance.get_version()

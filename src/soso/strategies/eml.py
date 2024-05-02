@@ -19,6 +19,8 @@ class EML(StrategyInterface):
     same_as : Any
         Other URLs that can be used to access the dataset page, usually in a
         different repository (schema:sameAs).
+    version : Any
+        The version number or identifier for the dataset (schema:version).
     **kwargs : dict
         Additional keyword arguments intended for use alongside method
         overrides, particularly useful for handling unmappable properties.
@@ -37,7 +39,6 @@ class EML(StrategyInterface):
     Below are unmappable properties that must be defined through a combination
     of `kwargs` inputs and method overrides:
 
-    - version
     - isAccessibleForFree
     - citation
     - includedInDataCatalog
@@ -55,11 +56,12 @@ class EML(StrategyInterface):
       of the spatial coverage. The default is WGS84.
     """
 
-    def __init__(self, file, url=None, same_as=None, **kwargs):
+    def __init__(self, file, url=None, same_as=None, version=None, **kwargs):
         """Initialize the strategy."""
         super().__init__(metadata=etree.parse(file))
         self.url = url
         self.same_as = same_as
+        self.version = version
         self.kwargs = kwargs
 
     def get_name(self):
@@ -79,7 +81,7 @@ class EML(StrategyInterface):
         return delete_null_values(same_as)
 
     def get_version(self):
-        version = None  # EML does not map to schema:version
+        version = self.version  # define unmappable property with parameter
         return delete_null_values(version)
 
     def get_is_accessible_for_free(self):
