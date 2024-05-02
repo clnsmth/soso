@@ -62,7 +62,6 @@ def test_get_version_returns_expected_type(strategy_instance):
     assert is_property_type(res, ["schema:Text", "schema:Number"])
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_is_accessible_for_free_returns_expected_type(strategy_instance):
     """Test that the get_is_accessible_for_free method returns the expected
     type."""
