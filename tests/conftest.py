@@ -290,5 +290,9 @@ def get_kwargs(strategy=None):
             "along the Beaufort Sea, Alaska, 2010-2018</i> [Data set]. "
             "Environmental Data Initiative. "
             "https://doi.org/10.6073/PASTA/E6C261FBD143E720AF5A46A9A131A616",
+            "included_in_data_catalog": {
+                "@id": "https://www.sample-data-repository.org/collection/carbon-flux-data",
+                "@type": "DataCatalog",
+            },
         }
     return {}
