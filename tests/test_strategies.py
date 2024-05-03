@@ -131,7 +131,6 @@ def test_get_potential_action_returns_expected_type(strategy_instance):
     assert is_property_type(res, ["schema:SearchAction"])
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_date_created_returns_expected_type(strategy_instance):
     """Test that the get_date_created method returns the expected type."""
     res = strategy_instance.get_date_created()
