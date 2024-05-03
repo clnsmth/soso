@@ -28,6 +28,8 @@ class EML(StrategyInterface):
     included_in_data_catalog : Any
         The data catalog the dataset is included in
         (schema:includedInDataCatalog).
+    date_created : Any
+        The date the dataset was initially generated (schema:dateCreated).
     **kwargs : dict
         Additional keyword arguments intended for use alongside method
         overrides, particularly useful for handling unmappable properties.
@@ -49,7 +51,6 @@ class EML(StrategyInterface):
     - contentURL - This property is nested within subjectOf, which is
       otherwise fully mapped.
     - potentialAction
-    - dateCreated
     - expires
     - provider
     - publisher
@@ -69,6 +70,7 @@ class EML(StrategyInterface):
         is_accessible_for_free=None,
         citation=None,
         included_in_data_catalog=None,
+        date_created=None,
         **kwargs,
     ):
         """Initialize the strategy."""
@@ -79,6 +81,7 @@ class EML(StrategyInterface):
         self.is_accessible_for_free = is_accessible_for_free
         self.citation = citation
         self.included_in_data_catalog = included_in_data_catalog
+        self.date_created = date_created
         self.kwargs = kwargs
 
     def get_name(self):
@@ -195,7 +198,7 @@ class EML(StrategyInterface):
         return delete_null_values(potential_action)
 
     def get_date_created(self):
-        date_created = None  # EML does not map to schema:dateCreated
+        date_created = self.date_created  # define unmappable property with parameter
         return delete_null_values(date_created)
 
     def get_date_modified(self):

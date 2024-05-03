@@ -294,5 +294,6 @@ def get_kwargs(strategy=None):
                 "@id": "https://www.sample-data-repository.org/collection/carbon-flux-data",
                 "@type": "DataCatalog",
             },
+            "date_created": "2018-04-18",
         }
     return {}
