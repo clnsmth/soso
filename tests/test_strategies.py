@@ -101,7 +101,6 @@ def test_get_variable_measured_returns_expected_type(strategy_instance):
     assert is_property_type(res, ["schema:PropertyValue"])
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_included_in_data_catalog_returns_expected_type(strategy_instance):
     """Test that the get_included_in_data_catalog method returns the expected
     type."""
