@@ -23,6 +23,8 @@ class EML(StrategyInterface):
         The version number or identifier for the dataset (schema:version).
     is_accessible_for_free : Any
         If the dataset is accessible for free (schema:isAccessibleForFree).
+    citation : Any
+        The citation for the dataset (schema:citation).
     **kwargs : dict
         Additional keyword arguments intended for use alongside method
         overrides, particularly useful for handling unmappable properties.
@@ -41,7 +43,6 @@ class EML(StrategyInterface):
     Below are unmappable properties that must be defined through a combination
     of `kwargs` inputs and method overrides:
 
-    - citation
     - includedInDataCatalog
     - contentURL - This property is nested within subjectOf, which is
       otherwise fully mapped.
@@ -64,6 +65,7 @@ class EML(StrategyInterface):
         same_as=None,
         version=None,
         is_accessible_for_free=None,
+        citation=None,
         **kwargs,
     ):
         """Initialize the strategy."""
@@ -72,6 +74,7 @@ class EML(StrategyInterface):
         self.same_as = same_as
         self.version = version
         self.is_accessible_for_free = is_accessible_for_free
+        self.citation = citation
         self.kwargs = kwargs
 
     def get_name(self):
@@ -118,7 +121,7 @@ class EML(StrategyInterface):
         return delete_null_values(identifier[0])
 
     def get_citation(self):
-        citation = None  # EML does not map to schema:citation
+        citation = self.citation  # define unmappable property with parameter
         return delete_null_values(citation)
 
     def get_variable_measured(self):
