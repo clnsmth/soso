@@ -295,5 +295,6 @@ def get_kwargs(strategy=None):
                 "@type": "DataCatalog",
             },
             "date_created": "2018-04-18",
+            "expires": "2050-01-01",
         }
     return {}
