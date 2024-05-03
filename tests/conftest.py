@@ -18,9 +18,7 @@ def strategy_names():
 def strategy_instance(request):
     """Return the strategy instances."""
     if request.param is EML:
-        res = request.param(
-            file=get_example_metadata_file_path("EML"), **get_kwargs("eml")
-        )
+        res = request.param(file=get_example_metadata_file_path("EML"))
     return res
 
 
@@ -264,37 +262,3 @@ def is_not_null(results):
             else:
                 res.append(len(result) > 0)
     return any(res)
-
-
-def get_kwargs(strategy=None):
-    """
-    Parameters
-    ----------
-    strategy : str
-        The strategy name.
-
-    Returns
-    -------
-    dict
-        A dictionary of keyword arguments.
-    """
-    if strategy == "eml":
-        return {
-            "url": "https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-ble.1.7",
-            "same_as": "https://search.dataone.org/view/https%3A%2F%2Fpasta."
-            "lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fknb-lter-ble%2F1%2F7",
-            "version": 7,
-            "is_accessible_for_free": True,
-            "citation": "Beaufort Lagoon Ecosystems LTER, &amp; Lougheed, V. L. (2020). "
-            "<i>Carbon flux from aquatic ecosystems of the Arctic Coastal Plain "
-            "along the Beaufort Sea, Alaska, 2010-2018</i> [Data set]. "
-            "Environmental Data Initiative. "
-            "https://doi.org/10.6073/PASTA/E6C261FBD143E720AF5A46A9A131A616",
-            "included_in_data_catalog": {
-                "@id": "https://www.sample-data-repository.org/collection/carbon-flux-data",
-                "@type": "DataCatalog",
-            },
-            "date_created": "2018-04-18",
-            "expires": "2050-01-01",
-        }
-    return {}

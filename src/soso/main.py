@@ -83,6 +83,10 @@ def convert(file, strategy, **kwargs):
         "prov:wasGeneratedBy": strategy.get_was_generated_by(),
     }
 
+    # Override with user defined properties
+    for key, value in kwargs.items():
+        graph[key] = value
+
     # Remove properties where get methods returned None, so the user is
     # return a clean graph.
     for key, value in list(graph.items()):
