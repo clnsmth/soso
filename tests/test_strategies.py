@@ -152,7 +152,6 @@ def test_get_date_published_returns_expected_type(strategy_instance):
     assert is_property_type(res, ["schema:Date", "schema:DateTime"])
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_expires_returns_expected_type(strategy_instance):
     """Test that the get_expires method returns the expected type."""
     res = strategy_instance.get_expires()

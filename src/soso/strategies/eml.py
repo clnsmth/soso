@@ -30,6 +30,9 @@ class EML(StrategyInterface):
         (schema:includedInDataCatalog).
     date_created : Any
         The date the dataset was initially generated (schema:dateCreated).
+    expires : Any
+        The date when the dataset expires and is no longer useful or available
+        (schema:expires).
     **kwargs : dict
         Additional keyword arguments intended for use alongside method
         overrides, particularly useful for handling unmappable properties.
@@ -51,7 +54,6 @@ class EML(StrategyInterface):
     - contentURL - This property is nested within subjectOf, which is
       otherwise fully mapped.
     - potentialAction
-    - expires
     - provider
     - publisher
     - wasRevisionOf
@@ -71,6 +73,7 @@ class EML(StrategyInterface):
         citation=None,
         included_in_data_catalog=None,
         date_created=None,
+        expires=None,
         **kwargs,
     ):
         """Initialize the strategy."""
@@ -82,6 +85,7 @@ class EML(StrategyInterface):
         self.citation = citation
         self.included_in_data_catalog = included_in_data_catalog
         self.date_created = date_created
+        self.expires = expires
         self.kwargs = kwargs
 
     def get_name(self):
@@ -210,7 +214,7 @@ class EML(StrategyInterface):
         return delete_null_values(date_published[0].text)
 
     def get_expires(self):
-        expires = None  # EML does not map to schema:expires
+        expires = self.expires  # define unmappable property with parameter
         return delete_null_values(expires)
 
     def get_temporal_coverage(self):
