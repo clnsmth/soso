@@ -41,6 +41,7 @@ def test_get_description_returns_expected_type(strategy_instance):
     assert is_property_type(res, ["schema:Text"])
 
 
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_url_returns_expected_type(strategy_instance):
     """Test that the get_url method returns the expected type."""
     res = strategy_instance.get_url()
@@ -48,6 +49,7 @@ def test_get_url_returns_expected_type(strategy_instance):
     assert is_property_type(res, ["schema:URL"])
 
 
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_same_as_returns_expected_type(strategy_instance):
     """Test that the get_same_as method returns the expected type."""
     res = strategy_instance.get_same_as()
@@ -55,6 +57,7 @@ def test_get_same_as_returns_expected_type(strategy_instance):
     assert is_property_type(res, ["schema:URL"])
 
 
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_version_returns_expected_type(strategy_instance):
     """Test that the get_version method returns the expected type."""
     res = strategy_instance.get_version()
@@ -62,6 +65,7 @@ def test_get_version_returns_expected_type(strategy_instance):
     assert is_property_type(res, ["schema:Text", "schema:Number"])
 
 
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_is_accessible_for_free_returns_expected_type(strategy_instance):
     """Test that the get_is_accessible_for_free method returns the expected
     type."""
@@ -87,6 +91,7 @@ def test_get_identifier_returns_expected_type(strategy_instance):
     )
 
 
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_citation_returns_expected_type(strategy_instance):
     """Test that the get_citation method returns the expected type."""
     res = strategy_instance.get_citation()
@@ -101,6 +106,7 @@ def test_get_variable_measured_returns_expected_type(strategy_instance):
     assert is_property_type(res, ["schema:PropertyValue"])
 
 
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_included_in_data_catalog_returns_expected_type(strategy_instance):
     """Test that the get_included_in_data_catalog method returns the expected
     type."""
@@ -131,6 +137,7 @@ def test_get_potential_action_returns_expected_type(strategy_instance):
     assert is_property_type(res, ["schema:SearchAction"])
 
 
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_date_created_returns_expected_type(strategy_instance):
     """Test that the get_date_created method returns the expected type."""
     res = strategy_instance.get_date_created()
@@ -152,6 +159,7 @@ def test_get_date_published_returns_expected_type(strategy_instance):
     assert is_property_type(res, ["schema:Date", "schema:DateTime"])
 
 
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_expires_returns_expected_type(strategy_instance):
     """Test that the get_expires method returns the expected type."""
     res = strategy_instance.get_expires()

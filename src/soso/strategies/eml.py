@@ -14,78 +14,44 @@ class EML(StrategyInterface):
     file : str
         The path to the metadata file. This should be an XML file in EML
         format.
-    url : Any
-        The location of a page describing the dataset (schema:url).
-    same_as : Any
-        Other URLs that can be used to access the dataset page, usually in a
-        different repository (schema:sameAs).
-    version : Any
-        The version number or identifier for the dataset (schema:version).
-    is_accessible_for_free : Any
-        If the dataset is accessible for free (schema:isAccessibleForFree).
-    citation : Any
-        The citation for the dataset (schema:citation).
-    included_in_data_catalog : Any
-        The data catalog the dataset is included in
-        (schema:includedInDataCatalog).
-    date_created : Any
-        The date the dataset was initially generated (schema:dateCreated).
-    expires : Any
-        The date when the dataset expires and is no longer useful or available
-        (schema:expires).
     **kwargs : dict
-        Additional keyword arguments intended for use alongside method
-        overrides, particularly useful for handling unmappable properties.
-        See the Notes section below for further details.
+        Additional keyword arguments for handling unmappable properties. See
+        the Notes section below for details.
 
     Notes
     -----
-    Some properties used by SOSO don't directly map to EML. However, these
-    properties can still be included by either providing the information as
-    arguments to the parameters listed above or by inputting the information
-    as `kwargs` to customized strategy methods. The user documentation has
-    more information on this process. For a deeper understanding of each SOSO
-    property,  refer to the `SOSO guidelines
+    Some properties used by SOSO don't directly map to this strategy. However,
+    these properties can still be included by inputting the information
+    as `kwargs`. Keys should match the property name, and values should be
+    the desired value. For a deeper understanding of each SOSO property,
+    refer to the `SOSO guidelines
     <https://github.com/ESIPFed/science-on-schema.org/blob/master/guides/Dataset.md>`_.
 
-    Below are unmappable properties that must be defined through a combination
-    of `kwargs` inputs and method overrides:
+    Below are unmappable properties for this strategy:
 
+    - url
+    - sameAs
+    - version
+    - isAccessibleForFree
+    - citation
+    - includedInDataCatalog
     - contentURL - This property is nested within subjectOf, which is
       otherwise fully mapped.
     - potentialAction
+    - dateCreated
+    - expires
     - provider
     - publisher
-    - wasRevisionOf
-    - wasGeneratedBy
+    - prov:wasRevisionOf
+    - prov:wasGeneratedBy
     - additionalProperty - This property is nested within the spatialCoverage
       property, and can be used to declare the coordinate reference system
       of the spatial coverage. The default is WGS84.
     """
 
-    def __init__(
-        self,
-        file,
-        url=None,
-        same_as=None,
-        version=None,
-        is_accessible_for_free=None,
-        citation=None,
-        included_in_data_catalog=None,
-        date_created=None,
-        expires=None,
-        **kwargs,
-    ):
+    def __init__(self, file, **kwargs):
         """Initialize the strategy."""
         super().__init__(metadata=etree.parse(file))
-        self.url = url
-        self.same_as = same_as
-        self.version = version
-        self.is_accessible_for_free = is_accessible_for_free
-        self.citation = citation
-        self.included_in_data_catalog = included_in_data_catalog
-        self.date_created = date_created
-        self.expires = expires
         self.kwargs = kwargs
 
     def get_name(self):
@@ -97,21 +63,19 @@ class EML(StrategyInterface):
         return delete_null_values(description[0].text)
 
     def get_url(self):
-        url = self.url  # define unmappable property with parameter
+        url = None  # EML does not map to schema:url
         return delete_null_values(url)
 
     def get_same_as(self):
-        same_as = self.same_as  # define unmappable property with parameter
+        same_as = None  # EML does not map to schema:sameAs
         return delete_null_values(same_as)
 
     def get_version(self):
-        version = self.version  # define unmappable property with parameter
+        version = None  # EML does not map to schema:version
         return delete_null_values(version)
 
     def get_is_accessible_for_free(self):
-        is_accessible_for_free = (
-            self.is_accessible_for_free
-        )  # define unmappable property with parameter
+        is_accessible_for_free = None  # EML does not map to schema:isAccessibleForFree
         return delete_null_values(is_accessible_for_free)
 
     def get_keywords(self):
@@ -132,7 +96,7 @@ class EML(StrategyInterface):
         return delete_null_values(identifier[0])
 
     def get_citation(self):
-        citation = self.citation  # define unmappable property with parameter
+        citation = None  # EML does not map to schema:citation
         return delete_null_values(citation)
 
     def get_variable_measured(self):
@@ -158,8 +122,8 @@ class EML(StrategyInterface):
 
     def get_included_in_data_catalog(self):
         included_in_data_catalog = (
-            self.included_in_data_catalog
-        )  # define unmappable property with parameter
+            None  # EML does not map to schema:includedInDataCatalog
+        )
         return delete_null_values(included_in_data_catalog)
 
     def get_subject_of(self):
@@ -202,7 +166,7 @@ class EML(StrategyInterface):
         return delete_null_values(potential_action)
 
     def get_date_created(self):
-        date_created = self.date_created  # define unmappable property with parameter
+        date_created = None  # EML does not map to schema:dateCreated
         return delete_null_values(date_created)
 
     def get_date_modified(self):
@@ -214,7 +178,7 @@ class EML(StrategyInterface):
         return delete_null_values(date_published[0].text)
 
     def get_expires(self):
-        expires = self.expires  # define unmappable property with parameter
+        expires = None  # EML does not map to schema:expires
         return delete_null_values(expires)
 
     def get_temporal_coverage(self):

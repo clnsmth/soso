@@ -3,7 +3,6 @@
 from tests.conftest import is_url
 from tests.conftest import is_property_type
 from tests.conftest import is_not_null
-from tests.conftest import get_kwargs
 
 
 def test_is_url():
@@ -131,12 +130,3 @@ def test_is_not_null_for_non_dictionaries():
     assert is_not_null("") is False  # schema:Text & schema:URL
     assert is_not_null(None) is False  # schema:Number & schema:Boolean
     assert is_not_null([]) is False  # List
-
-
-def test_get_kwargs():
-    """Test that the get_kwargs function returns a dictionary for a given
-    strategy."""
-    kwargs = get_kwargs("eml")  # for a specific strategy
-    assert isinstance(kwargs, dict)
-    kwargs = get_kwargs()  # for a default strategy
-    assert isinstance(kwargs, dict)
