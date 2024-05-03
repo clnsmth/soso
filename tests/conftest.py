@@ -285,5 +285,10 @@ def get_kwargs(strategy=None):
             "lternet.edu%2Fpackage%2Fmetadata%2Feml%2Fknb-lter-ble%2F1%2F7",
             "version": 7,
             "is_accessible_for_free": True,
+            "citation": "Beaufort Lagoon Ecosystems LTER, &amp; Lougheed, V. L. (2020). "
+            "<i>Carbon flux from aquatic ecosystems of the Arctic Coastal Plain "
+            "along the Beaufort Sea, Alaska, 2010-2018</i> [Data set]. "
+            "Environmental Data Initiative. "
+            "https://doi.org/10.6073/PASTA/E6C261FBD143E720AF5A46A9A131A616",
         }
     return {}
