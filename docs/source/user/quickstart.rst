@@ -28,3 +28,20 @@ The primary function is to convert metadata records into SOSO markup. To perform
     '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
 
 For a list of available strategies, please refer to the documentation of the `main.convert` function.
+
+
+Unmappable Properties
+---------------------
+
+Some SOSO properties may not be derived from metadata records alone. In such cases, additional information can be provided via `kwargs`, where keys match the property name, and values are the property value.
+
+For example, the `url` property representing the landing page URL does not exist in an EML metadata record. But this information is known to the repository hosting the dataset.
+
+    >>> kwargs = {'url': 'https://sample-data-repository.org/dataset/472032'}
+    >>> r = convert(file='metadata.xml', strategy='EML', **kwargs)
+    >>> r
+    '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
+
+It's worth noting that this `kwargs` approach is not limited to supplying unmappable properties; it can be utilized to override any top-level SOSO property.
+
+Unmappable properties are listed in the strategy documentation.

@@ -52,7 +52,7 @@ Implementation Overview:
 
 With this pattern, new support for metadata standards or versions can be easily added as strategy modules without modifying the client code or test suite.
 
-Users typically define workflows that involve iterating over a series of metadata files. Each file, along with its corresponding strategy, is passed to `main.convert`, which returns a SOSO record.
+Users typically define workflows that iterate over a series of metadata files. For each file, along with its corresponding strategy and any unmappable properties expressed as `kwargs`, users invoke `main.convert`, which then returns a SOSO record.
 
 .. image:: sequence_diagram.png
    :alt: Strategy Pattern
@@ -80,10 +80,11 @@ Customization
 
 The Strategy Pattern employed in our application enables a high degree of user customization to solve common challenges:
 
-* Properties requiring additional processing due to data repository-specific implementations of metadata standards.
-* Properties that don't map to metadata but require external data, such as dataset landing page URLs.
+* Properties that don’t map to a metadata standard but require external data, such as dataset landing page URLs.
+* Properties requiring custom processing due to community-specific application of metadata standards.
 
-These cases are addressed by either providing the information to a strategy as arguments to parameters, or by inputting the information as `kwargs` to customized strategy methods. The user documentation has more information on this process.
+These cases can be addressed by providing information as `kwargs` to the main.convert function, which overrides properties corresponding to `kwargs` key names, or by modifying existing strategy methods through method overrides. For further details, refer to the user documentation.
+
 
 Alternative Implementations Considered
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -198,42 +199,3 @@ Utilities
 ^^^^^^^^^
 
 Strategy-specific utility functions are tested in their own test suite module named `test_[strategy].py`. General utility functions used across different strategies are tested in `test_utilities.py`.
-
-Customization
-~~~~~~~~~~~~~
-
-Parameter Inputs
-^^^^^^^^^^^^^^^^
-
-Some SOSO properties do not have direct mappings to metadata standards but can be supplemented with external information. For instance, the `schema:url` property, which specifies the dataset landing page URL, might not be included in the metadata record but is accessible through the repository system managing the metadata.
-
-To incorporate such information into a SOSO record, users can provide it as a `kwargs` input to the `main.convert` function, matching a defined parameter specific to the strategy. The strategy then utilizes this parameter to create the corresponding property.
-
-We have opted to implement this feature at both the `main.convert` and strategy levels to accommodate potential variations in property mappings across metadata standards. This ensures that parameters relevant only to certain standards are not exposed at the general `main.convert` API level.
-
-Allowing users to define properties in this manner is simpler than requiring them to override strategy methods, particularly in cases where there is a straightforward transfer of information from the parameter to the SOSO property. However, for more complex inputs and processing, method overrides may still be necessary.
-
-Some implementation notes on creating a property using this approach:
-
-* Include the parameter in the strategy docstrings, preferably using the SOSO property name for clarity.
-* Specify the input type of the parameter as `Any` to accommodate various input types the property may have.
-* Define the target SOSO property created through this parameter to avoid confusion with similarly named properties elsewhere in the SOSO schema.
-* Incorporate test data into the strategy's test instance in `conftest.strategy_instance` using `conftest.get_kwargs`. This ensures testing of both strategy-specific unit tests and integration tests.
-
-`kwargs` and Method Overrides
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If unmappable properties cannot be provided to a strategy through parameter inputs (as described above), more advanced approaches become necessary. This typically occurs when the input information is complex and requires customized processing. For instance, `schema:potentialAction` provides access to data, but its many complex and nested sub-properties often depend on the nuances of the repository system storing the data.
-
-To incorporate such information into a SOSO record, users can supply it as arbitrary `kwargs` inputs to the `main.convert` function. These inputs are then passed to identically named `kwargs` inputs in the specific strategy. The corresponding strategy method, customized and overridden by the user, then handles the processing. This approach allows users to define properties in a highly customizable manner.
-
-Here are some things to keep in mind when implementing this:
-
-* Method overrides apply to top-level SOSO properties defined in `interface.StrategyInterface` and called in `main.convert`. Properties outside of this scope will not be included in the final SOSO record.
-* This approach can be used to override any strategy methods, not just those for unmappable properties.
-
-
-
-
-
-

@@ -28,17 +28,18 @@ The primary function is to convert metadata records into SOSO markup. To perform
     >>> r
     '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
 
-Some SOSO properties may not be derived from metadata records alone. In such cases, additional information can be provided via `kwargs` and handled through method overrides.
+Some SOSO properties may not be derived from metadata records alone. In such cases, additional information can be provided via `kwargs`, where keys match the property name, and values are the property value.
 
-    >>> from soso.strategies.eml import EML  # import the strategy
-    >>> def get_url(self):                   # define a new method
-    ...     return self.kwargs['url']
-    >>> EML.get_url = get_url                # override the method
-    >>> r = convert(file='metadata.xml', strategy='EML', url='https://www.sample-data-repository.org/dataset/472032')  # use kwargs
+For example, the `url` property representing the landing page URL does not exist in an EML metadata record. But this information is known to the repository hosting the dataset.
+
+    >>> kwargs = {'url': 'https://sample-data-repository.org/dataset/472032'}
+    >>> r = convert(file='metadata.xml', strategy='EML', **kwargs)
     >>> r
     '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
 
-For further details, please refer to the :ref:`advanced` section in the User Guide.
+It's worth noting that this `kwargs` approach is not limited to supplying unmappable properties; it can be utilized to override any top-level SOSO property.
+
+Unmappable properties are listed in the strategy documentation.
 
 The User Guide
 --------------
