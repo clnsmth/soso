@@ -15,21 +15,14 @@ import requests
 def validate(graph: str) -> bool:
     """Validate a graph against the SOSO dataset SHACL shape.
 
-    Parameters
-    ----------
-    graph : str
-        File path of the JSON-LD graph to validate.
+    :param graph: File path of the JSON-LD graph to validate.
 
-    Returns
-    -------
-    bool
-        Whether the graph conforms to the SOSO shape. If no internet connection
-        is available, None is returned.
+    :returns:   Whether the graph conforms to the SOSO shape. If no internet
+                connection is available, None is returned.
 
-    Notes
-    -----
-    This function wraps `pyshacl.validate`, which requires an internet
-    connection.
+    Notes:
+        This function wraps `pyshacl.validate`, which requires an internet
+        connection.
     """
     try:
         res = pyshacl.validate(
@@ -48,16 +41,13 @@ def validate(graph: str) -> bool:
         return None
 
 
-def get_shacl_file_path():
+def get_shacl_file_path() -> pathlib.PosixPath:
     """Return the SHACL shape file path for the SOSO dataset graph.
 
     The shape file is for the current release version of the SOSO dataset
     graph.
 
-    Returns
-    -------
-    PosixPath
-        Path to the SHACL shape file.
+    :returns: Path to the SHACL shape file.
     """
     file_path = resources.files("soso.data").joinpath("soso_common_v1.2.3.ttl")
     return file_path
@@ -66,15 +56,9 @@ def get_shacl_file_path():
 def get_sssom_file_path(strategy: str) -> pathlib.PosixPath:
     """Return the SSSOM file path for the specified strategy.
 
-    Parameters
-    ----------
-    strategy : str
-        Metadata strategy. Can be: EML.
+    :param strategy: Metadata strategy. Can be: EML.
 
-    Returns
-    -------
-    PosixPath
-        File path.
+    :returns: File path.
     """
     file_name = "soso-" + str.lower(strategy) + ".sssom.tsv"
     file_path = resources.files("soso.data").joinpath(file_name)
@@ -84,15 +68,9 @@ def get_sssom_file_path(strategy: str) -> pathlib.PosixPath:
 def get_example_metadata_file_path(strategy: str) -> pathlib.PosixPath:
     """Return the file path of an example metadata file.
 
-    Parameters
-    ----------
-    strategy : str
-        Metadata strategy. Can be: EML.
+    :param strategy: Metadata strategy. Can be: EML.
 
-    Returns
-    -------
-    PosixPath
-        File path.
+    :returns: File path.
     """
     if strategy.lower() == "eml":
         file_path = resources.files("soso.data").joinpath("eml.xml")
@@ -104,15 +82,9 @@ def get_example_metadata_file_path(strategy: str) -> pathlib.PosixPath:
 def read_sssom(strategy: str) -> pd.DataFrame:
     """Return the SSSOM for the specified strategy.
 
-    Parameters
-    ----------
-    strategy : str
-        Metadata strategy. Can be: EML.
+    :param strategy: Metadata strategy. Can be: EML.
 
-    Returns
-    -------
-    DataFrame
-        Pandas dataframe.
+    :returns: The SSSOM table.
     """
     sssom_file_path = get_sssom_file_path(strategy)
     sssom = pd.read_csv(sssom_file_path, delimiter="\t")
@@ -120,45 +92,31 @@ def read_sssom(strategy: str) -> pd.DataFrame:
 
 
 def delete_null_values(res: Any) -> Any:
-    """
-    Remove null values from results returned by strategy methods. This
-    function is to help developers of strategy methods clean their results
-    before returning them to the user, to ensure that the results are free of
-    meaningless values.
+    """Remove null values from results returned by strategy methods.
 
-    Parameters
-    ----------
-    res: Any
-        The results to clean.
+    :param res: The results to clean.
 
-    Returns
-    -------
-    Any
-        The results with all null values removed. None is returned if all
-        values are null.
+    :returns:   The results with all null values removed. None is returned if
+                all values are null.
 
-    Notes
-    -----
-    Null values are defined as follows:
+    Notes:
+        This function is to help developers of strategy methods clean their
+        results before returning them to the user, to ensure that the results
+        are free of meaningless values.
 
-    - None
-    - An empty string
-    - An empty list
-    - An empty dictionary
-    - A dictionary with only one key, "@type"
+        Null values are defined as follows:
+            - None
+            - An empty string
+            - An empty list
+            - An empty dictionary
+            - A dictionary with only one key, "@type"
     """
 
     def is_null(value: Any) -> bool:
         """
-        Parameters
-        ----------
-        value: Any
-            The value to check for "nullness".
+        :param value: The value to check for "nullness".
 
-        Returns
-        -------
-        bool
-            True if the value is null, False otherwise.
+        :returns: Whether the value is null.
         """
         return (
             value is None
@@ -172,16 +130,10 @@ def delete_null_values(res: Any) -> Any:
 
     def deep_clean(data: Any) -> Any:
         """
-        Parameters
-        ----------
-        data: Any
-            The results to clean.
+        :param data: The results to clean.
 
-        Returns
-        -------
-        Any
-            The input data with all null values removed by way of recursive
-            cleaning.
+        :returns:   The input data with all null values removed by way of
+                    recursive cleaning.
         """
         if isinstance(data, dict):
             # Handle dictionaries
@@ -224,16 +176,10 @@ def delete_unused_vocabularies(graph: dict) -> dict:
     function is to help clean the graph created by `main.convert` before
     returning it to the user.
 
-    Parameters
-    ----------
-    graph : dict
-        The JSON-LD graph.
+    :param graph: The JSON-LD graph.
 
-    Returns
-    -------
-    dict
-        The JSON-LD graph, with unused vocabularies removed from the top level
-        @context.
+    :returns:   The JSON-LD graph, with unused vocabularies removed from the
+                top level @context.
     """
     # Create a copy of the graph for comparison
     graph_copy = graph.copy()
@@ -250,29 +196,19 @@ def delete_unused_vocabularies(graph: dict) -> dict:
 
 def generate_citation_from_doi(url: str, style: str, locale: str) -> Union[str, None]:
     """
-    Generates a citation
+    :param url: The URL prefixed DOI.
+    :param style:   The citation style. For example, "apa". Options are listed
+                    `here <https://github.com/citation-style-language/styles>`_.
+    :param locale:  The locale. For example, "en-US". Options are listed
+                    `here <https://github.com/citation-style-language/locales>`_.
 
-    Parameters
-    ----------
-    url : str
-        The URL prefixed DOI.
-    style : str
-        The citation style. For example, "apa". Options are listed
-        `here <https://github.com/citation-style-language/styles>`_.
-    locale : str
-        The locale. For example, "en-US". Options are listed
-        `here <https://github.com/citation-style-language/locales>`_.
+    :returns:   The citation in the specified style and locale. None is
+                returned if the DOI is invalid or if the citation could not be
+                generated.
 
-    Returns
-    -------
-    str or None
-        The citation in the specified style and locale. None is returned if the
-        DOI is invalid or if the citation could not be generated.
-
-    Notes
-    -----
-    This function supports the DOI registration agencies and methods listed
-    `here <https://citation.crosscite.org/docs.html#sec-4>`_.
+    Notes:
+        This function supports the DOI registration agencies and methods listed
+        `here <https://citation.crosscite.org/docs.html#sec-4>`_.
     """
     try:
         headers = {"Accept": "text/x-bibliography; style=" + style, "locale": locale}

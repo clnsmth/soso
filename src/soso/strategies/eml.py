@@ -10,44 +10,39 @@ from soso.utilities import delete_null_values
 class EML(StrategyInterface):
     """Define the conversion strategy for EML (Ecological Metadata Language).
 
-    Parameters
-    ----------
-    file : str
-        The path to the metadata file. This should be an XML file in EML
-        format.
-    **kwargs : dict
-        Additional keyword arguments for handling unmappable properties. See
-        the Notes section below for details.
+    Attributes:
+        file:   The path to the metadata file. This should be an XML file in
+                EML format.
+        kwargs:   Additional keyword arguments for handling unmappable
+                    properties. See the Notes section below for details.
 
-    Notes
-    -----
-    Some properties used by SOSO don't directly map to this strategy. However,
-    these properties can still be included by inputting the information
-    as `kwargs`. Keys should match the property name, and values should be
-    the desired value. For a deeper understanding of each SOSO property,
-    refer to the `SOSO guidelines
-    <https://github.com/ESIPFed/science-on-schema.org/blob/master/guides/Dataset.md>`_.
+    Notes:
+        Some properties used by SOSO don't directly map to this strategy.
+        However, these properties can still be included by inputting the
+        information as `kwargs`. Keys should match the property name, and
+        values should be the desired value. For a deeper understanding of each
+        SOSO property, refer to the `SOSO guidelines
+        <https://github.com/ESIPFed/science-on-schema.org/blob/master/guides/Dataset.md>`_.
 
-    Below are unmappable properties for this strategy:
-
-    - url
-    - sameAs
-    - version
-    - isAccessibleForFree
-    - citation
-    - includedInDataCatalog
-    - contentURL - This property is nested within subjectOf, which is
-      otherwise fully mapped.
-    - potentialAction
-    - dateCreated
-    - expires
-    - provider
-    - publisher
-    - prov:wasRevisionOf
-    - prov:wasGeneratedBy
-    - additionalProperty - This property is nested within the spatialCoverage
-      property, and can be used to declare the coordinate reference system
-      of the spatial coverage. The default is WGS84.
+        Below are unmappable properties for this strategy:
+            - url
+            - sameAs
+            - version
+            - isAccessibleForFree
+            - citation
+            - includedInDataCatalog
+            - contentURL - This property is nested within subjectOf, which is
+              otherwise fully mapped.
+            - potentialAction
+            - dateCreated
+            - expires
+            - provider
+            - publisher
+            - prov:wasRevisionOf
+            - prov:wasGeneratedBy
+            - additionalProperty - This property is nested within the spatialCoverage
+              property, and can be used to declare the coordinate reference system
+              of the spatial coverage. The default is WGS84.
     """
 
     def __init__(self, file: str, **kwargs: dict):
@@ -303,19 +298,15 @@ class EML(StrategyInterface):
 
 
 def get_content_size(data_entity_element: etree._Element) -> str:
-    """Return the content size for a data entity element.
+    """
+    :param data_entity_element:     The data entity element to get the content
+                                    size from.
 
-    The If the "unit" attribute of the "size" element is defined, it will be
-    appended to the content size value.
+    :returns: The content size of a data entity element.
 
-    Parameters
-    ----------
-    data_entity_element : lxml.etree._Element
-        The data entity element to get the content size from.
-
-    Returns
-    -------
-    str
+    Notes:
+        The If the "unit" attribute of the "size" element is defined, it will
+        be appended to the content size value.
     """
     size_element = data_entity_element.xpath(".//physical/size")
     size = size_element[0].text
@@ -326,20 +317,16 @@ def get_content_size(data_entity_element: etree._Element) -> str:
 
 
 def get_content_url(data_entity_element: etree._Element) -> Union[str, None]:
-    """Return the content url for a data entity element.
+    """
+    :param data_entity_element:     The data entity element to get the content
+                                    url from.
 
-    If the "function" attribute of the data entity element is "information",
-    the url elements value does not semantically match the SOSO contentUrl
-    property definition and None is returned.
+    :returns: The content url for a data entity element.
 
-    Parameters
-    ----------
-    data_entity_element : lxml.etree._Element
-        The data entity element to get the content url from.
-
-    Returns
-    -------
-    str or None
+    Notes:
+        If the "function" attribute of the data entity element is
+        "information", the url elements value does not semantically match the
+        SOSO contentUrl property definition and None is returned.
     """
     url_element = data_entity_element.xpath(".//distribution/online/url")
     if url_element[0].get("function") != "information":
@@ -348,19 +335,13 @@ def get_content_url(data_entity_element: etree._Element) -> Union[str, None]:
 
 
 def convert_range_of_dates(range_of_dates: etree._Element) -> Union[str, dict]:
-    """Return EML rangeOfDates as a calendar datetime or geologic age interval.
+    """
+    :param range_of_dates:  The EML rangeOfDates element to convert.
 
-    Parameters
-    ----------
-    range_of_dates : lxml.etree._Element
-        The EML rangeOfDates element to convert.
-
-    Returns
-    -------
-    str or dict
-        A string if `range_of_dates` represents a calendar datetime, or a dict
-        if it represents a geologic age. The dict is formatted as an OWL-Time
-        ProperInterval type.
+    :returns:   The EML rangeOfDates as a calendar datetime or geologic age
+                interval. A string if `range_of_dates` represents a calendar
+                datetime, or a dict if it represents a geologic age. The dict
+                is formatted as an OWL-Time ProperInterval type.
     """
     begin_date = convert_single_date_time_type(range_of_dates.xpath(".//beginDate")[0])
     end_date = convert_single_date_time_type(range_of_dates.xpath(".//endDate")[0])
@@ -378,46 +359,32 @@ def convert_range_of_dates(range_of_dates: etree._Element) -> Union[str, dict]:
 
 
 def convert_single_date_time(single_date_time: etree._Element) -> Union[str, dict]:
-    """Return EML singleDateTime as a calendar datetime or geologic age
-    instant.
+    """
+    :param single_date_time:    The EML singleDateTime element to convert.
 
-    Parameters
-    ----------
-    single_date_time : lxml.etree._Element
-        The EML singleDateTime element to convert.
-
-    Returns
-    -------
-    str or dict
-        A string if `single_date_time` represents a calendar datetime, or a
-        dict if it represents a geologic age. The dict is formatted as an
-        OWL-Time Instant type.
+    :returns:   EML singleDateTime as a calendar datetime or geologic age
+                instant. A string if `single_date_time` represents a calendar
+                datetime, or a dict if it represents a geologic age. The dict
+                is formatted as an OWL-Time Instant type.
     """
     return convert_single_date_time_type(single_date_time)
 
 
 def convert_single_date_time_type(single_date_time: etree._Element) -> Union[str, dict]:
-    """Convert EML SingleDateTimeType to a calendar datetime or geologic age
-    instant.
+    """
+    :param single_date_time:    The EML SingleDateTimeType element to convert.
 
-    Parameters
-    ----------
-    single_date_time : lxml.etree._Element
-        The EML SingleDateTimeType element to convert.
+    :returns:   The EML SingleDateTimeType element as a calendar datetime or
+                geologic age instant. A string if `single_date_time`
+                represents a calendar datetime, or a dict if it represents a
+                geologic age. The dict is formatted as an OWL-Time Instant
+                type.
 
-    Returns
-    -------
-    str or dict
-        A string if `single_date_time` represents a calendar datetime, or a
-        dict if it represents a geologic age. The dict is formatted as an
-        OWL-Time Instant type.
-
-    Notes
-    -----
-    The return type is governed by the presence/absense of the EML
-    alternativeTimeScale element. The presence of which indicates that the
-    SingleDateTimeType element represents a geologic age, otherwise it
-    represents a calendar date and/or time.
+    Notes:
+        The return type is governed by the presence/absense of the EML
+        alternativeTimeScale element. The presence of which indicates that the
+        SingleDateTimeType element represents a geologic age, otherwise it
+        represents a calendar date and/or time.
     """
     if not single_date_time.xpath(".//alternativeTimeScale"):
         calendar_date = single_date_time.findtext(".//calendarDate")
@@ -448,17 +415,12 @@ def convert_single_date_time_type(single_date_time: etree._Element) -> Union[str
 
 
 def get_spatial_type(geographic_coverage: etree._Element) -> str:
-    """Return the object type for a geographic coverage element.
+    """
+    :param geographic_coverage: The EML geographicCoverage element to get the
+                                object type from.
 
-    Parameters
-    ----------
-    geographic_coverage : lxml.etree._Element
-        The EML geographicCoverage element to get the object type from.
-
-    Returns
-    -------
-    str
-        One of "Point", "Box", or "Polygon".
+    :returns:   The object type for an EML geographic coverage element. One of
+                "Point", "Box", or "Polygon".
     """
     # If the "boundingCoordinates" element is present, the object type is a
     # point if the north and south bounding coordinates are equal and the east
@@ -480,23 +442,15 @@ def get_spatial_type(geographic_coverage: etree._Element) -> str:
 
 
 def get_point(geographic_coverage: etree._Element) -> dict:
-    """Return the geographic coverage as a point.
+    """
+    :param geographic_coverage: The EML geographicCoverage element to convert.
 
-    Parameters
-    ----------
-    geographic_coverage : lxml.etree._Element
-        The EML geographicCoverage element to convert.
+    :returns:   The geographic coverage as a point.
 
-    Returns
-    -------
-    dict
-        The geographic coverage as a point.
-
-    Notes
-    -----
-    This function assumes that the geographic coverage is a point. It does not
-    check if the geographic coverage is a point. Use the `get_spatial_type`
-    function to determine the object type.
+    Notes:
+        This function assumes that the geographic coverage is a point. It does
+        not check if the geographic coverage is a point. Use the
+        `get_spatial_type` function to determine the object type.
     """
     north = geographic_coverage.findtext(".//northBoundingCoordinate")
     west = geographic_coverage.findtext(".//westBoundingCoordinate")
@@ -512,17 +466,11 @@ def get_point(geographic_coverage: etree._Element) -> dict:
 
 
 def get_elevation(geographic_coverage: etree._Element) -> Union[str, None]:
-    """Return the elevation for a geographic coverage element.
+    """
+    :param geographic_coverage: The EML geographicCoverage element to get the
+                                elevation from.
 
-    Parameters
-    ----------
-    geographic_coverage : lxml.etree._Element
-        The EML geographicCoverage element to get the elevation from.
-
-    Returns
-    -------
-    str
-        The elevation.
+    :returns:   The elevation for a geographic coverage element.
     """
     # The elevation is the altitudeMinimum if it is equal to the
     # altitudeMaximum. A range of elevations is not supported.
@@ -539,23 +487,15 @@ def get_elevation(geographic_coverage: etree._Element) -> Union[str, None]:
 
 
 def get_box(geographic_coverage: etree._Element) -> dict:
-    """Return the geographic coverage as a box.
+    """
+    :param geographic_coverage: The EML geographicCoverage element to convert.
 
-    Parameters
-    ----------
-    geographic_coverage : lxml.etree._Element
-        The EML geographicCoverage element to convert.
+    :returns:   The geographic coverage as a box.
 
-    Returns
-    -------
-    dict
-        The geographic coverage as a box.
-
-    Notes
-    -----
-    This function assumes that the geographic coverage is a box. It does not
-    check if the geographic coverage is a box. Use the `get_spatial_type`
-    function to determine the object type.
+    Notes:
+        This function assumes that the geographic coverage is a box. It does
+        not check if the geographic coverage is a box. Use the
+        `get_spatial_type` function to determine the object type.
     """
     north = geographic_coverage.findtext(".//northBoundingCoordinate")
     west = geographic_coverage.findtext(".//westBoundingCoordinate")
@@ -566,28 +506,20 @@ def get_box(geographic_coverage: etree._Element) -> dict:
 
 
 def get_polygon(geographic_coverage: etree._Element) -> dict:
-    """Return the geographic coverage as a polygon.
+    """
+    :param geographic_coverage: The EML geographicCoverage element to convert.
 
-    Parameters
-    ----------
-    geographic_coverage : lxml.etree._Element
-        The EML geographicCoverage element to convert.
+    :returns:   The geographic coverage as a polygon.
 
-    Returns
-    -------
-    dict
-        The geographic coverage as a polygon.
+    Notes:
+        This function assumes that the geographic coverage is a polygon. It
+        does not check if the geographic coverage is a polygon. Use the
+        `get_spatial_type` function to determine the object type.
 
-    Notes
-    -----
-    This function assumes that the geographic coverage is a polygon. It does
-    not check if the geographic coverage is a polygon. Use the
-    `get_spatial_type` function to determine the object type.
-
-    This function assumes, as per the EML 2.2.0 specification, that the
-    GRingType is a "set of ordered pairs of floating-point numbers, separated
-    by commas, in which the first number in each pair is the longitude of a
-    point and the second is the latitude of the point.".
+        This function assumes, as per the EML 2.2.0 specification, that the
+        GRingType is a "set of ordered pairs of floating-point numbers,
+        separated by commas, in which the first number in each pair is the
+        longitude of a point and the second is the latitude of the point.".
     """
     g_ring = geographic_coverage.findtext(".//gRing")
     # Parse g_ring into tuples of longitude/latitude pairs.
@@ -607,17 +539,11 @@ def get_polygon(geographic_coverage: etree._Element) -> dict:
 
 
 def convert_user_id(user_id: list) -> Union[dict, None]:
-    """Return the user ID as a PropertyValue.
+    """
+    :param user_id: The EML userId element to convert.
 
-    Parameters
-    ----------
-    user_id : list of lxml.etree._Element
-        The EML userId element to convert.
-
-    Returns
-    -------
-    dict or None
-        A PropertyValue if the `user_id` is not empty, otherwise None.
+    :returns:   The user ID as a PropertyValue if the `user_id` is not empty,
+                otherwise None.
     """
     if len(user_id) != 0:
         property_value = {
@@ -631,17 +557,11 @@ def convert_user_id(user_id: list) -> Union[dict, None]:
 
 
 def get_data_entity_encoding_format(data_entity_element: etree._Element) -> str:
-    """Return the encoding format for a data entity element.
+    """
+    :param data_entity_element: The data entity element to get the encoding
+                                format from.
 
-    Parameters
-    ----------
-    data_entity_element : lxml.etree._Element
-        The data entity element to get the encoding format from.
-
-    Returns
-    -------
-    str
-        The encoding format as a MIME type.
+    :returns:   The encoding format (as a MIME type) for a data entity element.
     """
     object_name = data_entity_element.findtext(".//physical/objectName")
     encoding_format = guess_type(object_name, strict=False)
@@ -649,20 +569,16 @@ def get_data_entity_encoding_format(data_entity_element: etree._Element) -> str:
 
 
 def get_person_or_organization(responsible_party: etree._Element) -> dict:
-    """Return the responsible party as a schema:Person or schema:Organization.
+    """
+    :param responsible_party: The EML responsibleParty element to convert.
 
-    The Person and Organization types are very similar, so this function
-    handles them both and determines which type to return based on the
-    presence/absense of the individualName element.
+    :returns:   The responsible party as a schema:Person or
+    schema:Organization.
 
-    Parameters
-    ----------
-    responsible_party : lxml.etree._Element
-        The EML responsibleParty type element to convert.
-
-    Returns
-    -------
-    dict
+    Notes:
+        The Person and Organization types are very similar, so this function
+        handles them both and determines which type to return based on the
+        presence/absense of the individualName element.
     """
     if responsible_party.xpath("individualName"):
         res = {
@@ -684,15 +600,9 @@ def get_person_or_organization(responsible_party: etree._Element) -> dict:
 
 def get_encoding_format(metadata: etree.ElementTree) -> str:
     """
-    Parameters
-    ----------
-    metadata : object or None
-        The metadata object as an XML tree.
+    :param metadata:    The metadata object as an XML tree.
 
-    Returns
-    -------
-    str
-        The encoding format of an EML metadata record.
+    :returns:   The encoding format of an EML metadata record.
     """
     schema_location = metadata.getroot().nsmap.get("eml", None)
     encoding_format = ["application/xml", schema_location]
@@ -701,16 +611,11 @@ def get_encoding_format(metadata: etree.ElementTree) -> str:
 
 def get_methods(xml: etree._Element) -> Union[str, None]:
     """
-    Parameters
-    ----------
-    xml : lxml.etree._Element
+    :param xml: The EML metadata record.
 
-    Returns
-    -------
-    str or None
-        The methods section of an EML metadata record with XML tags removed,
-        and leading and trailing whitespace removed. None if the methods
-        section is not found.
+    :returns:   The methods section of an EML metadata record with XML tags
+                removed, and leading and trailing whitespace removed. None if
+                the methods section is not found.
     """
     methods = xml.xpath(".//methods")
     if len(methods) == 0:
@@ -722,17 +627,12 @@ def get_methods(xml: etree._Element) -> Union[str, None]:
 
 def get_checksum(data_entity_element: etree._Element) -> Union[list, None]:
     """
-    Parameters
-    ----------
-    data_entity_element : lxml.etree._Element
-        The data entity element to get the checksum(s) from.
+    :param data_entity_element: The data entity element to get the checksum(s)
+                                from.
 
-    Returns
-    -------
-    list of dict or None
-        A list of dictionaries formatted as spdx:Checksum, for each method
-        attribute of the authentication element containing an spdx:algorithm.
-        Otherwise None.
+    :returns:   A list of dictionaries formatted as spdx:Checksum, for each
+                method attribute of the authentication element containing an
+                spdx:algorithm. Otherwise None.
     """
     checksum = []
     for item in data_entity_element.xpath(".//physical/authentication"):
