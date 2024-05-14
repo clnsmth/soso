@@ -12,13 +12,17 @@ from soso.utilities import get_example_metadata_file_path
 
 @pytest.fixture
 def strategy_names() -> list:
-    """Return the names of available strategies."""
+    """
+    :returns: The names of available strategies.
+    """
     return ["eml"]
 
 
 @pytest.fixture(params=[EML])
 def strategy_instance(request) -> pathlib.PosixPath:
-    """Return the strategy instances."""
+    """
+    :returns: The strategy instances.
+    """
     if request.param is EML:
         res = request.param(file=get_example_metadata_file_path("EML"))
     return res
@@ -26,7 +30,9 @@ def strategy_instance(request) -> pathlib.PosixPath:
 
 @pytest.fixture
 def soso_properties() -> list:
-    """Return the names of SOSO properties."""
+    """
+    :returns: The names of SOSO properties.
+    """
     return [
         "@context",
         "@type",
@@ -65,7 +71,9 @@ def soso_properties() -> list:
 
 @pytest.fixture
 def interface_methods() -> list:
-    """Return the names of strategy methods."""
+    """
+    :returns: The names of strategy methods.
+    """
     res = [
         "get_name",
         "get_description",
@@ -109,8 +117,10 @@ def pytest_configure(config):
 
 
 @pytest.fixture(scope="session")
-def internet_connection():
-    """Check if there is an internet connection."""
+def internet_connection() -> bool:
+    """
+    :returns: If there is an internet connection.
+    """
     try:
         socket.create_connection(("8.8.8.8", 53), timeout=5)
         return True
@@ -118,8 +128,10 @@ def internet_connection():
         return False
 
 
-def is_url(url: str):
-    """Check if a string is a URL."""
+def is_url(url: str) -> bool:
+    """
+    :returns: If a string is a URL.
+    """
     try:
         res = urlparse(url)
         return all([res.scheme, res.netloc])
@@ -129,57 +141,47 @@ def is_url(url: str):
 
 def is_property_type(results: Any, expected_types: list) -> bool:
     """
-    Parameters
-    ----------
-    results : Any
-        The results of a strategy method to check.
-    expected_types : List
-        The expected types, as a list of strings. See notes below for the
-        currently supported types.
+    :param results: The results of a strategy method to check.
+    :param expected_types: The expected types. See notes for supported types.
 
-    Returns
-    -------
-    bool
-        True if the result is one of the expected types.
+    :returns: Whether the results are one of the expected types.
 
-    Notes
-    -----
-    This function verifies expected SOSO property types against their Python
-    equivalents. It compares DataType(s) such as schema:Text and
-    schema:Boolean with their Python counterparts (e.g., str, bool), and
-    validates schema:Thing(s) (e.g., schema:DefinedTerm) as Python
-    dictionaries containing the expected type specifier string (e.g.
-    DefinedTerm). Namespace prefixes are disregarded for schema:Thing(s),
-    as they are often declared in the JSON-LD document's @context. Clients
-    can specify different types for a SOSO property by passing a list of
-    strings (e.g., [schema:Text, schema:DefinedTerm]) as an argument to
-    the function.
+    Notes:
+        This function verifies expected SOSO property types against their
+        Python equivalents. It compares DataType(s) such as schema:Text and
+        schema:Boolean with their Python counterparts (e.g., str, bool), and
+        validates schema:Thing(s) (e.g., schema:DefinedTerm) as Python
+        dictionaries containing the expected type specifier string (e.g.
+        DefinedTerm). Namespace prefixes are disregarded for schema:Thing(s),
+        as they are often declared in the JSON-LD document's @context. Clients
+        can specify different types for a SOSO property by passing a list of
+        strings (e.g., [schema:Text, schema:DefinedTerm]) as an argument to
+        the function.
 
-    Expected types are one or more of:
+        Expected types are one or more of:
+            - schema:Text
+            - schema:URL
+            - schema:Number
+            - schema:Boolean
+            - schema:DefinedTerm
+            - schema:PropertyValue
+            - schema:DataCatalog
+            - schema:DataDownload
+            - time:ProperInterval
+            - time:Instant
+            - schema:Place
+            - schema:Person
+            - schema:Organization
+            - schema:MonetaryGrant
+            - @id
+            - provone:Execution
 
-    - schema:Text
-    - schema:URL
-    - schema:Number
-    - schema:Boolean
-    - schema:DefinedTerm
-    - schema:PropertyValue
-    - schema:DataCatalog
-    - schema:DataDownload
-    - time:ProperInterval
-    - time:Instant
-    - schema:Place
-    - schema:Person
-    - schema:Organization
-    - schema:MonetaryGrant
-    - @id
-    - provone:Execution
+        where schema, time, and provone are the namespaces of
+        https://schema.org/, http://www.w3.org/2006/time#, and
+        http://purl.dataone.org/provone/2015/01/15/ontology# respectively.
 
-    where schema, time, and provone are the namespaces of https://schema.org/,
-    http://www.w3.org/2006/time#, and
-    http://purl.dataone.org/provone/2015/01/15/ontology# respectively.
-
-    When type matching, the namespace prefix of an expected type is not used.
-    Only the suffix is used.
+        When type matching, the namespace prefix of an expected type is not
+        used. Only the suffix is used.
     """
     # pylint: disable=R0912
     # Prepare the results and expected_types for iteration
@@ -219,23 +221,15 @@ def is_property_type(results: Any, expected_types: list) -> bool:
 
 def is_not_null(results: Any) -> bool:
     """
-    Parameters
-    ----------
-    results : Any
-        The results of a strategy method.
+    :param results: The results of a strategy method.
 
-    Returns
-    -------
-    bool
-        True if the results from a strategy method are not null (i.e. 'useful'
-        information is provided).
+    :returns: If the results are not null.
 
-    Notes
-    -----
-    This function checks if the results returned by a strategy method are not
-    null. It is not a comprehensive check for null values interspersed within
-    the results (i.e. some properties could be null while others are not, and
-    this is OK).
+    Notes:
+        This function checks if the results returned by a strategy method are
+        not null. It is not a comprehensive check for null values interspersed
+        within the results (i.e. some properties could be null while others are
+        not, and this is OK).
     """
     # Pre-processing
     if isinstance(results, dict) and results.get("@list") is not None:

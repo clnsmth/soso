@@ -8,24 +8,16 @@ from soso.utilities import delete_unused_vocabularies
 def convert(file: str, strategy: str, **kwargs: dict) -> str:
     """Return SOSO markup for a metadata file and specified strategy.
 
-    Parameters
-    ----------
-    file : str
-        The path to the metadata file. Refer to the strategy's documentation
-        for a list of supported file types.
-    strategy : str
-        The conversion strategy to be employed. Available strategies include:
-        "EML".
-    **kwargs : dict
-        Additional keyword arguments for passing information to the chosen
-        `strategy`. This can help in the case of unmappable properties. See the
-        Notes section in the strategy's documentation for more information.
+    :param file:    The path to the metadata file. Refer to the strategy's
+                    documentation for a list of supported file types.
+    :param strategy:    The conversion strategy to be employed. Available
+                        strategies include: "EML".
+    :param kwargs:  Additional keyword arguments for passing information to
+                    the chosen `strategy`. This can help in the case of
+                    unmappable properties. See the Notes section in the
+                    strategy's documentation for more information.
 
-
-    Returns
-    -------
-    str
-        The SOSO graph in JSON-LD format.
+    :returns: The SOSO graph in JSON-LD format.
     """
 
     # Load the strategy based on user choice. Pass kwargs, so the strategy can
