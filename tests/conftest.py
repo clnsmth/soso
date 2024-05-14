@@ -1,5 +1,7 @@
 """Configure the test suite."""
 import socket
+from typing import Any
+import pathlib
 from urllib.parse import urlparse
 from numbers import Number
 from copy import deepcopy
@@ -9,13 +11,13 @@ from soso.utilities import get_example_metadata_file_path
 
 
 @pytest.fixture
-def strategy_names():
+def strategy_names() -> list:
     """Return the names of available strategies."""
     return ["eml"]
 
 
 @pytest.fixture(params=[EML])
-def strategy_instance(request):
+def strategy_instance(request) -> pathlib.PosixPath:
     """Return the strategy instances."""
     if request.param is EML:
         res = request.param(file=get_example_metadata_file_path("EML"))
@@ -23,7 +25,7 @@ def strategy_instance(request):
 
 
 @pytest.fixture
-def soso_properties():
+def soso_properties() -> list:
     """Return the names of SOSO properties."""
     return [
         "@context",
@@ -62,7 +64,7 @@ def soso_properties():
 
 
 @pytest.fixture
-def interface_methods():
+def interface_methods() -> list:
     """Return the names of strategy methods."""
     res = [
         "get_name",
@@ -116,7 +118,7 @@ def internet_connection():
         return False
 
 
-def is_url(url):
+def is_url(url: str):
     """Check if a string is a URL."""
     try:
         res = urlparse(url)
@@ -125,7 +127,7 @@ def is_url(url):
         return False
 
 
-def is_property_type(results, expected_types):
+def is_property_type(results: Any, expected_types: list) -> bool:
     """
     Parameters
     ----------
@@ -215,7 +217,7 @@ def is_property_type(results, expected_types):
     return any(res)
 
 
-def is_not_null(results):
+def is_not_null(results: Any) -> bool:
     """
     Parameters
     ----------

@@ -1,4 +1,5 @@
 """The strategy interface module."""
+from typing import Any
 
 
 class StrategyInterface:
@@ -23,7 +24,7 @@ class StrategyInterface:
         returned for 'NULL' values.
     """
 
-    def __init__(self, metadata=None, **kwargs):
+    def __init__(self, metadata: Any = None, **kwargs: dict):
         """Return the strategy attributes."""
         self.metadata = metadata
         self.kwargs = kwargs
