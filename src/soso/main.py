@@ -5,7 +5,7 @@ from soso.strategies.eml import EML
 from soso.utilities import delete_unused_vocabularies
 
 
-def convert(file, strategy, **kwargs):
+def convert(file: str, strategy: str, **kwargs: dict) -> str:
     """Return SOSO markup for a metadata file and specified strategy.
 
     Parameters

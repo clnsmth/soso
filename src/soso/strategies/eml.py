@@ -1,6 +1,7 @@
 """The EML strategy module."""
 
 from mimetypes import guess_type
+from typing import Union
 from lxml import etree
 from soso.interface import StrategyInterface
 from soso.utilities import delete_null_values
@@ -49,7 +50,7 @@ class EML(StrategyInterface):
       of the spatial coverage. The default is WGS84.
     """
 
-    def __init__(self, file, **kwargs):
+    def __init__(self, file: str, **kwargs: dict):
         """Initialize the strategy."""
         super().__init__(metadata=etree.parse(file))
         self.kwargs = kwargs
@@ -301,7 +302,7 @@ class EML(StrategyInterface):
 # Below are utility functions for the EML strategy.
 
 
-def get_content_size(data_entity_element):
+def get_content_size(data_entity_element: etree._Element) -> str:
     """Return the content size for a data entity element.
 
     The If the "unit" attribute of the "size" element is defined, it will be
@@ -324,7 +325,7 @@ def get_content_size(data_entity_element):
     return size
 
 
-def get_content_url(data_entity_element):
+def get_content_url(data_entity_element: etree._Element) -> Union[str, None]:
     """Return the content url for a data entity element.
 
     If the "function" attribute of the data entity element is "information",
@@ -346,7 +347,7 @@ def get_content_url(data_entity_element):
     return None
 
 
-def convert_range_of_dates(range_of_dates):
+def convert_range_of_dates(range_of_dates: etree._Element) -> Union[str, dict]:
     """Return EML rangeOfDates as a calendar datetime or geologic age interval.
 
     Parameters
@@ -376,7 +377,7 @@ def convert_range_of_dates(range_of_dates):
     return interval
 
 
-def convert_single_date_time(single_date_time):
+def convert_single_date_time(single_date_time: etree._Element) -> Union[str, dict]:
     """Return EML singleDateTime as a calendar datetime or geologic age
     instant.
 
@@ -395,7 +396,7 @@ def convert_single_date_time(single_date_time):
     return convert_single_date_time_type(single_date_time)
 
 
-def convert_single_date_time_type(single_date_time):
+def convert_single_date_time_type(single_date_time: etree._Element) -> Union[str, dict]:
     """Convert EML SingleDateTimeType to a calendar datetime or geologic age
     instant.
 
@@ -446,7 +447,7 @@ def convert_single_date_time_type(single_date_time):
     return instant
 
 
-def get_spatial_type(geographic_coverage):
+def get_spatial_type(geographic_coverage: etree._Element) -> str:
     """Return the object type for a geographic coverage element.
 
     Parameters
@@ -478,7 +479,7 @@ def get_spatial_type(geographic_coverage):
     return spatial_type
 
 
-def get_point(geographic_coverage):
+def get_point(geographic_coverage: etree._Element) -> dict:
     """Return the geographic coverage as a point.
 
     Parameters
@@ -510,7 +511,7 @@ def get_point(geographic_coverage):
     return point
 
 
-def get_elevation(geographic_coverage):
+def get_elevation(geographic_coverage: etree._Element) -> Union[str, None]:
     """Return the elevation for a geographic coverage element.
 
     Parameters
@@ -537,7 +538,7 @@ def get_elevation(geographic_coverage):
     return elevation
 
 
-def get_box(geographic_coverage):
+def get_box(geographic_coverage: etree._Element) -> dict:
     """Return the geographic coverage as a box.
 
     Parameters
@@ -564,7 +565,7 @@ def get_box(geographic_coverage):
     return box
 
 
-def get_polygon(geographic_coverage):
+def get_polygon(geographic_coverage: etree._Element) -> dict:
     """Return the geographic coverage as a polygon.
 
     Parameters
@@ -605,7 +606,7 @@ def get_polygon(geographic_coverage):
     return polygon
 
 
-def convert_user_id(user_id):
+def convert_user_id(user_id: list) -> Union[dict, None]:
     """Return the user ID as a PropertyValue.
 
     Parameters
@@ -629,7 +630,7 @@ def convert_user_id(user_id):
     return property_value
 
 
-def get_data_entity_encoding_format(data_entity_element):
+def get_data_entity_encoding_format(data_entity_element: etree._Element) -> str:
     """Return the encoding format for a data entity element.
 
     Parameters
@@ -647,7 +648,7 @@ def get_data_entity_encoding_format(data_entity_element):
     return encoding_format[0]
 
 
-def get_person_or_organization(responsible_party):
+def get_person_or_organization(responsible_party: etree._Element) -> dict:
     """Return the responsible party as a schema:Person or schema:Organization.
 
     The Person and Organization types are very similar, so this function
@@ -681,7 +682,7 @@ def get_person_or_organization(responsible_party):
     return res
 
 
-def get_encoding_format(metadata):
+def get_encoding_format(metadata: etree.ElementTree) -> str:
     """
     Parameters
     ----------
@@ -698,7 +699,7 @@ def get_encoding_format(metadata):
     return encoding_format
 
 
-def get_methods(xml):
+def get_methods(xml: etree._Element) -> Union[str, None]:
     """
     Parameters
     ----------
@@ -719,7 +720,7 @@ def get_methods(xml):
     return methods
 
 
-def get_checksum(data_entity_element):
+def get_checksum(data_entity_element: etree._Element) -> Union[list, None]:
     """
     Parameters
     ----------

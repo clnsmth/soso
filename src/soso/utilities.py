@@ -4,13 +4,15 @@ import urllib.error
 from importlib import resources
 from numbers import Number
 from json import dumps
+import pathlib
+from typing import Any, Union
 import warnings
 import pyshacl.validate
 import pandas as pd
 import requests
 
 
-def validate(graph):
+def validate(graph: str) -> bool:
     """Validate a graph against the SOSO dataset SHACL shape.
 
     Parameters
@@ -61,7 +63,7 @@ def get_shacl_file_path():
     return file_path
 
 
-def get_sssom_file_path(strategy):
+def get_sssom_file_path(strategy: str) -> pathlib.PosixPath:
     """Return the SSSOM file path for the specified strategy.
 
     Parameters
@@ -79,7 +81,7 @@ def get_sssom_file_path(strategy):
     return file_path
 
 
-def get_example_metadata_file_path(strategy):
+def get_example_metadata_file_path(strategy: str) -> pathlib.PosixPath:
     """Return the file path of an example metadata file.
 
     Parameters
@@ -99,7 +101,7 @@ def get_example_metadata_file_path(strategy):
     return file_path
 
 
-def read_sssom(strategy):
+def read_sssom(strategy: str) -> pd.DataFrame:
     """Return the SSSOM for the specified strategy.
 
     Parameters
@@ -117,7 +119,7 @@ def read_sssom(strategy):
     return sssom
 
 
-def delete_null_values(res):
+def delete_null_values(res: Any) -> Any:
     """
     Remove null values from results returned by strategy methods. This
     function is to help developers of strategy methods clean their results
@@ -146,7 +148,7 @@ def delete_null_values(res):
     - A dictionary with only one key, "@type"
     """
 
-    def is_null(value):
+    def is_null(value: Any) -> bool:
         """
         Parameters
         ----------
@@ -168,7 +170,7 @@ def delete_null_values(res):
             )
         )
 
-    def deep_clean(data):
+    def deep_clean(data: Any) -> Any:
         """
         Parameters
         ----------
@@ -217,7 +219,7 @@ def delete_null_values(res):
     return cleaned_data
 
 
-def delete_unused_vocabularies(graph):
+def delete_unused_vocabularies(graph: dict) -> dict:
     """Delete unused vocabularies from the top level JSON-LD @context. This
     function is to help clean the graph created by `main.convert` before
     returning it to the user.
@@ -246,7 +248,7 @@ def delete_unused_vocabularies(graph):
     return graph
 
 
-def generate_citation_from_doi(url, style, locale):
+def generate_citation_from_doi(url: str, style: str, locale: str) -> Union[str, None]:
     """
     Generates a citation
 
