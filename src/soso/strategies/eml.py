@@ -47,6 +47,9 @@ class EML(StrategyInterface):
 
     def __init__(self, file: str, **kwargs: dict):
         """Initialize the strategy."""
+        file = str(file)  # incase file is a Path object
+        if not file.endswith(".xml"):  # file should be XML
+            raise ValueError(file + " must be an XML file.")
         super().__init__(metadata=etree.parse(file))
         self.kwargs = kwargs
 
