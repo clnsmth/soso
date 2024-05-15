@@ -7,7 +7,7 @@ from numbers import Number
 from copy import deepcopy
 import pytest
 from soso.strategies.eml import EML
-from soso.utilities import get_example_metadata_file_path
+from soso.utilities import get_example_metadata_file_path, get_empty_metadata_file_path
 
 
 @pytest.fixture
@@ -25,6 +25,17 @@ def strategy_instance(request) -> pathlib.PosixPath:
     """
     if request.param is EML:
         res = request.param(file=get_example_metadata_file_path("EML"))
+    return res
+
+
+@pytest.fixture(params=[EML])
+def strategy_instance_no_meta(request) -> pathlib.PosixPath:
+    """
+    :returns:   The strategy instances parameterized with an empty metadata
+                file. This is useful for testing negative cases.
+    """
+    if request.param is EML:
+        res = request.param(file=get_empty_metadata_file_path("EML"))
     return res
 
 
