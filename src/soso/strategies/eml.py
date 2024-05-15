@@ -50,31 +50,31 @@ class EML(StrategyInterface):
         super().__init__(metadata=etree.parse(file))
         self.kwargs = kwargs
 
-    def get_name(self):
+    def get_name(self) -> Union[str, None]:
         name = self.metadata.xpath(".//dataset/title")
         return delete_null_values(name[0].text)
 
-    def get_description(self):
+    def get_description(self) -> Union[str, None]:
         description = self.metadata.xpath(".//dataset/abstract")
         return delete_null_values(description[0].text)
 
-    def get_url(self):
+    def get_url(self) -> None:
         url = None  # EML does not map to schema:url
         return delete_null_values(url)
 
-    def get_same_as(self):
+    def get_same_as(self) -> None:
         same_as = None  # EML does not map to schema:sameAs
         return delete_null_values(same_as)
 
-    def get_version(self):
+    def get_version(self) -> None:
         version = None  # EML does not map to schema:version
         return delete_null_values(version)
 
-    def get_is_accessible_for_free(self):
+    def get_is_accessible_for_free(self) -> None:
         is_accessible_for_free = None  # EML does not map to schema:isAccessibleForFree
         return delete_null_values(is_accessible_for_free)
 
-    def get_keywords(self):
+    def get_keywords(self) -> Union[list, None]:
         keywords = []
         for item in self.metadata.xpath(".//dataset/keywordSet/keyword"):
             keywords.append(item.text)
@@ -87,15 +87,15 @@ class EML(StrategyInterface):
             keywords.append(defined_term)
         return delete_null_values(keywords)
 
-    def get_identifier(self):
+    def get_identifier(self) -> Union[str, None]:
         identifier = self.metadata.xpath("@packageId")
         return delete_null_values(identifier[0])
 
-    def get_citation(self):
+    def get_citation(self) -> None:
         citation = None  # EML does not map to schema:citation
         return delete_null_values(citation)
 
-    def get_variable_measured(self):
+    def get_variable_measured(self) -> Union[list, None]:
         variable_measured = []
         for item in self.metadata.xpath(".//attributeList/attribute"):
             property_value = {
@@ -116,13 +116,13 @@ class EML(StrategyInterface):
             variable_measured.append(property_value)
         return delete_null_values(variable_measured)
 
-    def get_included_in_data_catalog(self):
+    def get_included_in_data_catalog(self) -> None:
         included_in_data_catalog = (
             None  # EML does not map to schema:includedInDataCatalog
         )
         return delete_null_values(included_in_data_catalog)
 
-    def get_subject_of(self):
+    def get_subject_of(self) -> dict:
         subject_of = {
             "@type": "DataDownload",
             "name": "EML metadata for dataset",
@@ -133,7 +133,7 @@ class EML(StrategyInterface):
         }
         return delete_null_values(subject_of)
 
-    def get_distribution(self):
+    def get_distribution(self) -> Union[list, None]:
         distribution = []
         data_entities = [
             "dataTable",
@@ -157,27 +157,27 @@ class EML(StrategyInterface):
                 distribution.append(data_download)
         return delete_null_values(distribution)
 
-    def get_potential_action(self):
+    def get_potential_action(self) -> None:
         potential_action = None  # EML does not map to schema:potentialAction
         return delete_null_values(potential_action)
 
-    def get_date_created(self):
+    def get_date_created(self) -> None:
         date_created = None  # EML does not map to schema:dateCreated
         return delete_null_values(date_created)
 
-    def get_date_modified(self):
+    def get_date_modified(self) -> Union[str, None]:
         date_modified = self.metadata.xpath(".//dataset/pubDate")
         return delete_null_values(date_modified[0].text)
 
-    def get_date_published(self):
+    def get_date_published(self) -> Union[str, None]:
         date_published = self.metadata.xpath(".//dataset/pubDate")
         return delete_null_values(date_published[0].text)
 
-    def get_expires(self):
+    def get_expires(self) -> None:
         expires = None  # EML does not map to schema:expires
         return delete_null_values(expires)
 
-    def get_temporal_coverage(self):
+    def get_temporal_coverage(self) -> Union[str, dict, None]:
         range_of_dates = self.metadata.xpath(
             ".//dataset/coverage/temporalCoverage/rangeOfDates"
         )
@@ -196,7 +196,7 @@ class EML(StrategyInterface):
                 temporal_coverage = convert_single_date_time(single_date_time[0])
         return delete_null_values(temporal_coverage)
 
-    def get_spatial_coverage(self):
+    def get_spatial_coverage(self) -> Union[list, None]:
         geo = []
         for item in self.metadata.xpath(".//dataset/coverage/geographicCoverage"):
             object_type = get_spatial_type(item)
@@ -209,7 +209,7 @@ class EML(StrategyInterface):
         spatial_coverage = {"@type": "Place", "geo": geo}
         return delete_null_values(spatial_coverage)
 
-    def get_creator(self):
+    def get_creator(self) -> Union[list, None]:
         creator = []
         creators = self.metadata.xpath(".//dataset/creator")
         for item in creators:
@@ -220,7 +220,7 @@ class EML(StrategyInterface):
             creator = None  # for readability
         return delete_null_values(creator)
 
-    def get_contributor(self):
+    def get_contributor(self) -> Union[list, None]:
         contributor = []
         contributors = self.metadata.xpath(".//dataset/associatedParty")
         for item in contributors:
@@ -236,15 +236,15 @@ class EML(StrategyInterface):
             contributor = None  # for readability
         return delete_null_values(contributor)
 
-    def get_provider(self):
+    def get_provider(self) -> None:
         provider = None  # EML does not map to schema:provider
         return delete_null_values(provider)
 
-    def get_publisher(self):
+    def get_publisher(self) -> None:
         publisher = None  # EML does not map to schema:publisher
         return delete_null_values(publisher)
 
-    def get_funding(self):
+    def get_funding(self) -> Union[list, None]:
         funding = []
         for item in self.metadata.xpath(".//dataset/project/award"):
             res = {
@@ -262,7 +262,7 @@ class EML(StrategyInterface):
         funding = None if len(funding) == 0 else funding  # for readability
         return delete_null_values(funding)
 
-    def get_license(self):
+    def get_license(self) -> Union[str, None]:
         license_url = self.metadata.findtext(".//dataset/licensed/url")
         if (
             "spdx.org" in license_url and ".html" in license_url
@@ -270,11 +270,11 @@ class EML(StrategyInterface):
             license_url = license_url[:-5]
         return delete_null_values(license_url)
 
-    def get_was_revision_of(self):
+    def get_was_revision_of(self) -> None:
         was_revision_of = None  # EML does not map to prov:wasRevisionOf
         return delete_null_values(was_revision_of)
 
-    def get_was_derived_from(self):
+    def get_was_derived_from(self) -> Union[list, None]:
         was_derived_from = []
         datasource = self.metadata.xpath(".//dataSource")
         for item in datasource:
@@ -285,11 +285,11 @@ class EML(StrategyInterface):
             was_derived_from = None  # for readability
         return delete_null_values(was_derived_from)
 
-    def get_is_based_on(self):
+    def get_is_based_on(self) -> Union[list, None]:
         is_based_on = self.get_was_derived_from()  # duplicate for discovery
         return delete_null_values(is_based_on)
 
-    def get_was_generated_by(self):
+    def get_was_generated_by(self) -> None:
         was_generated_by = None  # EML does not map to prov:wasGeneratedBy
         return delete_null_values(was_generated_by)
 

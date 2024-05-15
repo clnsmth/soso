@@ -101,11 +101,6 @@ System Details
 Strategy Interface
 ~~~~~~~~~~~~~~~~~~
 
-Intentionally Vague Return Types
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-In the docstrings of the strategy interface, the descriptions of expected returned data types are intentionally left vague (i.e. `Any`). This approach accommodates the variability in the expression of SOSO properties for a given set of equally variable inputs. It aims to provide clear expectations to users while avoiding the repetition of details found in SOSO specifications and Schema.org documentation. For example, consider the `get_keywords` method: depending on whether the input is a simple list of keywords or a list of defined terms, this method may return a list of Python strings or dictionaries.
-
 Returning Clean Properties
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
