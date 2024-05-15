@@ -79,6 +79,19 @@ def get_example_metadata_file_path(strategy: str) -> pathlib.PosixPath:
     return file_path
 
 
+def get_empty_metadata_file_path(strategy: str) -> pathlib.PosixPath:
+    """
+    :param strategy: Metadata strategy. Can be: EML.
+
+    :returns:   File path of an empty metadata file.
+    """
+    if strategy.lower() == "eml":
+        file_path = resources.files("soso.data").joinpath("eml_empty.xml")
+    else:
+        raise ValueError("Invalid choice!")
+    return file_path
+
+
 def read_sssom(strategy: str) -> pd.DataFrame:
     """Return the SSSOM for the specified strategy.
 

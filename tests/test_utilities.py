@@ -8,7 +8,7 @@ from pandas import DataFrame
 from soso.utilities import validate
 from soso.utilities import get_sssom_file_path
 from soso.utilities import read_sssom
-from soso.utilities import get_example_metadata_file_path
+from soso.utilities import get_example_metadata_file_path, get_empty_metadata_file_path
 from soso.utilities import get_shacl_file_path
 from soso.utilities import delete_null_values
 from soso.utilities import delete_unused_vocabularies
@@ -78,6 +78,13 @@ def test_get_example_metadata_file_path_returns_path(strategy_names):
     """Test that get_example_metadata returns a path."""
     for strategy in strategy_names:
         file_path = get_example_metadata_file_path(strategy=strategy)
+        assert isinstance(file_path, PosixPath)
+
+
+def test_get_empty_metadata_file_path_returns_path(strategy_names):
+    """Test that get_empty_metadata_file_path returns a path."""
+    for strategy in strategy_names:
+        file_path = get_empty_metadata_file_path(strategy=strategy)
         assert isinstance(file_path, PosixPath)
 
 
