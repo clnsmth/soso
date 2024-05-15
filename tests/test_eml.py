@@ -1,5 +1,6 @@
 """Test additional EML module functions and methods."""
 
+from importlib import resources
 from lxml import etree
 from soso.strategies.eml import (
     get_content_url,
@@ -543,3 +544,12 @@ def test_get_checksum():
     root = etree.fromstring(xml_content)
     assert isinstance(get_checksum(root), list)
     assert len(get_checksum(root)) == 2
+
+
+def test_eml_file_input_must_be_xml():
+    """Test that the EML() class raises an error if the file input is not XML."""
+    not_xml = resources.files("soso.data").joinpath("soso-eml.sssom.tsv")
+    try:
+        EML(file=not_xml)
+    except ValueError as error:
+        assert "must be an XML file" in str(error)
