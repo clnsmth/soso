@@ -167,7 +167,7 @@ Strategy Interface
 Strategies
 ^^^^^^^^^^
 
-`test_[standard].py`: Requires only creating a strategy instance, essentially a metadata record read into the strategy module and run through each method in the strategy, except for skipped tests (see below).
+`test_[standard].py`: Requires only creating a strategy instance, essentially a metadata record read into the strategy module, and running through each method in the strategy, except for skipped tests (see below). To test negative cases, an empty metadata record is used. This helps ensure that the module correctly handles scenarios where the metadata record lacks content.
 
 **Property Values**
 
