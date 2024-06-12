@@ -65,11 +65,24 @@ def test_get_content_url_returns_expected_value():
     root = etree.fromstring(xml_content)
     assert get_content_url(root) == "https://example.data"
 
+    # Negative case: If the "url" element is not present, the function will
+    # return None.
+    xml_content = """
+    <root>
+        <distribution>
+            <online>
+            </online>
+        </distribution>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert get_content_url(root) is None
+
 
 def test_get_content_size_returns_expected_value():
     """Test that the get_content_size function returns the expected value."""
-    # If the "unit" attribute of the "size" element is defined, it will be
-    # appended to the content size value.
+    # Positive case: If the "unit" attribute of the "size" element is defined,
+    # it will be appended to the content size value.
     xml_content = """
     <root>
         <physical>
@@ -79,6 +92,16 @@ def test_get_content_size_returns_expected_value():
     """
     root = etree.fromstring(xml_content)
     assert get_content_size(root) == "10 kilobytes"
+    # Negative case: If size element is not present, the function will return
+    # None.
+    xml_content = """
+    <root>
+        <physical>
+        </physical>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert get_content_size(root) is None
 
     # If the "unit" attribute of the "size" element is not defined, the content
     # size value will be returned as is.
@@ -122,6 +145,15 @@ def test_convert_single_date_time_type_returns_expected_type():
     root = etree.fromstring(xml_content)
     res = convert_single_date_time_type(root)
     assert isinstance(res, str)
+
+    # Negative case: If the single_date_time element is not present, the
+    # function will return None.
+    xml_content = """
+    <root>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert convert_single_date_time_type(root) is None
 
 
 def test_convert_range_of_dates_returns_expected_type():
@@ -168,6 +200,15 @@ def test_convert_range_of_dates_returns_expected_type():
     root = etree.fromstring(xml_content)
     res = convert_range_of_dates(root)
     assert isinstance(res, str)
+
+    # Negative case: If the "beginDate" and "endDate" elements are not present
+    # the function will return None.
+    xml_content = """
+    <root>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert convert_range_of_dates(root) is None
 
 
 def test_convert_single_date_time_returns_expected_type():
@@ -255,6 +296,15 @@ def test_get_spatial_type_returns_expected_value():
     root = etree.fromstring(xml_content)
     assert get_spatial_type(root) == "Polygon"
 
+    # Negative case: If the boundingCoordinates element is not present, and the
+    # datasetGPolygon element is not present, the function will return None.
+    xml_content = """
+    <root>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert get_spatial_type(root) is None
+
 
 def test_get_point_returns_expected_value_and_type():
     """Test that the get_point function returns the value as a dictionary."""
@@ -295,6 +345,15 @@ def test_get_point_returns_expected_value_and_type():
     root = etree.fromstring(xml_content)
     res = get_point(root)
     assert res["elevation"] == "100 meter"
+
+    # Negative case: If the boundingCoordinates element is not present, the
+    # function will return None.
+    xml_content = """
+    <root>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert get_point(root) is None
 
 
 def test_get_elevation_returns_value_and_type():
@@ -348,6 +407,15 @@ def test_get_elevation_returns_value_and_type():
     res = get_elevation(root)
     assert res is None
 
+    # Negative case: If the boundingCoordinates element is not present, the
+    # function will return None.
+    xml_content = """
+    <root>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert get_elevation(root) is None
+
 
 def test_get_box_returns_expected_value_and_type():
     """Test that the get_box function returns a dictionary with the expected
@@ -369,6 +437,17 @@ def test_get_box_returns_expected_value_and_type():
     res = get_box(root)
     assert isinstance(res, dict)
     assert res["box"] == "30 110 40 120"
+
+    # Negative case: If the west, east, south, and north bounding coordinates
+    # are not present, the function will return None.
+    xml_content = """
+    <root>
+        <boundingCoordinates>
+        </boundingCoordinates>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert get_box(root) is None
 
 
 def test_get_polygon_returns_expected_value_and_type():
@@ -405,6 +484,19 @@ def test_get_polygon_returns_expected_value_and_type():
     res = get_polygon(root)
     assert res["polygon"] == "39 120 40 123 41 121 39 122 39 120"
 
+    # Negative case: If the gRing element is not present, the function will
+    # return None.
+    xml_content = """
+    <root>
+        <datasetGPolygon>
+                <datasetGPolygonOuterGRing>
+                </datasetGPolygonOuterGRing>
+        </datasetGPolygon>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert get_polygon(root) is None
+
 
 def test_convert_user_id_returns_value_and_type():
     """Test that the convert_user_id function returns the expected value and
@@ -421,6 +513,10 @@ def test_convert_user_id_returns_value_and_type():
     assert res["propertyID"] == "ORCID"
     assert res["value"] == "https://orcid.org/0000-0002-6091-xxxx"
 
+    # Negative case: If the "userId" element is not present, the function will
+    # return None.
+    assert convert_user_id([]) is None
+
 
 def test_get_data_entity_encoding_format_returns_value_and_type():
     """Test that the get_data_entity_encoding_format function returns the
@@ -436,6 +532,17 @@ def test_get_data_entity_encoding_format_returns_value_and_type():
     res = get_data_entity_encoding_format(root)
     assert isinstance(res, str)
     assert res == "text/csv"
+
+    # Negative case: If the "objectName" element is not present, the function
+    # will return None.
+    xml_content = """
+    <root>
+        <physical>
+        </physical>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert get_data_entity_encoding_format(root) is None
 
 
 def test_get_person_or_organization_returns_value_and_type():
@@ -530,8 +637,7 @@ def test_get_checksum():
         </physical>
     </root>"""
     root = etree.fromstring(xml_content)
-    assert isinstance(get_checksum(root), list)
-    assert len(get_checksum(root)) == 0
+    assert get_checksum(root) is None
 
     # Multiple recognized checksum algorithms are returned as a list of dict.
     xml_content = """
@@ -544,6 +650,17 @@ def test_get_checksum():
     root = etree.fromstring(xml_content)
     assert isinstance(get_checksum(root), list)
     assert len(get_checksum(root)) == 2
+
+    # Negative case: If the "authentication" element is not present, the function
+    # will return None.
+    xml_content = """
+    <root>
+        <physical>
+        </physical>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert get_checksum(root) is None
 
 
 def test_eml_file_input_must_be_xml():

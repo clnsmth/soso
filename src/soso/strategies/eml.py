@@ -54,12 +54,12 @@ class EML(StrategyInterface):
         self.kwargs = kwargs
 
     def get_name(self) -> Union[str, None]:
-        name = self.metadata.xpath(".//dataset/title")
-        return delete_null_values(name[0].text)
+        name = self.metadata.findtext(".//dataset/title")
+        return delete_null_values(name)
 
     def get_description(self) -> Union[str, None]:
-        description = self.metadata.xpath(".//dataset/abstract")
-        return delete_null_values(description[0].text)
+        description = self.metadata.findtext(".//dataset/abstract")
+        return delete_null_values(description)
 
     def get_url(self) -> None:
         url = None  # EML does not map to schema:url
@@ -92,7 +92,9 @@ class EML(StrategyInterface):
 
     def get_identifier(self) -> Union[str, None]:
         identifier = self.metadata.xpath("@packageId")
-        return delete_null_values(identifier[0])
+        if identifier:
+            return delete_null_values(identifier[0])
+        return None
 
     def get_citation(self) -> None:
         citation = None  # EML does not map to schema:citation
@@ -126,15 +128,19 @@ class EML(StrategyInterface):
         return delete_null_values(included_in_data_catalog)
 
     def get_subject_of(self) -> dict:
-        subject_of = {
-            "@type": "DataDownload",
-            "name": "EML metadata for dataset",
-            "description": "EML metadata describing the dataset",
-            "encodingFormat": get_encoding_format(self.metadata),
-            "contentUrl": None,  # EML does not map to schema:contentUrl
-            "dateModified": self.get_date_modified(),
-        }
-        return delete_null_values(subject_of)
+        encoding_format = get_encoding_format(self.metadata)
+        date_modified = self.get_date_modified()
+        if encoding_format and date_modified:
+            subject_of = {
+                "@type": "DataDownload",
+                "name": "EML metadata for dataset",
+                "description": "EML metadata describing the dataset",
+                "encodingFormat": encoding_format,
+                "contentUrl": None,  # EML does not map to schema:contentUrl
+                "dateModified": date_modified,
+            }
+            return delete_null_values(subject_of)
+        return None
 
     def get_distribution(self) -> Union[list, None]:
         distribution = []
@@ -169,12 +175,12 @@ class EML(StrategyInterface):
         return delete_null_values(date_created)
 
     def get_date_modified(self) -> Union[str, None]:
-        date_modified = self.metadata.xpath(".//dataset/pubDate")
-        return delete_null_values(date_modified[0].text)
+        date_modified = self.metadata.findtext(".//dataset/pubDate")
+        return delete_null_values(date_modified)
 
     def get_date_published(self) -> Union[str, None]:
-        date_published = self.metadata.xpath(".//dataset/pubDate")
-        return delete_null_values(date_published[0].text)
+        date_published = self.metadata.findtext(".//dataset/pubDate")
+        return delete_null_values(date_published)
 
     def get_expires(self) -> None:
         expires = None  # EML does not map to schema:expires
@@ -197,6 +203,8 @@ class EML(StrategyInterface):
                 temporal_coverage = None
             else:
                 temporal_coverage = convert_single_date_time(single_date_time[0])
+        else:
+            temporal_coverage = None
         return delete_null_values(temporal_coverage)
 
     def get_spatial_coverage(self) -> Union[list, None]:
@@ -209,8 +217,10 @@ class EML(StrategyInterface):
                 geo.append(get_box(item))
             elif object_type == "Polygon":
                 geo.append(get_polygon(item))
-        spatial_coverage = {"@type": "Place", "geo": geo}
-        return delete_null_values(spatial_coverage)
+        if geo:
+            spatial_coverage = {"@type": "Place", "geo": geo}
+            return delete_null_values(spatial_coverage)
+        return None
 
     def get_creator(self) -> Union[list, None]:
         creator = []
@@ -267,11 +277,10 @@ class EML(StrategyInterface):
 
     def get_license(self) -> Union[str, None]:
         license_url = self.metadata.findtext(".//dataset/licensed/url")
-        if (
-            "spdx.org" in license_url and ".html" in license_url
-        ):  # convert SPDX URL to URI
+        if license_url and "spdx.org" in license_url and ".html" in license_url:
             license_url = license_url[:-5]
-        return delete_null_values(license_url)
+            return delete_null_values(license_url)
+        return None
 
     def get_was_revision_of(self) -> None:
         was_revision_of = None  # EML does not map to prov:wasRevisionOf
@@ -300,7 +309,7 @@ class EML(StrategyInterface):
 # Below are utility functions for the EML strategy.
 
 
-def get_content_size(data_entity_element: etree._Element) -> str:
+def get_content_size(data_entity_element: etree._Element) -> Union[str, None]:
     """
     :param data_entity_element:     The data entity element to get the content
                                     size from.
@@ -312,11 +321,13 @@ def get_content_size(data_entity_element: etree._Element) -> str:
         be appended to the content size value.
     """
     size_element = data_entity_element.xpath(".//physical/size")
-    size = size_element[0].text
-    unit = size_element[0].get("unit")
-    if unit:
-        size += " " + unit
-    return size
+    if size_element:
+        size = size_element[0].text
+        unit = size_element[0].get("unit")
+        if unit:
+            size += " " + unit
+        return size
+    return None
 
 
 def get_content_url(data_entity_element: etree._Element) -> Union[str, None]:
@@ -332,12 +343,13 @@ def get_content_url(data_entity_element: etree._Element) -> Union[str, None]:
         SOSO contentUrl property definition and None is returned.
     """
     url_element = data_entity_element.xpath(".//distribution/online/url")
-    if url_element[0].get("function") != "information":
-        return url_element[0].text
+    if url_element:
+        if url_element[0].get("function") != "information":
+            return url_element[0].text
     return None
 
 
-def convert_range_of_dates(range_of_dates: etree._Element) -> Union[str, dict]:
+def convert_range_of_dates(range_of_dates: etree._Element) -> Union[str, dict, None]:
     """
     :param range_of_dates:  The EML rangeOfDates element to convert.
 
@@ -346,8 +358,12 @@ def convert_range_of_dates(range_of_dates: etree._Element) -> Union[str, dict]:
                 datetime, or a dict if it represents a geologic age. The dict
                 is formatted as an OWL-Time ProperInterval type.
     """
-    begin_date = convert_single_date_time_type(range_of_dates.xpath(".//beginDate")[0])
-    end_date = convert_single_date_time_type(range_of_dates.xpath(".//endDate")[0])
+    begin_date = range_of_dates.xpath(".//beginDate")
+    end_date = range_of_dates.xpath(".//endDate")
+    if not begin_date or not end_date:
+        return None
+    begin_date = convert_single_date_time_type(begin_date[0])
+    end_date = convert_single_date_time_type(end_date[0])
     # To finish processing, we need to know if the begin_date and end_date are
     # calendar dates/times (str) or geologic ages (dict).
     if isinstance(begin_date, str) and isinstance(end_date, str):
@@ -373,7 +389,9 @@ def convert_single_date_time(single_date_time: etree._Element) -> Union[str, dic
     return convert_single_date_time_type(single_date_time)
 
 
-def convert_single_date_time_type(single_date_time: etree._Element) -> Union[str, dict]:
+def convert_single_date_time_type(
+    single_date_time: etree._Element,
+) -> Union[str, dict, None]:
     """
     :param single_date_time:    The EML SingleDateTimeType element to convert.
 
@@ -389,6 +407,8 @@ def convert_single_date_time_type(single_date_time: etree._Element) -> Union[str
         SingleDateTimeType element represents a geologic age, otherwise it
         represents a calendar date and/or time.
     """
+    if not single_date_time:
+        return None
     if not single_date_time.xpath(".//alternativeTimeScale"):
         calendar_date = single_date_time.findtext(".//calendarDate")
         time = single_date_time.findtext(".//time")
@@ -417,7 +437,7 @@ def convert_single_date_time_type(single_date_time: etree._Element) -> Union[str
     return instant
 
 
-def get_spatial_type(geographic_coverage: etree._Element) -> str:
+def get_spatial_type(geographic_coverage: etree._Element) -> Union[str, None]:
     """
     :param geographic_coverage: The EML geographicCoverage element to get the
                                 object type from.
@@ -441,10 +461,12 @@ def get_spatial_type(geographic_coverage: etree._Element) -> str:
     elif geographic_coverage.xpath(".//gRing"):
         # The geographic coverage is a polygon if the gRing element is present.
         spatial_type = "Polygon"
+    else:
+        spatial_type = None
     return spatial_type
 
 
-def get_point(geographic_coverage: etree._Element) -> dict:
+def get_point(geographic_coverage: etree._Element) -> Union[dict, None]:
     """
     :param geographic_coverage: The EML geographicCoverage element to convert.
 
@@ -457,14 +479,17 @@ def get_point(geographic_coverage: etree._Element) -> dict:
     """
     north = geographic_coverage.findtext(".//northBoundingCoordinate")
     west = geographic_coverage.findtext(".//westBoundingCoordinate")
-    point = {
-        "@type": "GeoCoordinates",
-        "latitude": north,
-        "longitude": west,
-    }
-    elevation = get_elevation(geographic_coverage)
-    if elevation:
-        point["elevation"] = elevation
+    if north and west:
+        point = {
+            "@type": "GeoCoordinates",
+            "latitude": north,
+            "longitude": west,
+        }
+        elevation = get_elevation(geographic_coverage)
+        if elevation:
+            point["elevation"] = elevation
+    else:
+        point = None
     return point
 
 
@@ -489,7 +514,7 @@ def get_elevation(geographic_coverage: etree._Element) -> Union[str, None]:
     return elevation
 
 
-def get_box(geographic_coverage: etree._Element) -> dict:
+def get_box(geographic_coverage: etree._Element) -> Union[dict, None]:
     """
     :param geographic_coverage: The EML geographicCoverage element to convert.
 
@@ -504,11 +529,17 @@ def get_box(geographic_coverage: etree._Element) -> dict:
     west = geographic_coverage.findtext(".//westBoundingCoordinate")
     south = geographic_coverage.findtext(".//southBoundingCoordinate")
     east = geographic_coverage.findtext(".//eastBoundingCoordinate")
-    box = {"@type": "GeoShape", "box": south + " " + west + " " + north + " " + east}
+    if north and west and south and east:
+        box = {
+            "@type": "GeoShape",
+            "box": south + " " + west + " " + north + " " + east,
+        }
+    else:
+        box = None
     return box
 
 
-def get_polygon(geographic_coverage: etree._Element) -> dict:
+def get_polygon(geographic_coverage: etree._Element) -> Union[dict, None]:
     """
     :param geographic_coverage: The EML geographicCoverage element to convert.
 
@@ -525,19 +556,22 @@ def get_polygon(geographic_coverage: etree._Element) -> dict:
         longitude of a point and the second is the latitude of the point.".
     """
     g_ring = geographic_coverage.findtext(".//gRing")
-    # Parse g_ring into tuples of longitude/latitude pairs.
-    res = []
-    for pair in g_ring.split():
-        res.append(tuple(pair.split(",")))
-    # Reverse the order of the longitude/latitude pairs.
-    res = [pair[::-1] for pair in res]
-    # Ensure the first and last pairs are the same.
-    if res[0] != res[-1]:
-        res.append(res[0])
-    # Convert the list of tuples to a space separated string.
-    res = " ".join([" ".join(pair) for pair in res])
-    # Create the polygon.
-    polygon = {"@type": "GeoShape", "polygon": res}
+    if g_ring:
+        # Parse g_ring into tuples of longitude/latitude pairs.
+        res = []
+        for pair in g_ring.split():
+            res.append(tuple(pair.split(",")))
+        # Reverse the order of the longitude/latitude pairs.
+        res = [pair[::-1] for pair in res]
+        # Ensure the first and last pairs are the same.
+        if res[0] != res[-1]:
+            res.append(res[0])
+        # Convert the list of tuples to a space separated string.
+        res = " ".join([" ".join(pair) for pair in res])
+        # Create the polygon.
+        polygon = {"@type": "GeoShape", "polygon": res}
+    else:
+        polygon = None
     return polygon
 
 
@@ -559,7 +593,9 @@ def convert_user_id(user_id: list) -> Union[dict, None]:
     return property_value
 
 
-def get_data_entity_encoding_format(data_entity_element: etree._Element) -> str:
+def get_data_entity_encoding_format(
+    data_entity_element: etree._Element,
+) -> Union[str, None]:
     """
     :param data_entity_element: The data entity element to get the encoding
                                 format from.
@@ -567,8 +603,11 @@ def get_data_entity_encoding_format(data_entity_element: etree._Element) -> str:
     :returns:   The encoding format (as a MIME type) for a data entity element.
     """
     object_name = data_entity_element.findtext(".//physical/objectName")
-    encoding_format = guess_type(object_name, strict=False)
-    return encoding_format[0]
+    if object_name:
+        encoding_format = guess_type(object_name, strict=False)[0]
+    else:
+        encoding_format = None
+    return encoding_format
 
 
 def get_person_or_organization(responsible_party: etree._Element) -> dict:
@@ -647,4 +686,6 @@ def get_checksum(data_entity_element: etree._Element) -> Union[list, None]:
                 "spdx:algorithm": {"@id": "spdx:" + algorithm},
             }
             checksum.append(res)
+    if len(checksum) == 0:
+        checksum = None
     return checksum
