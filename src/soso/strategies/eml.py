@@ -389,7 +389,9 @@ def convert_single_date_time(single_date_time: etree._Element) -> Union[str, dic
     return convert_single_date_time_type(single_date_time)
 
 
-def convert_single_date_time_type(single_date_time: etree._Element) -> Union[str, dict, None]:
+def convert_single_date_time_type(
+    single_date_time: etree._Element,
+) -> Union[str, dict, None]:
     """
     :param single_date_time:    The EML SingleDateTimeType element to convert.
 
@@ -528,7 +530,10 @@ def get_box(geographic_coverage: etree._Element) -> Union[dict, None]:
     south = geographic_coverage.findtext(".//southBoundingCoordinate")
     east = geographic_coverage.findtext(".//eastBoundingCoordinate")
     if north and west and south and east:
-        box = {"@type": "GeoShape", "box": south + " " + west + " " + north + " " + east}
+        box = {
+            "@type": "GeoShape",
+            "box": south + " " + west + " " + north + " " + east,
+        }
     else:
         box = None
     return box
@@ -588,7 +593,9 @@ def convert_user_id(user_id: list) -> Union[dict, None]:
     return property_value
 
 
-def get_data_entity_encoding_format(data_entity_element: etree._Element) -> Union[str, None]:
+def get_data_entity_encoding_format(
+    data_entity_element: etree._Element,
+) -> Union[str, None]:
     """
     :param data_entity_element: The data entity element to get the encoding
                                 format from.

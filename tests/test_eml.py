@@ -103,7 +103,6 @@ def test_get_content_size_returns_expected_value():
     root = etree.fromstring(xml_content)
     assert get_content_size(root) is None
 
-
     # If the "unit" attribute of the "size" element is not defined, the content
     # size value will be returned as is.
     xml_content = """

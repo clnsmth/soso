@@ -38,7 +38,9 @@ def test_get_name_returns_expected_type(strategy_instance, strategy_instance_no_
     assert res is None
 
 
-def test_get_description_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_description_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_description method returns the expected type."""
     # Positive case
     res = strategy_instance.get_description()
@@ -62,7 +64,9 @@ def test_get_url_returns_expected_type(strategy_instance, strategy_instance_no_m
 
 
 @pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
-def test_get_same_as_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_same_as_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_same_as method returns the expected type."""
     # Positive case
     res = strategy_instance.get_same_as()
@@ -74,7 +78,9 @@ def test_get_same_as_returns_expected_type(strategy_instance, strategy_instance_
 
 
 @pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
-def test_get_version_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_version_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_version method returns the expected type."""
     # Positive case
     res = strategy_instance.get_version()
@@ -86,7 +92,9 @@ def test_get_version_returns_expected_type(strategy_instance, strategy_instance_
 
 
 @pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
-def test_get_is_accessible_for_free_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_is_accessible_for_free_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_is_accessible_for_free method returns the expected
     type."""
     # Positive case
@@ -98,7 +106,9 @@ def test_get_is_accessible_for_free_returns_expected_type(strategy_instance, str
     assert res is None
 
 
-def test_get_keywords_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_keywords_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_keywords method returns the expected type."""
     # Positive case
     res = strategy_instance.get_keywords()
@@ -109,7 +119,9 @@ def test_get_keywords_returns_expected_type(strategy_instance, strategy_instance
     assert res is None
 
 
-def test_get_identifier_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_identifier_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_identifier method returns the expected type."""
     # Positive case
     res = strategy_instance.get_identifier()
@@ -124,7 +136,9 @@ def test_get_identifier_returns_expected_type(strategy_instance, strategy_instan
 
 
 @pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
-def test_get_citation_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_citation_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_citation method returns the expected type."""
     # Positive case
     res = strategy_instance.get_citation()
@@ -135,7 +149,9 @@ def test_get_citation_returns_expected_type(strategy_instance, strategy_instance
     assert res is None
 
 
-def test_get_variable_measured_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_variable_measured_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_variable_measured method returns the expected type."""
     # Positive case
     res = strategy_instance.get_variable_measured()
@@ -147,7 +163,9 @@ def test_get_variable_measured_returns_expected_type(strategy_instance, strategy
 
 
 @pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
-def test_get_included_in_data_catalog_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_included_in_data_catalog_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_included_in_data_catalog method returns the expected
     type."""
     # Positive case
@@ -159,7 +177,9 @@ def test_get_included_in_data_catalog_returns_expected_type(strategy_instance, s
     assert res is None
 
 
-def test_get_subject_of_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_subject_of_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_subject_of method returns the expected type."""
     # Positive case
     res = strategy_instance.get_subject_of()
@@ -170,7 +190,9 @@ def test_get_subject_of_returns_expected_type(strategy_instance, strategy_instan
     assert res is None
 
 
-def test_get_distribution_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_distribution_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_distribution method returns the expected type."""
     # Positive case
     res = strategy_instance.get_distribution()
@@ -182,7 +204,9 @@ def test_get_distribution_returns_expected_type(strategy_instance, strategy_inst
 
 
 @pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
-def test_get_potential_action_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_potential_action_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_potential_action method returns the expected type."""
     # Positive case
     res = strategy_instance.get_potential_action()
@@ -194,7 +218,9 @@ def test_get_potential_action_returns_expected_type(strategy_instance, strategy_
 
 
 @pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
-def test_get_date_created_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_date_created_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_date_created method returns the expected type."""
     # Positive case
     res = strategy_instance.get_date_created()
@@ -205,7 +231,9 @@ def test_get_date_created_returns_expected_type(strategy_instance, strategy_inst
     assert res is None
 
 
-def test_get_date_modified_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_date_modified_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_date_modified method returns the expected type."""
     # Positive case
     res = strategy_instance.get_date_modified()
@@ -216,7 +244,9 @@ def test_get_date_modified_returns_expected_type(strategy_instance, strategy_ins
     assert res is None
 
 
-def test_get_date_published_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_date_published_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_date_published method returns the expected type."""
     # Positive case
     res = strategy_instance.get_date_published()
@@ -228,7 +258,9 @@ def test_get_date_published_returns_expected_type(strategy_instance, strategy_in
 
 
 @pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
-def test_get_expires_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_expires_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_expires method returns the expected type."""
     # Positive case
     res = strategy_instance.get_expires()
@@ -239,7 +271,9 @@ def test_get_expires_returns_expected_type(strategy_instance, strategy_instance_
     assert res is None
 
 
-def test_get_temporal_coverage_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_temporal_coverage_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_temporal_coverage method returns the expected type."""
     # Positive case
     res = strategy_instance.get_temporal_coverage()
@@ -259,7 +293,9 @@ def test_get_temporal_coverage_returns_expected_type(strategy_instance, strategy
     assert res is None
 
 
-def test_get_spatial_coverage_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_spatial_coverage_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_spatial_coverage method returns the expected type."""
     # Positive case
     res = strategy_instance.get_spatial_coverage()
@@ -270,7 +306,9 @@ def test_get_spatial_coverage_returns_expected_type(strategy_instance, strategy_
     assert res is None
 
 
-def test_get_creator_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_creator_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_creator method returns the expected type."""
     # Positive case
     res = strategy_instance.get_creator()
@@ -284,7 +322,9 @@ def test_get_creator_returns_expected_type(strategy_instance, strategy_instance_
     assert res is None
 
 
-def test_get_contributor_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_contributor_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_contributor method returns the expected type."""
     # Positive case
     res = strategy_instance.get_contributor()
@@ -299,7 +339,9 @@ def test_get_contributor_returns_expected_type(strategy_instance, strategy_insta
 
 
 @pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
-def test_get_provider_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_provider_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_provider method returns the expected type."""
     # Positive case
     res = strategy_instance.get_provider()
@@ -311,7 +353,9 @@ def test_get_provider_returns_expected_type(strategy_instance, strategy_instance
 
 
 @pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
-def test_get_publisher_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_publisher_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_publisher method returns the expected type."""
     # Positive case
     res = strategy_instance.get_publisher()
@@ -322,7 +366,9 @@ def test_get_publisher_returns_expected_type(strategy_instance, strategy_instanc
     assert res is None
 
 
-def test_get_funding_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_funding_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_funding method returns the expected type."""
     # Positive case
     res = strategy_instance.get_funding()
@@ -333,7 +379,9 @@ def test_get_funding_returns_expected_type(strategy_instance, strategy_instance_
     assert res is None
 
 
-def test_get_license_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_license_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_license method returns the expected type."""
     # Positive case
     res = strategy_instance.get_license()
@@ -345,7 +393,9 @@ def test_get_license_returns_expected_type(strategy_instance, strategy_instance_
 
 
 @pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
-def test_get_was_revision_of_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_was_revision_of_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_was_revision_of method returns the expected type."""
     # Positive case
     res = strategy_instance.get_was_revision_of()
@@ -356,7 +406,9 @@ def test_get_was_revision_of_returns_expected_type(strategy_instance, strategy_i
     assert res is None
 
 
-def test_get_was_derived_from_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_was_derived_from_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_was_derived_from method returns the expected type."""
     # Positive case
     res = strategy_instance.get_was_derived_from()
@@ -367,7 +419,9 @@ def test_get_was_derived_from_returns_expected_type(strategy_instance, strategy_
     assert res is None
 
 
-def test_get_is_based_on_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_is_based_on_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_is_based_on method returns the expected type."""
     # Positive case
     res = strategy_instance.get_is_based_on()
@@ -379,7 +433,9 @@ def test_get_is_based_on_returns_expected_type(strategy_instance, strategy_insta
 
 
 @pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
-def test_get_was_generated_by_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+def test_get_was_generated_by_returns_expected_type(
+    strategy_instance, strategy_instance_no_meta
+):
     """Test that the get_was_generated_by method returns the expected type."""
     # Positive case
     res = strategy_instance.get_was_generated_by()
