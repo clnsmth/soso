@@ -42,6 +42,16 @@ For example, the `url` property representing the landing page URL does not exist
     >>> r
     '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
 
-It's worth noting that this `kwargs` approach is not limited to supplying unmappable properties; it can be utilized to override any top-level SOSO property.
-
 Unmappable properties are listed in the strategy documentation.
+
+Overwriting Properties
+----------------------
+
+Any top level property of the SOSO graph can be overwritten using `kwargs`, where keys match the property name, and values are the property value.
+
+For example, the `description` property, providing a short summary of a dataset can be overwritten with a new value.
+
+    >>> kwargs = {'description': 'New description of the dataset'}
+    >>> r = convert(file='metadata.xml', strategy='EML', **kwargs)
+    >>> r
+    '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
