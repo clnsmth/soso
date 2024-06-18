@@ -30,8 +30,8 @@ The primary function is to convert metadata records into SOSO markup. To perform
 For a list of available strategies, please refer to the documentation of the `main.convert` function.
 
 
-Unmappable Properties
----------------------
+Adding Unmappable Properties
+----------------------------
 
 Some SOSO properties may not be derived from metadata records alone. In such cases, additional information can be provided via `kwargs`, where keys match the property name, and values are the property value.
 
