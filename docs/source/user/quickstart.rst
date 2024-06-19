@@ -55,3 +55,44 @@ For example, the `description` property, providing a short summary of a dataset 
     >>> r = convert(file='metadata.xml', strategy='EML', **kwargs)
     >>> r
     '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
+
+Overriding Property Methods
+---------------------------
+
+In some cases you may wish to change only a part of the return value of a property method. This can be done by overriding the method in the strategy class, with your modifications, and calling the original method with the same arguments.
+
+For example, in the EML standard, there is no built-in way to define the Spatial Reference System (SRS) for spatial coverage. However, if you have this information for a collection of metadata records, you can add it to the `get_spatial_coverage` method.
+
+.. code-block:: python
+
+    # Import the EML strategy
+    from soso.strategies.eml import EML
+
+    # Modify the get_spatial_coverage method
+    def get_spatial_coverage(self) -> Union[list, None]:
+        geo = []
+        for item in self.metadata.xpath(".//dataset/coverage/geographicCoverage"):
+            object_type = get_spatial_type(item)
+            if object_type == "Point":
+                geo.append(get_point(item))
+            elif object_type == "Box":
+                geo.append(get_box(item))
+            elif object_type == "Polygon":
+                geo.append(get_polygon(item))
+        if geo:
+            spatial_coverage = {"@type": "Place", "geo": geo}
+            # Add Spatial Reference System ---------------------
+            spatial_coverage["additionalProperty"] = {
+                "@type": "PropertyValue",
+                "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
+                "value": "https://spatialreference.org/ref/epsg/wgs-84-nsidc-sea-ice-polar-stereographic-north/",
+            }
+            # --------------------------------------------------
+            return delete_null_values(spatial_coverage)
+        return None
+
+    # Override the method in the EML strategy
+    EML.get_spatial_coverage = get_spatial_coverage
+
+    # Convert metadata
+    r = convert(file='metadata.xml', strategy='EML')
