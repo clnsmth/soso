@@ -96,3 +96,69 @@ For example, in the EML standard, there is no built-in way to define the Spatial
 
     # Convert metadata
     r = convert(file='metadata.xml', strategy='EML')
+
+Wrapping it All Up
+------------------
+
+The `soso` package is designed to be both flexible and extensible. By following the examples provided, you can customize the conversion process to meet your specific needs. Below is an example of a wrapper function that incorporates all the customization options.
+
+.. code-block:: python
+
+        from soso.main import convert
+        from soso.strategies.eml import EML
+        from soso.strategies.eml import get_encoding_format
+        from soso.utilities import delete_null_values
+        from soso.utilities import generate_citation_from_doi
+
+
+        def dataset(metadata_file: str, dataset_id: str, doi: str) -> str:
+            """Wrapper function for the convert function that adds additional
+            properties
+
+            :param metadata_file: The path to the metadata file.
+            :param dataset_id: The dataset identifier, assigned by the repository.
+            :param doi: The dataset's Digital Object Identifier."""
+
+            # Add properties that can't be derived from the EML record
+            url = "https://www.sample-data-repository.org/dataset/" + dataset_id
+            version = dataset_id.split(".")[1]
+            is_accessible_for_free = True
+            citation = generate_citation_from_doi(doi, style="apa", locale="en-US")
+            provider = {"@id": "https://www.sample-data-repository.org"}
+            publisher = {"@id": "https://www.sample-data-repository.org"}
+
+            # Modify the get_subject_of method to return the contentUrl
+            def get_subject_of(self) -> dict:
+                encoding_format = get_encoding_format(self.metadata)
+                date_modified = self.get_date_modified()
+                if encoding_format and date_modified:
+                    subject_of = {
+                        "@type": "DataDownload",
+                        "name": "EML metadata for dataset",
+                        "description": "EML metadata describing the dataset",
+                        "encodingFormat": encoding_format,
+                        "contentUrl": "https://www.sample-data-repository/metadata/"
+                                      + self.file.split("/")[-1],  # Add the contentUrl
+                        "dateModified": date_modified,
+                    }
+                    return delete_null_values(subject_of)
+                return None
+            EML.get_subject_of = get_subject_of  # Override the method
+
+            # Call the convert function with the additional properties and overriden
+            # method
+            r = convert(
+                file=metadata_file,
+                strategy="EML",
+                url=url,
+                version=version,
+                isAccessibleForFree=is_accessible_for_free,
+                citation=citation,
+                provider=provider,
+                publisher=publisher,
+            )
+
+            return r
+
+
+If you have any questions or need help, please don't hesitate to reach out to us.
