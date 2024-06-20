@@ -48,6 +48,7 @@ class EML(StrategyInterface):
         if not file.endswith(".xml"):  # file should be XML
             raise ValueError(file + " must be an XML file.")
         super().__init__(metadata=etree.parse(file))
+        self.file = file
         self.kwargs = kwargs
 
     def get_name(self) -> Union[str, None]:

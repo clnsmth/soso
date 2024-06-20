@@ -8,6 +8,11 @@ def test_interface_has_metadata_attribute():
     assert hasattr(StrategyInterface(), "metadata")
 
 
+def test_interface_has_file_attribute():
+    """Test that the StrategyInterface class has a file attribute."""
+    assert hasattr(StrategyInterface(), "file")
+
+
 def test_interface_has_kwargs_attribute():
     """Test that the StrategyInterface class has a kwargs attribute."""
     assert hasattr(StrategyInterface(), "kwargs")

@@ -11,6 +11,9 @@ class StrategyInterface:
             another suitable representation. This object is utilized by
             strategy methods to generate SOSO properties. (Any)
 
+        file:
+            The path to the metadata file. (str)
+
         kwargs:
             Additional keyword arguments for passing information to the chosen
             `strategy`. This can help in the case of unmappable properties.
@@ -18,9 +21,10 @@ class StrategyInterface:
             information. (dict or None)
     """
 
-    def __init__(self, metadata: Any = None, **kwargs: dict):
+    def __init__(self, metadata: Any = None, file: str = None, **kwargs: dict):
         """Return the strategy attributes."""
         self.metadata = metadata
+        self.file = file
         self.kwargs = kwargs
 
     def get_name(self):
