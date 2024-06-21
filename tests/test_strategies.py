@@ -177,6 +177,7 @@ def test_get_included_in_data_catalog_returns_expected_type(
     assert res is None
 
 
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_subject_of_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
