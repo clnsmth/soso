@@ -9,16 +9,16 @@ class StrategyInterface:
         metadata:
             The metadata object, which could be an XML tree, a JSON object, or
             another suitable representation. This object is utilized by
-            strategy methods to generate SOSO properties. (Any)
+            strategy methods to generate SOSO properties.
 
         file:
-            The path to the metadata file. (str)
+            The path to the metadata file.
 
         kwargs:
             Additional keyword arguments for passing information to the chosen
             `strategy`. This can help in the case of unmappable properties.
             See the Notes section in the strategy's documentation for more
-            information. (dict or None)
+            information.
     """
 
     def __init__(self, metadata: Any = None, file: str = None, **kwargs: dict):
