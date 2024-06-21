@@ -31,8 +31,7 @@ class EML(StrategyInterface):
             - isAccessibleForFree
             - citation
             - includedInDataCatalog
-            - contentURL - This property is nested within subjectOf, which is
-              otherwise fully mapped.
+            - subjectOf
             - potentialAction
             - dateCreated
             - expires
@@ -125,7 +124,7 @@ class EML(StrategyInterface):
         )
         return delete_null_values(included_in_data_catalog)
 
-    def get_subject_of(self) -> dict:
+    def get_subject_of(self) -> Union[dict, None]:
         encoding_format = get_encoding_format(self.metadata)
         date_modified = self.get_date_modified()
         if encoding_format and date_modified:
@@ -137,6 +136,8 @@ class EML(StrategyInterface):
                 "contentUrl": None,  # EML does not map to schema:contentUrl
                 "dateModified": date_modified,
             }
+            if subject_of["contentUrl"] is None:
+                return None  # subjectOf is not useful without contentUrl
             return delete_null_values(subject_of)
         return None
 
