@@ -50,7 +50,6 @@ This part of the documentation begins with some background information about sos
    :maxdepth: 2
 
    user/quickstart
-   user/advanced
    user/support
 
 The API Documentation / Guide
