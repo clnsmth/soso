@@ -29,11 +29,8 @@ Non-functional design requirements we considered:
 * The application should be intuitive for novice users.
 * Meets performance requirements for batch conversion or real-time updates of metadata records in data repositories.
 
-System Architecture
--------------------
-
 Strategy Pattern
-~~~~~~~~~~~~~~~~
+----------------
 
 The system architecture implements the `Strategy Pattern`_, a behavioral design pattern that allows us to define a set of algorithms for converting metadata, encapsulate each one, and make them interchangeable. This pattern enables the client code to choose an algorithm or strategy at runtime without needing to know the details of each algorithm's implementation. This flexibility applies not only to metadata conversion but also to a test interface implementing a consistent set of checks.
 
@@ -60,10 +57,7 @@ Users typically define workflows that iterate over a series of metadata files. F
    :width: 400
 
 Metadata Mapping
-~~~~~~~~~~~~~~~~
-
-Implementation
-^^^^^^^^^^^^^^
+----------------
 
 We utilize the `Simple Standard for Sharing Ontological Mappings`_ (SSSOM) for semantic mapping SOSO to metadata standards. SSSOM provides a framework for expressing the match accuracy and other essential information to guide developer implementations.
 
@@ -79,7 +73,7 @@ Before committing any changes to SSSOM files, it's a good practice to thoroughly
 .. _SSSOM guidelines: https://mapping-commons.github.io/sssom/mapping-predicates/
 
 Predicate Mapping Guidelines
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Our predicate mapping guidelines are based on the `SSSOM guidelines`_, expanding to provide direction for our specific application context. In addition to the SSSOM guidelines, two key factors inform the selection of a mapping predicate: property definition and property type.
 
@@ -113,7 +107,7 @@ Note, if the object type can be transformed to form an exact match with the subj
 For any inquiries, please reach out. Mapping work is fun but can be challenging!
 
 Testing
-~~~~~~~
+-------
 
 The test suite utilizes the strategy design pattern to implement a standardized set of checks that all strategies must undergo (`tests/test_strategies.py`). It verifies that returned property values (resource types and data types) adhere to SOSO conventions. It ensures that null values (e.g., `""` for strings) or containers (e.g., `[]` for lists) are not returned, thereby reducing the accumulation of detritus in the resultant SOSO record. Additionally, verification tests against snapshots of full SOSO records help check the consistency of inputs and outputs produced by the system (`tests/test_main.py`).
 
@@ -122,7 +116,7 @@ Setting up tests for a new strategy requires only creating a strategy instance, 
 Strategy-specific utility functions are tested in their own test suite module named `test_[strategy].py`. General utility functions used across different strategies are tested in `test_utilities.py`.
 
 Customization
-~~~~~~~~~~~~~
+-------------
 
 The Strategy Pattern employed in our application enables a high degree of user customization to solve common challenges:
 
@@ -133,7 +127,7 @@ These cases can be addressed by providing information as `kwargs` to the main.co
 
 
 Alternative Implementations Considered
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------
 
 Before settling on the Strategy Pattern as the design for this project, we considered the use of JSON-LD Framing. This approach involves converting a metadata record to JSON-LD, applying a crosswalk to obtain equivalent SOSO properties, and structuring the result with a JSON-LD Frame (e.g., EML.xml => EML.jsonld => crosswalk => Frame.jsonld => SOSO.jsonld).
 
