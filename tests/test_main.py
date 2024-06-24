@@ -44,7 +44,15 @@ def test_convert_verify_strategy_results(strategy_names):
     """Test that the convert function returns the expected results by comparing
     them with a snapshot of the expected results.
 
-    Note, this snapshot requires updating if the strategy's results change."""
+    Verification testing helps address gaps in our unit tests by verifying the
+    consistency of inputs and outputs produced by the system. This mitigates
+    the risk of unexpected deviations. We maintain a static snapshot of
+    `main.convert` results (JSON-LD file) captured at the time of the most
+    recent modification to a strategy and stored at
+    `tests/data/[strategy].json`.
+    Developers are responsible for updating this snapshot when changes occur
+    and are reminded to manually inspect and validate the anticipated changes
+    to this file before committing a new snapshot to the test suite."""
     for strategy in strategy_names:
         with open("tests/data/" + strategy + ".json", "r", encoding="utf-8") as file:
             expected_results = file.read()
