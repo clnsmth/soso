@@ -74,7 +74,6 @@ you.
    :maxdepth: 3
 
    dev/contributing
-   dev/design
    dev/conduct
 
 The Maintainer Guide
@@ -87,3 +86,14 @@ you.
    :maxdepth: 3
 
    dev/maintaining
+
+Project Design
+--------------
+
+The project design documentation provides an overview of the project's
+architecture and design decisions.
+
+.. toctree::
+   :maxdepth: 3
+
+   dev/design
