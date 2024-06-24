@@ -1,4 +1,23 @@
-"""Test the strategies."""
+"""Test the strategy implementations.
+
+This module contains tests for the methods of each strategy implementation.
+
+Each test uses two types of strategy instances:
+- A "positive" strategy instance with a complete metadata record.
+- A "negative" strategy instance with an empty metadata record.
+
+Tests are skipped for methods that do not apply to a specific strategy. To skip
+tests, we use the @pytest.mark.skipif decorator with one of the following
+explanations (other rationales may be used as necessary):
+- "Method Not Yet Implemented": Used during active development when a strategy
+method has not been implemented yet but is planned to be. This tag is removed
+incrementally as methods are implemented.
+- "Property Not in Schema": Applied when the source metadata does not include
+content within the schema for the target property the strategy method is
+intended to extract. In such cases, the corresponding test is skipped
+indefinitely.
+"""
+
 import pytest
 from soso.interface import StrategyInterface
 from tests.conftest import is_property_type

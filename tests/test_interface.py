@@ -1,4 +1,8 @@
-"""Test the strategy interface."""
+"""Test the strategy interface.
+
+Test for the presence of strategy features, i.e. specific attributes, and
+methods.
+"""
 
 from soso.interface import StrategyInterface
 
