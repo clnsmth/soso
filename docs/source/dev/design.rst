@@ -62,57 +62,12 @@ Users typically define workflows that iterate over a series of metadata files. F
 Metadata Mapping
 ~~~~~~~~~~~~~~~~
 
-We utilize the `Simple Standard for Sharing Ontological Mappings`_ (SSSOM, version 0.15.0) for semantic mapping SOSO to metadata standards. SSSOM provides a framework for expressing the match accuracy and other essential information, guiding developer implementations and enabling users the potential to control the accuracy of outputs.
-
-.. _Simple Standard for Sharing Ontological Mappings: https://mapping-commons.github.io/sssom/about/
-
-Testing
-~~~~~~~
-
-The test suite utilizes the strategy design pattern to implement a standardized set of checks that all strategies must undergo (`tests/test_strategies.py`). It verifies that returned property values (resource types and data types) adhere to SOSO conventions. It ensures that null values (e.g., `""` for strings) or containers (e.g., `[]` for lists) are not returned, thereby reducing the accumulation of detritus in the resultant SOSO record. Additionally, verification tests against snapshots of full SOSO records help check the consistency of inputs and outputs produced by the system (`tests/test_main.py`).
-
-Setting up tests for a new strategy requires only creating a strategy instance, essentially a metadata record read into the strategy module, and running through each method test in the `test_strategies.py` module. To test negative cases, an empty metadata record is used. This helps ensure that strategy methods correctly handle scenarios where the metadata record lacks content.
-
-Strategy-specific utility functions are tested in their own test suite module named `test_[strategy].py`. General utility functions used across different strategies are tested in `test_utilities.py`.
-
-Customization
-~~~~~~~~~~~~~
-
-The Strategy Pattern employed in our application enables a high degree of user customization to solve common challenges:
-
-* Properties that don’t map to a metadata standard but require external data, such as dataset landing page URLs.
-* Properties requiring custom processing due to community-specific application of metadata standards.
-
-These cases can be addressed by providing information as `kwargs` to the main.convert function, which overrides properties corresponding to `kwargs` key names, or by modifying existing strategy methods through method overrides. For further details, refer to the user documentation.
-
-
-Alternative Implementations Considered
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Before settling on the Strategy Pattern as the design for this project, we considered the use of JSON-LD Framing. This approach involves converting a metadata record to JSON-LD, applying a crosswalk to obtain equivalent SOSO properties, and structuring the result with a JSON-LD Frame (e.g., EML.xml => EML.jsonld => crosswalk => Frame.jsonld => SOSO.jsonld).
-
-The benefits of the JSON-LD Framing approach include ease of extension to other metadata standards through the creation of new crosswalks and simplified maintenance, as modifications are primarily made to the crosswalk file. However, this approach has its downsides. Some metadata standards cannot be serialized to JSON-LD, necessitating additional custom code. Additionally, when dealing with metadata standards with nested properties, framing results in information loss, as framing works best for flat sets of properties.
-
-Ultimately, we determined that the potential loss of information during conversion outweighed the benefits of simplified maintenance. Furthermore, it was not evident that JSON-LD Framing offered a less complex solution compared to the Strategy Pattern.
-
-System Details
---------------
-
-Strategy Interface
-~~~~~~~~~~~~~~~~~~
-
-Returning Clean Properties
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The `delete_null_values` function is applied to all strategy methods to eliminate meaningless null values from their outcomes. This implementation enhances the usability and efficiency of strategy methods by users and aids in the graph cleaning step of `main.convert`.
-
-Metadata Mapping
-~~~~~~~~~~~~~~~~
-
 Implementation
 ^^^^^^^^^^^^^^
 
-We've implemented metadata mappings following `SSSOM guidelines`_, with some nuanced additions tailored to our project's needs. One such addition is the inclusion of a `subject_category` column, which aids in grouping and improving the readability of highly nested `subject_id` values. Additionally, we've formatted `subject_id` values using an arbitrary hierarchical path-like expression, enhancing clarity for the reader in understanding which property is being referenced. Note, while this path is human-readable, it is not machine-actionable.
+We utilize the `Simple Standard for Sharing Ontological Mappings`_ (SSSOM) for semantic mapping SOSO to metadata standards. SSSOM provides a framework for expressing the match accuracy and other essential information to guide developer implementations.
+
+We apply SSSOM following `SSSOM guidelines`_, with some nuanced additions tailored to our project's needs. One such addition is the inclusion of a `subject_category` column, which aids in grouping and improving the readability of highly nested `subject_id` values. Additionally, we've formatted `subject_id` values using an arbitrary hierarchical path-like expression, enhancing clarity for the reader in understanding which property is being referenced. Note, while this path is human-readable, it is not machine-actionable.
 
 Beyond these general differences, each metadata standard's mapping may have unique nuances that should be considered. These are documented in each metadata standard's SSSOM .yml file, located in the `src/soso/data/` directory.
 
@@ -120,6 +75,7 @@ Creating or updating a metadata standard's SSSOM files involves subjectively map
 
 Before committing any changes to SSSOM files, it's a good practice to thoroughly review them to ensure unintended alterations haven't been made to other parts of the SSSOM files. Given the file's extensive information and nuanced formatting, careful attention to detail is important.
 
+.. _Simple Standard for Sharing Ontological Mappings: https://mapping-commons.github.io/sssom/about/
 .. _SSSOM guidelines: https://mapping-commons.github.io/sssom/mapping-predicates/
 
 Predicate Mapping Guidelines
@@ -154,4 +110,33 @@ Additionally, if the object is composed of multiple parts needing assembly in a 
 
 Note, if the object type can be transformed to form an exact match with the subject type through a strategy's conversion method, consider the types identical and declare an exact match in the SSSOM file. Add a note to the SSSOM file to inform developers and maintainers of this decision.
 
-For any inquiries, please reach out to the group. Mapping work is fun but can be challenging!
+For any inquiries, please reach out. Mapping work is fun but can be challenging!
+
+Testing
+~~~~~~~
+
+The test suite utilizes the strategy design pattern to implement a standardized set of checks that all strategies must undergo (`tests/test_strategies.py`). It verifies that returned property values (resource types and data types) adhere to SOSO conventions. It ensures that null values (e.g., `""` for strings) or containers (e.g., `[]` for lists) are not returned, thereby reducing the accumulation of detritus in the resultant SOSO record. Additionally, verification tests against snapshots of full SOSO records help check the consistency of inputs and outputs produced by the system (`tests/test_main.py`).
+
+Setting up tests for a new strategy requires only creating a strategy instance, essentially a metadata record read into the strategy module, and running through each method test in the `test_strategies.py` module. To test negative cases, an empty metadata record is used. This helps ensure that strategy methods correctly handle scenarios where the metadata record lacks content.
+
+Strategy-specific utility functions are tested in their own test suite module named `test_[strategy].py`. General utility functions used across different strategies are tested in `test_utilities.py`.
+
+Customization
+~~~~~~~~~~~~~
+
+The Strategy Pattern employed in our application enables a high degree of user customization to solve common challenges:
+
+* Properties that don’t map to a metadata standard but require external data, such as dataset landing page URLs.
+* Properties requiring custom processing due to community-specific application of metadata standards.
+
+These cases can be addressed by providing information as `kwargs` to the main.convert function, which overrides properties corresponding to `kwargs` key names, or by modifying existing strategy methods through method overrides. For further details, refer to the user documentation.
+
+
+Alternative Implementations Considered
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before settling on the Strategy Pattern as the design for this project, we considered the use of JSON-LD Framing. This approach involves converting a metadata record to JSON-LD, applying a crosswalk to obtain equivalent SOSO properties, and structuring the result with a JSON-LD Frame (e.g., EML.xml => EML.jsonld => crosswalk => Frame.jsonld => SOSO.jsonld).
+
+The benefits of the JSON-LD Framing approach include ease of extension to other metadata standards through the creation of new crosswalks and simplified maintenance, as modifications are primarily made to the crosswalk file. However, this approach has its downsides. Some metadata standards cannot be serialized to JSON-LD, necessitating additional custom code. Additionally, when dealing with metadata standards with nested properties, framing results in information loss, as framing works best for flat sets of properties.
+
+Ultimately, we determined that the potential loss of information during conversion outweighed the benefits of simplified maintenance. Furthermore, it was not evident that JSON-LD Framing offered a less complex solution compared to the Strategy Pattern.
