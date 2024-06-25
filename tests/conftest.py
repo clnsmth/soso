@@ -1,7 +1,6 @@
 """Configure the test suite."""
 import socket
-from typing import Any
-import pathlib
+from typing import Any, Type
 from urllib.parse import urlparse
 from numbers import Number
 from copy import deepcopy
@@ -19,7 +18,7 @@ def strategy_names() -> list:
 
 
 @pytest.fixture(params=[EML])
-def strategy_instance(request) -> pathlib.PosixPath:
+def strategy_instance(request) -> Type:
     """
     :returns: The strategy instances.
     """
@@ -29,7 +28,7 @@ def strategy_instance(request) -> pathlib.PosixPath:
 
 
 @pytest.fixture(params=[EML])
-def strategy_instance_no_meta(request) -> pathlib.PosixPath:
+def strategy_instance_no_meta(request) -> Type:
     """
     :returns:   The strategy instances parameterized with an empty metadata
                 file. This is useful for testing negative cases.
