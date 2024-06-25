@@ -55,7 +55,6 @@ nh3==0.2.17
 numpy==1.26.4
 owlrl==6.0.2
 packaging==24.1
-pandas==2.2.2
 pathspec==0.12.1
 pexpect==4.9.0
 pip==23.1.2
@@ -75,10 +74,8 @@ pyproject_hooks==1.1.0
 pyshacl==0.23.0
 pytest==7.4.4
 pytest-cov==4.1.0
-python-dateutil==2.9.0.post0
 python-gitlab==3.15.0
 python-semantic-release==7.34.6
-pytz==2024.1
 PyYAML==6.0.1
 rapidfuzz==3.9.3
 rdflib==6.3.2
@@ -105,7 +102,6 @@ tomlkit==0.12.5
 tqdm==4.66.4
 trove-classifiers==2024.5.22
 twine==3.8.0
-tzdata==2024.1
 urllib3==2.2.1
 virtualenv==20.26.2
 wcwidth==0.2.13
