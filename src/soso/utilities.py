@@ -8,7 +8,6 @@ import pathlib
 from typing import Any, Union
 import warnings
 import pyshacl.validate
-import pandas as pd
 import requests
 
 
@@ -90,18 +89,6 @@ def get_empty_metadata_file_path(strategy: str) -> pathlib.PosixPath:
     else:
         raise ValueError("Invalid choice!")
     return file_path
-
-
-def read_sssom(strategy: str) -> pd.DataFrame:
-    """Return the SSSOM for the specified strategy.
-
-    :param strategy: Metadata strategy. Can be: EML.
-
-    :returns: The SSSOM table.
-    """
-    sssom_file_path = get_sssom_file_path(strategy)
-    sssom = pd.read_csv(sssom_file_path, delimiter="\t")
-    return sssom
 
 
 def delete_null_values(res: Any) -> Any:
