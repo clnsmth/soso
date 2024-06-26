@@ -40,7 +40,7 @@ Here are a sequence of steps to help with your code contribution:
 1. Fork the project repository on GitHub.
 2. Create a `feature branch` from the `development` branch.
 3. Install the package by running ``poetry install`` at the command line.
-4. Verify that all tests pass on your system by running ``pytest`` at the command line. In case of failures, conduct a thorough investigation. If you require assistance in diagnosing the issue, follow the guidelines for filing :ref:`bug-reports`.
+4. Verify that all tests pass on your system by running ``poetry run pytest`` at the command line. In case of failures, conduct a thorough investigation. If you require assistance in diagnosing the issue, follow the guidelines for filing :ref:`bug-reports`.
 5. Construct test cases that effectively illustrate the bug or feature.
 6. Implement your changes, including any relevant documentation updates following the `NumPy`_ convention for docstrings.
 7. Re-run the complete test suite to ensure the success of all tests.
@@ -67,8 +67,8 @@ Code Format and Analysis
 Our project uses a couple tools to ensure the code base has a consistent
 style and format as it grows. We use `Black`_ for code formatting and `Pylint`_ for static code analysis. Both can be run from the command line::
 
-    black src/ tests/
-    pylint src/ tests/
+    poetry run black src/ tests/
+    poetry run pylint src/ tests/
 
 .. _Black: https://black.readthedocs.io/en/stable/
 .. _Pylint: https://pylint.pycqa.org/en/latest/
@@ -82,7 +82,7 @@ We greatly appreciate any efforts to enhance our documentation! The documentatio
 
 Build the docs from the command line::
 
-    make --directory=docs clean html
+    poetry run make --directory=docs clean html
 
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
 .. _Sphinx: http://sphinx-doc.org/index.html
