@@ -186,21 +186,20 @@ As a maintainer, when developing a new feature, you don't have to fork the proje
 Dependency and Environment Management
 -------------------------------------
 
-We manage package dependencies with `Poetry`_ and provide virtual environments via Poetry and `Conda`_. This means virtual environments must be maintained in two places. An update to one means an update to the other.
+This project uses `Poetry`_ to manage dependencies for development and distribution. Poetry keeps track of necessary packages and their versions, ensuring a consistent development environment.
 
-Please keep the project's environment and requirements files up-to-date. These are located in the project's root directory and can be updated using the following commands:
-
-For the Conda environment::
+For those who prefer using `Conda`_ for environment management, we provide environment files to define the Conda environment. This means package dependencies need to be maintained with Conda as well as Poetry. Update the Conda environment definition using the following commands::
 
     conda env export --from-history --file environment-min.yml
     conda env export --no-builds --file environment.yml
 
-For the pip requirements::
+While Poetry is the recommended method for installation, we offer users an option to install the package using `pip`_. To get a requirements.txt file listing::
 
     pip list --format=freeze > requirements.txt
 
 .. _Poetry: https://python-poetry.org/
 .. _Conda: https://conda.io/projects/conda/en/latest/
+.. _pip: https://pip.pypa.io/en/stable/
 
 Keeping Current with Science-On-Schema.Org
 ------------------------------------------
