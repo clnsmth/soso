@@ -42,7 +42,7 @@ Here are a sequence of steps to help with your code contribution:
 3. Install the package by running ``poetry install`` at the command line.
 4. Verify that all tests pass on your system by running ``poetry run pytest`` at the command line. In case of failures, conduct a thorough investigation. If you require assistance in diagnosing the issue, follow the guidelines for filing :ref:`bug-reports`.
 5. Construct test cases that effectively illustrate the bug or feature.
-6. Implement your changes, including any relevant documentation updates following the `NumPy`_ convention for docstrings.
+6. Implement your changes, including any relevant documentation updates following our :ref:`documentation-contributions` guidelines.
 7. Re-run the complete test suite to ensure the success of all tests.
 8. Format and analyze your code according to our :ref:`code-format-and-analysis` guidelines.
 9. Ensure the docs build following the :ref:`documentation-contributions` guidelines.
@@ -50,7 +50,7 @@ Here are a sequence of steps to help with your code contribution:
 11. Commit your work following our :ref:`commit-message` guidelines.
 12. Submit a GitHub Pull Request to the `development` branch of the upstream repository.
 
-.. _NumPy: https://numpydoc.readthedocs.io/en/latest/format.html#style-guide
+.. _reStructuredText: https://thomas-cokelaer.info/tutorials/sphinx/docstring_python.html
 .. _pytest: https://docs.pytest.org/en/latest/
 .. _Angular commit style: https://github.com/angular/angular/blob/convert/CONTRIBUTING.md#-commit-message-format
 
@@ -84,7 +84,8 @@ Build the docs from the command line::
 
     poetry run make --directory=docs clean html
 
-.. _reStructuredText: http://docutils.sourceforge.net/rst.html
+
+.. _reStructuredText: https://thomas-cokelaer.info/tutorials/sphinx/docstring_python.html
 .. _Sphinx: http://sphinx-doc.org/index.html
 .. _PEP 287: https://peps.python.org/pep-0287/
 
