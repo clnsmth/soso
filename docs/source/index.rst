@@ -74,7 +74,6 @@ you.
    :maxdepth: 3
 
    dev/contributing
-   dev/conduct
 
 The Maintainer Guide
 --------------------
