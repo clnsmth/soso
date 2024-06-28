@@ -58,7 +58,7 @@ Users typically define workflows that iterate over a series of metadata files. F
 Metadata Mapping
 ----------------
 
-We utilize the `Simple Standard for Sharing Ontological Mappings`_ (SSSOM) for semantic mapping SOSO to metadata standards. SSSOM provides a framework for expressing the match precision and other essential information to guide developer implementations.
+We utilize the `Simple Standard for Sharing Ontological Mappings`_ (SSSOM) for semantic mapping metadata standards to SOSO. SSSOM provides a framework for expressing the match precision and other essential information to guide developer implementations.
 
 We apply SSSOM following `SSSOM guidelines`_, with some nuanced additions tailored to our project's needs. One such addition is the inclusion of a `subject_category` column, which aids in grouping and improving the readability of highly nested `subject_id` values. Additionally, we've formatted `subject_id` values using an arbitrary hierarchical path-like expression, enhancing clarity for the reader in understanding which property is being referenced. Note, while this path is human-readable, it is not machine-actionable.
 
@@ -119,7 +119,7 @@ Customization
 
 The Strategy Pattern employed in our application enables a high degree of user customization to solve common challenges:
 
-* Properties that don’t map to a metadata standard but require external data, such as dataset landing page URLs.
+* Properties that don’t map from a metadata standard but require external data, such as dataset landing page URLs.
 * Properties requiring custom processing due to community-specific application of metadata standards.
 
 These cases can be addressed by providing information as `kwargs` to the main.convert function, which overrides properties corresponding to `kwargs` key names, or by modifying existing strategy methods through method overrides. For further details, refer to the user :ref:`quickstart`.

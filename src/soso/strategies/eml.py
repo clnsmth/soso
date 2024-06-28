@@ -17,7 +17,7 @@ class EML(StrategyInterface):
                     properties. See the Notes section below for details.
 
     Notes:
-        Some properties used by SOSO don't directly map to this strategy.
+        Some properties of this metadata standard don't directly map to SOSO.
         However, these properties can still be included by inputting the
         information as `kwargs`. Keys should match the property name, and
         values should be the desired value. For a deeper understanding of each
