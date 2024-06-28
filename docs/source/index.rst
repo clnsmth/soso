@@ -44,7 +44,7 @@ Unmappable properties are listed in the strategy documentation.
 The User Guide
 --------------
 
-This part of the documentation begins with some background information about soso, then focuses on step-by-step instructions for getting the most out of it.
+This part of the documentation begins with some background information about `soso`, then focuses on step-by-step instructions for getting the most out of it.
 
 .. toctree::
    :maxdepth: 2
