@@ -20,7 +20,6 @@ Currently, most repositories have their own implementations, however, a shared i
 Functional design requirements we considered in the development of this application:
 
 * Convert any metadata standards to SOSO.
-* Use metadata mappings that enable control over the degree of output accuracy.
 * Test against a consistent set of criteria.
 * Customizable to enable unique use cases.
 
@@ -59,7 +58,7 @@ Users typically define workflows that iterate over a series of metadata files. F
 Metadata Mapping
 ----------------
 
-We utilize the `Simple Standard for Sharing Ontological Mappings`_ (SSSOM) for semantic mapping SOSO to metadata standards. SSSOM provides a framework for expressing the match accuracy and other essential information to guide developer implementations.
+We utilize the `Simple Standard for Sharing Ontological Mappings`_ (SSSOM) for semantic mapping SOSO to metadata standards. SSSOM provides a framework for expressing the match precision and other essential information to guide developer implementations.
 
 We apply SSSOM following `SSSOM guidelines`_, with some nuanced additions tailored to our project's needs. One such addition is the inclusion of a `subject_category` column, which aids in grouping and improving the readability of highly nested `subject_id` values. Additionally, we've formatted `subject_id` values using an arbitrary hierarchical path-like expression, enhancing clarity for the reader in understanding which property is being referenced. Note, while this path is human-readable, it is not machine-actionable.
 
