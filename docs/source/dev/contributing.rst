@@ -42,7 +42,7 @@ Here are a sequence of steps to help with your code contribution:
 3. Install the package by running ``poetry install`` at the command line.
 4. Verify that all tests pass on your system by running ``poetry run pytest`` at the command line. In case of failures, conduct a thorough investigation. If you require assistance in diagnosing the issue, follow the guidelines for filing :ref:`bug-reports`.
 5. Construct test cases that effectively illustrate the bug or feature.
-6. Implement your changes, including any relevant documentation updates following our :ref:`documentation-contributions` guidelines.
+6. Implement your changes, including any relevant documentation updates following our :ref:`documentation-contributions` fguidelines.
 7. Re-run the complete test suite to ensure the success of all tests.
 8. Format and analyze your code according to our :ref:`code-format-and-analysis` guidelines.
 9. Ensure the docs build following the :ref:`documentation-contributions` guidelines.
