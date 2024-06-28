@@ -166,13 +166,11 @@ If you have any questions or need help, please don't hesitate to reach out to us
 Notes
 -----
 
-Adding Vocabularies
-~~~~~~~~~~~~~~~~~~~
+**Adding Vocabularies**
 
 The `main.convert` function only recognizes vocabularies that are specified within its implementation. You can view the source code for more details on these vocabularies. If you add additional vocabularies to a SOSO graph using property overwrites and method overrides, these vocabularies will have to be defined within an embedded context.
 
-Leverage Partial Property Method Implementations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Leverage Partial Property Method Implementations**
 
 Before creating methods for unmappable properties, check for partial implementations that you can build upon and that can save you time. For instance, the `get_subject_of` method in the EML strategy is mostly complete; it only lacks the `contentUrl`.
 
