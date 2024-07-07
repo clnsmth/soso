@@ -673,7 +673,7 @@ def get_checksum(data_entity_element: etree._Element) -> Union[list, None]:
     """
     checksum = []
     for item in data_entity_element.xpath(".//physical/authentication"):
-        if "spdx.org" in item.get("method"):
+        if item.get("method") is not None and "spdx.org" in item.get("method"):
             algorithm = item.get("method").split("#")[-1]
             res = {
                 "@type": "spdx:Checksum",

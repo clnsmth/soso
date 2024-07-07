@@ -651,6 +651,16 @@ def test_get_checksum():
     root = etree.fromstring(xml_content)
     assert get_checksum(root) is None
 
+    # Missing checksum algorithms are not returned.
+    xml_content = """
+        <root>
+            <physical>
+                <authentication>123456789</authentication>
+            </physical>
+        </root>"""
+    root = etree.fromstring(xml_content)
+    assert get_checksum(root) is None
+
     # Multiple recognized checksum algorithms are returned as a list of dict.
     xml_content = """
     <root>
