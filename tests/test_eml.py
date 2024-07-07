@@ -115,6 +115,18 @@ def test_get_content_size_returns_expected_value():
     root = etree.fromstring(xml_content)
     assert get_content_size(root) == "10"
 
+    # If the "size" value is missing the function will return None, even if the
+    # "unit" attribute is present.
+    xml_content = """
+    <root>
+        <physical>
+            <size unit="kilobytes"></size>
+        </physical>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert get_content_size(root) is None
+
 
 def test_convert_single_date_time_type_returns_expected_type():
     """Test that the convert_single_date_time_type function returns the
