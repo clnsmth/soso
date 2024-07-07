@@ -314,17 +314,13 @@ def get_content_size(data_entity_element: etree._Element) -> Union[str, None]:
                                     size from.
 
     :returns: The content size of a data entity element.
-
-    Notes:
-        The If the "unit" attribute of the "size" element is defined, it will
-        be appended to the content size value.
     """
     size_element = data_entity_element.xpath(".//physical/size")
     if size_element:
         size = size_element[0].text
         unit = size_element[0].get("unit")
-        if unit:
-            size += " " + unit
+        if size and unit:
+            return size + " " + unit
         return size
     return None
 
