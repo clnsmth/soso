@@ -55,7 +55,11 @@ class EML(StrategyInterface):
         return delete_null_values(name)
 
     def get_description(self) -> Union[str, None]:
-        description = self.metadata.findtext(".//dataset/abstract")
+        description = self.metadata.xpath(".//dataset/abstract")
+        if len(description) == 0:
+            return None
+        description = etree.tostring(description[0], encoding="utf-8", method="text")
+        description = description.decode("utf-8").strip()
         return delete_null_values(description)
 
     def get_url(self) -> None:
