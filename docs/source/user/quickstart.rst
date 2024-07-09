@@ -12,9 +12,11 @@ Currently, `soso` is only available on GitHub.  To install it, you need to have 
 
 Once pip is installed, you can install `soso` by running the following command in your terminal::
 
-    $ pip install git+https://github.com/clnsmth/soso.git#egg=soso
+    $ pip install git+https://github.com/clnsmth/soso.git@main
 
+For the latest development version::
 
+    $ pip install git+https://github.com/clnsmth/soso.git@development
 
 
 Metadata Conversion
