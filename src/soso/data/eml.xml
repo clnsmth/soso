@@ -83,7 +83,11 @@
     </associatedParty>
     <pubDate>2019</pubDate>
     <language>English</language>
-    <abstract>Multiple aquatic ecosystems (pond, lake, river, lagoon, ocean) on the Arctic Coastal Plain (ACP) near Utqiaġvik, AK were visited to determine their relative contribution to landscape-level atmospheric CO2 flux and how this may have changed over time. pCO2 (partial pressure of carbon dioxide) was monitored in late summer (late July to mid-August) over a period of four years (2013, 2015, 2017, 2018) from open water areas and is related to habitat type, dissolved organic carbon (DOC) and environmental factors (temperature, radiation, rainfall). Data include both daily averages from most sites, as well as spatial representation of pCO2 in Elson Lagoon and diel cycles of pCO2 from a tundra pond. Pond NEP (net ecosystem production) is estimated by free water metabolism and presented as daily estimates over a four summer period.</abstract>
+    <abstract>
+      <section>
+        <para>Multiple aquatic ecosystems (pond, lake, river, lagoon, ocean) on the Arctic Coastal Plain (ACP) near Utqiaġvik, AK were visited to determine their relative contribution to landscape-level atmospheric CO2 flux and how this may have changed over time. pCO2 (partial pressure of carbon dioxide) was monitored in late summer (late July to mid-August) over a period of four years (2013, 2015, 2017, 2018) from open water areas and is related to habitat type, dissolved organic carbon (DOC) and environmental factors (temperature, radiation, rainfall). Data include both daily averages from most sites, as well as spatial representation of pCO2 in Elson Lagoon and diel cycles of pCO2 from a tundra pond. Pond NEP (net ecosystem production) is estimated by free water metabolism and presented as daily estimates over a four summer period.</para>
+      </section>
+    </abstract>
     <keywordSet>
       <keyword keywordType="theme">movement of inorganic matter</keyword>
       <keyword keywordType="theme">movement of organic matter</keyword>
