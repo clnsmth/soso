@@ -101,7 +101,7 @@ Additionally, if the object is composed of multiple parts needing assembly in a 
 * `skos:relatedMatch`: Definition doesn't match, but broadly aligns with an analogous concept in a different category (refer to SSSOM guidelines for clarification), and the object type doesn't match.
 * `sssom:NoMapping`: No match found for any of the listed types.
 
-Note, if the object type can be transformed to form an exact match with the subject type through a strategy's conversion method, consider the types identical and declare an exact match in the SSSOM file. Add a note to the SSSOM file to inform developers and maintainers of this decision.
+If the object type can be transformed to form an exact match with the subject type using a strategy’s conversion method, treat these types as identical for implementation purposes. However, do not declare them as an exact match in the SSSOM file. Instead, add a note to the "comment" field in the SSSOM file to inform developers and maintainers.
 
 For any inquiries, please reach out. Mapping work is fun but can be challenging!
 
