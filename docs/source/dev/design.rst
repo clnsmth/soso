@@ -105,6 +105,21 @@ If the object type can be transformed to form an exact match with the subject ty
 
 For any inquiries, please reach out. Mapping work is fun but can be challenging!
 
+Mapping Implementation
+~~~~~~~~~~~~~~~~~~~~~~
+
+This section outlines the conditions for implementing a metadata mapping between a metadata standard and SOSO in code. Our goal is to maintain the fidelity of the semantic information within the metadata by ensuring an exact match between the two schemas.
+
+**Conditions for Implementing a Metadata Mapping**
+
+* **Exact Match**: The subject and object values in the mapping perfectly align.
+* **Transformable Match**: The object value in the mapping can be transformed to achieve an exact match with the subject value through defined logic within the code.
+
+**What to Avoid**
+
+Mappings relying on broader predicate matches (less specific than exact matches) should not be implemented in code. This helps to avoid potential inconsistencies and loss of information.
+
+
 Testing
 -------
 
