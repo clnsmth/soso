@@ -227,6 +227,10 @@ class EML(StrategyInterface):
         return None
 
     def get_creator(self) -> Union[list, None]:
+        # Compile all responsible parties to get creators and any other
+        # associated roles.
+        responsible_party = get_responsible_party(self.metadata)
+
         creator = []
         creators = self.metadata.xpath(".//dataset/creator")
         for item in creators:
@@ -689,3 +693,39 @@ def get_checksum(data_entity_element: etree._Element) -> Union[list, None]:
     if len(checksum) == 0:
         checksum = None
     return checksum
+
+
+def get_responsible_party(metadata: etree.ElementTree) -> Union[dict, None]:
+    """
+    :param metadata:    The metadata object as an XML tree.
+
+    :returns:   EML responsible party elements processed into a flattened
+    dictionary.
+    """
+    elements = ["creator", "contact", "associatedParty", "personnel"]
+    responsible_party = []
+    for element in elements:
+        xpath = ".//dataset/" + element
+        if element == "personnel":  # personnel are in project not dataset
+            xpath = ".//dataset/project/../" + element  # TODO: Xpath should seek any nested related project personnel
+        for item in metadata.xpath(xpath):
+            res = flatten_xml_elementtree(item, {})
+            if element == "associatedParty":
+                res['role'] = item.findtext("role")
+            else:
+                res['role'] = element
+            responsible_party.append(res)
+    return responsible_party
+
+
+def flatten_xml_elementtree(element, flattened_dict):
+    # Add element name and text content as key-value pair
+    flattened_dict[element.tag] = element.text
+
+    # Process child elements
+    for child in element.iter():
+        if child.tag != element.tag:  # Avoid adding the same element twice
+            flattened_dict[child.tag] = child.text
+
+    return flattened_dict
+
