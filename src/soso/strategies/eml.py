@@ -4,7 +4,7 @@ from mimetypes import guess_type
 from typing import Union
 from lxml import etree
 from soso.interface import StrategyInterface
-from soso.utilities import delete_null_values
+from soso.utilities import delete_null_values, limit_to_5000_characters
 
 
 class EML(StrategyInterface):
@@ -60,6 +60,7 @@ class EML(StrategyInterface):
             return None
         description = etree.tostring(description[0], encoding="utf-8", method="text")
         description = description.decode("utf-8").strip()
+        description = limit_to_5000_characters(description)  # Google recommendations
         return delete_null_values(description)
 
     def get_url(self) -> None:

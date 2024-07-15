@@ -10,6 +10,7 @@ from soso.utilities import get_shacl_file_path
 from soso.utilities import delete_null_values
 from soso.utilities import delete_unused_vocabularies
 from soso.utilities import generate_citation_from_doi
+from soso.utilities import limit_to_5000_characters
 
 
 @pytest.mark.internet_required
@@ -189,3 +190,13 @@ def test_generate_citation_from_doi():
     doi = "10.6073/pasta/e6c261fbd143e720af5a46a9a131a616"
     citation = generate_citation_from_doi(doi, style="apa", locale="en-US")
     assert citation is None
+
+
+def test_limit_to_5000_characters():
+    """Test that the limit_to_5000_characters function returns a string
+    that is 5000 characters or less."""
+    text = "a" * 5001
+    assert len(text) > 5000
+    assert len(limit_to_5000_characters(text)) <= 5000
+    assert limit_to_5000_characters(text) == text[:5000]
+    assert limit_to_5000_characters("") == ""

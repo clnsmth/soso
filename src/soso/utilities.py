@@ -218,3 +218,15 @@ def generate_citation_from_doi(url: str, style: str, locale: str) -> Union[str, 
     except requests.exceptions.RequestException as citation_error:
         print(f"An error occurred while generating the citation: " f"{citation_error}")
         return None
+
+
+def limit_to_5000_characters(text: str) -> str:
+    """
+    :param text: The text to limit to 5000 characters.
+
+    :returns:   The text limited to 5000 characters as per Google
+        recommendations for textual properties.
+    """
+    if len(text) > 5000:
+        return text[:5000]
+    return text
