@@ -227,10 +227,6 @@ class EML(StrategyInterface):
         return None
 
     def get_creator(self) -> Union[list, None]:
-        # Compile all responsible parties to get creators and any other
-        # associated roles.
-        responsible_party = get_responsible_party(self.metadata)
-
         creator = []
         creators = self.metadata.xpath(".//dataset/creator")
         for item in creators:
@@ -243,11 +239,14 @@ class EML(StrategyInterface):
 
     def get_contributor(self) -> Union[list, None]:
         contributor = []
-        contributors = self.metadata.xpath(".//dataset/associatedParty")
+        contributors = get_contributor_elements(self.metadata)
         for item in contributors:
+            role = item.findtext("role")
+            if item.tag == "contact":
+                role = "contact"  # contact has no role
             res = {
                 "@type": "Role",
-                "roleName": item.findtext("role"),
+                "roleName": role,
                 "contributor": get_person_or_organization(item),  # can be either
             }
             contributor.append(res)
@@ -695,37 +694,19 @@ def get_checksum(data_entity_element: etree._Element) -> Union[list, None]:
     return checksum
 
 
-def get_responsible_party(metadata: etree.ElementTree) -> Union[dict, None]:
+def get_contributor_elements(metadata: etree.ElementTree) -> Union[list, None]:
     """
     :param metadata:    The metadata object as an XML tree.
 
-    :returns:   EML responsible party elements processed into a flattened
-    dictionary.
+    :returns:   Contributors to a dataset. These are the contact,
+        associatedParty, and top level personnel elements.
     """
-    elements = ["creator", "contact", "associatedParty", "personnel"]
-    responsible_party = []
+    elements = ["contact", "associatedParty", "personnel"]
+    contributors = []
     for element in elements:
         xpath = ".//dataset/" + element
         if element == "personnel":  # personnel are in project not dataset
-            xpath = ".//dataset/project/../" + element  # TODO: Xpath should seek any nested related project personnel
+            xpath = ".//project/" + element  # nested projects are out of scope
         for item in metadata.xpath(xpath):
-            res = flatten_xml_elementtree(item, {})
-            if element == "associatedParty":
-                res['role'] = item.findtext("role")
-            else:
-                res['role'] = element
-            responsible_party.append(res)
-    return responsible_party
-
-
-def flatten_xml_elementtree(element, flattened_dict):
-    # Add element name and text content as key-value pair
-    flattened_dict[element.tag] = element.text
-
-    # Process child elements
-    for child in element.iter():
-        if child.tag != element.tag:  # Avoid adding the same element twice
-            flattened_dict[child.tag] = child.text
-
-    return flattened_dict
-
+            contributors.append(item)
+    return contributors
