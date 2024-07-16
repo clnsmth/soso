@@ -239,11 +239,14 @@ class EML(StrategyInterface):
 
     def get_contributor(self) -> Union[list, None]:
         contributor = []
-        contributors = self.metadata.xpath(".//dataset/associatedParty")
+        contributors = get_contributor_elements(self.metadata)
         for item in contributors:
+            role = item.findtext("role")
+            if item.tag == "contact":
+                role = "contact"  # contact has no role
             res = {
                 "@type": "Role",
-                "roleName": item.findtext("role"),
+                "roleName": role,
                 "contributor": get_person_or_organization(item),  # can be either
             }
             contributor.append(res)
@@ -689,3 +692,21 @@ def get_checksum(data_entity_element: etree._Element) -> Union[list, None]:
     if len(checksum) == 0:
         checksum = None
     return checksum
+
+
+def get_contributor_elements(metadata: etree.ElementTree) -> Union[list, None]:
+    """
+    :param metadata:    The metadata object as an XML tree.
+
+    :returns:   Contributors to a dataset. These are the contact,
+        associatedParty, and top level personnel elements.
+    """
+    elements = ["contact", "associatedParty", "personnel"]
+    contributors = []
+    for element in elements:
+        xpath = ".//dataset/" + element
+        if element == "personnel":  # personnel are in project not dataset
+            xpath = ".//project/" + element  # nested projects are out of scope
+        for item in metadata.xpath(xpath):
+            contributors.append(item)
+    return contributors
