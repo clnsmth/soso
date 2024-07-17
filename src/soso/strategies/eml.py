@@ -4,7 +4,7 @@ from mimetypes import guess_type
 from typing import Union
 from lxml import etree
 from soso.interface import StrategyInterface
-from soso.utilities import delete_null_values, limit_to_5000_characters
+from soso.utilities import delete_null_values, limit_to_5000_characters, as_numeric
 
 
 class EML(StrategyInterface):
@@ -419,19 +419,24 @@ def convert_single_date_time_type(
             calendar_date + "T" + time if calendar_date and time else calendar_date
         )
     else:
+        numeric_position = as_numeric(
+            single_date_time.findtext(".//timeScaleAgeEstimate")
+        )
+        uncertainty = as_numeric(
+            single_date_time.findtext(".//timeScaleAgeUncertainty")
+        )
+        if not numeric_position or not uncertainty:
+            return None
         instant = {
             "@type": "time:Instant",
             "time:inTimePosition": {
                 "@type": "time:TimePosition",
                 "time:numericPosition": {
                     "@type": "xsd:decimal",
-                    "value": single_date_time.findtext(".//timeScaleAgeEstimate"),
+                    "value": numeric_position,
                 },
             },
-            "gstime:uncertainty": {
-                "@type": "xsd:decimal",
-                "value": single_date_time.findtext(".//timeScaleAgeUncertainty"),
-            },
+            "gstime:uncertainty": {"@type": "xsd:decimal", "value": uncertainty},
             "time:hasTRS": {
                 "@type": "xsd:string",
                 "value": single_date_time.findtext(".//timeScaleName"),
