@@ -11,6 +11,7 @@ from soso.utilities import delete_null_values
 from soso.utilities import delete_unused_vocabularies
 from soso.utilities import generate_citation_from_doi
 from soso.utilities import limit_to_5000_characters
+from soso.utilities import as_numeric
 
 
 @pytest.mark.internet_required
@@ -200,3 +201,11 @@ def test_limit_to_5000_characters():
     assert len(limit_to_5000_characters(text)) <= 5000
     assert limit_to_5000_characters(text) == text[:5000]
     assert limit_to_5000_characters("") == ""
+
+
+def test_as_numeric():
+    """Test that the as_numeric function returns the expected value."""
+    assert as_numeric("1") == 1
+    assert as_numeric("1.0") == 1.0
+    assert as_numeric("text") is None
+    assert as_numeric(None) is None
