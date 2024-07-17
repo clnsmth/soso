@@ -230,3 +230,21 @@ def limit_to_5000_characters(text: str) -> str:
     if len(text) > 5000:
         return text[:5000]
     return text
+
+
+def as_numeric(value: Any) -> Union[None, int, float]:
+    """
+    :param value: The value to convert to a numeric value.
+
+    :returns: A numeric value.
+    """
+    if not value:
+        return None
+    try:
+        numeric_value = int(value)
+    except ValueError:
+        try:
+            numeric_value = float(value)
+        except ValueError:
+            numeric_value = None
+    return numeric_value
