@@ -131,14 +131,15 @@ def test_get_content_size_returns_expected_value():
 def test_convert_single_date_time_type_returns_expected_type():
     """Test that the convert_single_date_time_type function returns the
     expected type."""
-    # If the "alternativeTimeScale" element is present, the function will
-    # return a dictionary.
+    # If the "alternativeTimeScale" element is present, and both the
+    # timeScaleAgeEstimate and timeScaleAgeUncertainty elements are numeric,
+    # function will return a dictionary.
     xml_content = """
     <root>
         <alternativeTimeScale>
             <timeScaleName>Absolute Geologic Time Scale</timeScaleName>
-            <timeScaleAgeEstimate>300 Ma</timeScaleAgeEstimate>
-            <timeScaleAgeUncertainty>+/- 5 Ma</timeScaleAgeUncertainty>
+            <timeScaleAgeEstimate>300</timeScaleAgeEstimate>
+            <timeScaleAgeUncertainty>5</timeScaleAgeUncertainty>
         </alternativeTimeScale>
     </root>
     """
@@ -164,6 +165,33 @@ def test_convert_single_date_time_type_returns_expected_type():
     <root>
     </root>
     """
+    root = etree.fromstring(xml_content)
+    assert convert_single_date_time_type(root) is None
+
+    # Negative case: If the timeScaleAgeEstimate or timeScaleAgeUncertainty
+    # elements are not numeric, the function will return None.
+    # timescaleAgeEstimate is not numeric but timescaleAgeUncertainty is numeric
+    xml_content = """
+    <root>
+        <alternativeTimeScale>
+            <timeScaleName>Absolute Geologic Time Scale</timeScaleName>
+            <timeScaleAgeEstimate>300 Ma</timeScaleAgeEstimate>
+            <timeScaleAgeUncertainty>10</timeScaleAgeUncertainty>
+        </alternativeTimeScale>
+    </root>
+    """
+    root = etree.fromstring(xml_content)
+    assert convert_single_date_time_type(root) is None
+    # timescaleAgeEstimate is numeric but timescaleAgeUncertainty is not numeric
+    xml_content = """
+        <root>
+            <alternativeTimeScale>
+                <timeScaleName>Absolute Geologic Time Scale</timeScaleName>
+                <timeScaleAgeEstimate>300</timeScaleAgeEstimate>
+                <timeScaleAgeUncertainty>+/- 10 Ma</timeScaleAgeUncertainty>
+            </alternativeTimeScale>
+        </root>
+        """
     root = etree.fromstring(xml_content)
     assert convert_single_date_time_type(root) is None
 
@@ -233,8 +261,8 @@ def test_convert_single_date_time_returns_expected_type():
         <singleDateTime>
             <alternativeTimeScale>
                 <timeScaleName>Absolute Geologic Time Scale</timeScaleName>
-                <timeScaleAgeEstimate>300 Ma</timeScaleAgeEstimate>
-                <timeScaleAgeUncertainty>+/- 5 Ma</timeScaleAgeUncertainty>
+                <timeScaleAgeEstimate>300</timeScaleAgeEstimate>
+                <timeScaleAgeUncertainty>5</timeScaleAgeUncertainty>
             </alternativeTimeScale>
         </singleDateTime>
     </root>
