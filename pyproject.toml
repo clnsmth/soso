@@ -11,7 +11,7 @@ readme = "README.md"
 python = "^3.11"
 pyshacl = "^0.23.0"
 numpy = "^1.25.2"
-lxml = "^4.9.3"
+lxml = "^5.0.0"
 
 [tool.poetry.dev-dependencies]
 
