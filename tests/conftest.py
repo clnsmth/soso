@@ -1,7 +1,8 @@
 """Configure the test suite."""
 
+
 import socket
-from typing import Any, Type
+from typing import Any, Type, Union
 from urllib.parse import urlparse
 from numbers import Number
 from copy import deepcopy
@@ -19,21 +20,23 @@ def strategy_names() -> list:
 
 
 @pytest.fixture(params=[EML])
-def strategy_instance(request) -> Type:
+def strategy_instance(request) -> Union[Type, None]:
     """
     :returns: The strategy instances.
     """
+    res = None
     if request.param is EML:
         res = request.param(file=get_example_metadata_file_path("EML"))
     return res
 
 
 @pytest.fixture(params=[EML])
-def strategy_instance_no_meta(request) -> Type:
+def strategy_instance_no_meta(request) -> Union[Type, None]:
     """
     :returns:   The strategy instances parameterized with an empty metadata
                 file. This is useful for testing negative cases.
     """
+    res = None
     if request.param is EML:
         res = request.param(file=get_empty_metadata_file_path("EML"))
     return res

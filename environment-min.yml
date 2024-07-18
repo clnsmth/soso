@@ -10,4 +10,9 @@ dependencies:
   - pylint
   - black
   - requests
+  - pytest-cov
+  - sphinx
+  - sphinx-autoapi
+  - myst-parser
+  - python-semantic-release
 prefix: /opt/miniconda3/envs/soso-test
