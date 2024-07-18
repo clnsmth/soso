@@ -68,6 +68,7 @@ shellingham==1.5.4
 six==1.16.0
 smmap==5.0.0
 snowballstemmer==2.2.0
+soso==0.0.0
 Sphinx==7.4.5
 sphinx-autoapi==3.0.0
 sphinxcontrib-applehelp==1.0.8

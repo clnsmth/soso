@@ -114,4 +114,6 @@ dependencies:
   - zipp=3.19.2
   - zstandard=0.23.0
   - zstd=1.5.6
+  - pip:
+      - soso==0.0.0
 prefix: /opt/miniconda3/envs/soso-test
