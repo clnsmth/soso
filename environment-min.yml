@@ -1,4 +1,4 @@
-name: soso
+name: soso-test
 channels:
   - conda-forge
   - defaults
@@ -9,4 +9,5 @@ dependencies:
   - pytest
   - pylint
   - black
+  - requests
 prefix: /opt/miniconda3/envs/soso-test

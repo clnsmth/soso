@@ -1,4 +1,5 @@
 """Configure the test suite."""
+
 import socket
 from typing import Any, Type
 from urllib.parse import urlparse
