@@ -9,7 +9,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-pyshacl = "^0.23.0"
+pyshacl = "^0.26.0"
 lxml = "^5.0.0"
 
 [tool.poetry.dev-dependencies]
