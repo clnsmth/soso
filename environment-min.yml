@@ -6,4 +6,7 @@ dependencies:
   - python=3.11
   - pyshacl
   - lxml
+  - pytest
+  - pylint
+  - black
 prefix: /opt/miniconda3/envs/soso-test
