@@ -4,7 +4,6 @@ channels:
   - defaults
 dependencies:
   - python=3.11
-  - lxml
   - pyshacl
-  - numpy
-prefix: /opt/miniconda3/envs/soso
+  - lxml
+prefix: /opt/miniconda3/envs/soso-test
