@@ -148,7 +148,7 @@ def test_convert_single_date_time_type_returns_expected_type():
     assert isinstance(res, dict)
 
     # If the "alternativeTimeScale" element is not present, the function will
-    # return a string.
+    # return a string. Add text for test merge.
     xml_content = """
     <root>
         <calendarDate>2019-01-01</calendarDate>
