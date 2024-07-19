@@ -1,4 +1,4 @@
-name: soso-test
+name: soso
 channels:
   - conda-forge
   - defaults
