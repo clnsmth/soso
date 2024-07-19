@@ -1,4 +1,5 @@
 """The strategy interface module."""
+
 from typing import Any
 
 

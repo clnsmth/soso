@@ -1,10 +1,18 @@
-name: soso
+name: soso-test
 channels:
   - conda-forge
   - defaults
 dependencies:
   - python=3.11
-  - lxml
   - pyshacl
-  - numpy
-prefix: /opt/miniconda3/envs/soso
+  - lxml
+  - pytest
+  - pylint
+  - black
+  - requests
+  - pytest-cov
+  - sphinx
+  - sphinx-autoapi
+  - myst-parser
+  - python-semantic-release
+prefix: /opt/miniconda3/envs/soso-test
