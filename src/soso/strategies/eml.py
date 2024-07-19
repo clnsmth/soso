@@ -410,9 +410,9 @@ def convert_single_date_time_type(
         SingleDateTimeType element represents a geologic age, otherwise it
         represents a calendar date and/or time.
     """
-    if not single_date_time:
+    if single_date_time is None:
         return None
-    if not single_date_time.xpath(".//alternativeTimeScale"):
+    if single_date_time.xpath(".//alternativeTimeScale") is None:
         calendar_date = single_date_time.findtext(".//calendarDate")
         time = single_date_time.findtext(".//time")
         instant = (
