@@ -13,6 +13,8 @@ class EML(StrategyInterface):
     Attributes:
         file:   The path to the metadata file. This should be an XML file in
                 EML format.
+        schema_version: The version of the EML schema used in the metadata
+            file.
         kwargs:   Additional keyword arguments for handling unmappable
                     properties. See the Notes section below for details.
 
@@ -48,6 +50,7 @@ class EML(StrategyInterface):
             raise ValueError(file + " must be an XML file.")
         super().__init__(metadata=etree.parse(file))
         self.file = file
+        self.schema_version = get_schema_version(self.metadata)
         self.kwargs = kwargs
 
     def get_name(self) -> Union[str, None]:
@@ -715,3 +718,16 @@ def get_contributor_elements(metadata: etree.ElementTree) -> Union[list, None]:
         for item in metadata.xpath(xpath):
             contributors.append(item)
     return contributors
+
+
+def get_schema_version(metadata: etree.ElementTree) -> str:
+    """
+    :param metadata:    The EML metadata object as an XML tree.
+
+    :returns:   The version of the EML schema used in the metadata record.
+    """
+    name_space = metadata.getroot().nsmap.get("eml", None)
+    if name_space is None:
+        return None
+    schema_version = name_space.split("/eml-")[-1]
+    return schema_version

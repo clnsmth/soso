@@ -17,6 +17,11 @@ def test_interface_has_file_attribute():
     assert hasattr(StrategyInterface(), "file")
 
 
+def test_interface_has_schema_version_attribute():
+    """Test that the StrategyInterface class has a schema_version attribute."""
+    assert hasattr(StrategyInterface(), "schema_version")
+
+
 def test_interface_has_kwargs_attribute():
     """Test that the StrategyInterface class has a kwargs attribute."""
     assert hasattr(StrategyInterface(), "kwargs")

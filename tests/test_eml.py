@@ -19,8 +19,9 @@ from soso.strategies.eml import (
     EML,
     get_methods,
     get_checksum,
+    get_schema_version,
 )
-from soso.utilities import get_example_metadata_file_path
+from soso.utilities import get_example_metadata_file_path, get_empty_metadata_file_path
 
 
 def test_get_content_url_returns_expected_value():
@@ -720,3 +721,14 @@ def test_eml_file_input_must_be_xml():
         EML(file=not_xml)
     except ValueError as error:
         assert "must be an XML file" in str(error)
+
+
+def test_get_schema_version_returns_expected_value():
+    """Test that the get_schema_version function returns the expected value."""
+    # Positive case: The function will return the schema version of the EML file.
+    eml = etree.parse(get_example_metadata_file_path("EML"))
+    assert get_schema_version(eml) == "2.2.0"
+    # Negative case: If the schema version is not present, the function will
+    # return None.
+    eml = etree.parse(get_empty_metadata_file_path("EML"))
+    assert get_schema_version(eml) is None

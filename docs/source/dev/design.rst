@@ -19,7 +19,8 @@ Currently, most repositories have their own implementations, however, a shared i
 
 Functional design requirements we considered in the development of this application:
 
-* Convert any metadata standards to SOSO.
+* Convert any metadata standard to SOSO.
+* Handle various schema versions within supported metadata standards.
 * Test against a consistent set of criteria.
 * Customizable to enable unique use cases.
 
@@ -128,6 +129,18 @@ The test suite utilizes the strategy design pattern to implement a standardized 
 Setting up tests for a new strategy requires only creating a strategy instance, essentially a metadata record read into the strategy module, and running through each method test in the `test_strategies.py` module. To test negative cases, an empty metadata record is used. This helps ensure that strategy methods correctly handle scenarios where the metadata record lacks content.
 
 Strategy-specific utility functions are tested in their own test suite module named `test_[strategy].py`. General utility functions used across different strategies are tested in `test_utilities.py`.
+
+Schema Versioning
+-----------------
+
+To ensure compatibility with multiple versions of supported metadata standards, this application employs a schema version handling mechanism. During conversion:
+
+* The application parses the schema version information directly from the metadata record itself.
+* This extracted information is then stored as an attribute within the conversion strategy.
+* Conversion methods for individual properties can access this schema version attribute allowing the flow control logic within the conversion process to leverage the schema version.
+* Based on the identified version, the logic applies specific processing rules for each property.
+
+This approach ensures that even backward-incompatible changes introduced between schema versions are handled gracefully, maintaining overall conversion success.
 
 Customization
 -------------
