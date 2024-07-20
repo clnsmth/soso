@@ -38,6 +38,12 @@ def test_strategy_reads_metadata(strategy_instance):
     assert strategy_instance.metadata is not None
 
 
+def test_strategy_reads_schema_version(strategy_instance, strategy_instance_no_meta):
+    """Test that each strategy reads the metadata schema version."""
+    assert isinstance(strategy_instance.schema_version, str)
+    assert strategy_instance_no_meta.schema_version is None
+
+
 # SOSO properties are not universally shared across metadata dialects. In cases
 # where a property is not available, the corresponding strategy method will
 # return None. Therefore, each method test below first checks if the return

@@ -15,6 +15,9 @@ class StrategyInterface:
         file:
             The path to the metadata file.
 
+        schema_version:
+            The version of the metadata schema.
+
         kwargs:
             Additional keyword arguments for passing information to the chosen
             `strategy`. This can help in the case of unmappable properties.
@@ -22,10 +25,17 @@ class StrategyInterface:
             information.
     """
 
-    def __init__(self, metadata: Any = None, file: str = None, **kwargs: dict):
+    def __init__(
+        self,
+        metadata: Any = None,
+        file: str = None,
+        schema_version: str = None,
+        **kwargs: dict
+    ):
         """Return the strategy attributes."""
         self.metadata = metadata
         self.file = file
+        self.schema_version = schema_version
         self.kwargs = kwargs
 
     def get_name(self):
