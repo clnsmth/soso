@@ -19,10 +19,9 @@ Currently, most repositories have their own implementations, however, a shared i
 
 Functional design requirements we considered in the development of this application:
 
-* Convert any metadata standard to SOSO.
+* Support a wide range of metadata standards for conversion to SOSO format.
 * Handle various schema versions within supported metadata standards.
-* Test against a consistent set of criteria.
-* Customizable to enable unique use cases.
+* Offer customization options to accommodate unique use cases.
 
 Non-functional design requirements we considered:
 
