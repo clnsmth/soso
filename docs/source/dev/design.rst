@@ -93,15 +93,14 @@ We've categorized mapping predicates into two cases to expedite definition pinpo
 * `skos:exactMatch`: Definitions and types match precisely.
 
 Sometimes, the object is a constant value specified by mapping set curators, forming an exact match by fiat.
-Additionally, if the object is composed of multiple parts needing assembly in a specific way to match the subject definition and type, it's acceptable.
+
+If the object type can be transformed to form a `skos:exactMatch` with the subject type using a strategy’s conversion method, treat these types as identical for implementation purposes. However, do not declare them as a `skos:exactMatch` in the SSSOM file. Instead, add a note to the `comment` field in the SSSOM file to inform developers and maintainers.
 
 **When Definitions Don't Match**: Use these predicates:
 
 * `skos:closeMatch`: Definition doesn't match, but is close (refer to SSSOM guidelines for clarification). Object type may or may not match.
-* `skos:relatedMatch`: Definition doesn't match, but broadly aligns with an analogous concept in a different category (refer to SSSOM guidelines for clarification), and the object type doesn't match.
+* `skos:relatedMatch`: Definition doesn't match, but broadly aligns with an analogous concept in a different category (refer to SSSOM guidelines for clarification), and the object type may or may not match.
 * `sssom:NoMapping`: No match found for any of the listed types.
-
-If the object type can be transformed to form an exact match with the subject type using a strategy’s conversion method, treat these types as identical for implementation purposes. However, do not declare them as an exact match in the SSSOM file. Instead, add a note to the "comment" field in the SSSOM file to inform developers and maintainers.
 
 For any inquiries, please reach out. Mapping work is fun but can be challenging!
 
@@ -112,8 +111,8 @@ This section outlines the conditions for implementing a metadata mapping between
 
 **Conditions for Implementing a Metadata Mapping**
 
-* **Exact Match**: The subject and object values in the mapping perfectly align.
-* **Transformable Match**: The object value in the mapping can be transformed to achieve an exact match with the subject value through defined logic within the code.
+* **Exact Match**: The subject and object values in the mapping form an exact match.
+* **Transformable Match**: The object value(s) in the mapping can be transformed to achieve a `skos:exactMatch` with the subject value through defined logic within the code. For example, if the object is composed of multiple parts needing assembly in a specific way to match the subject definition and type, during implementation, consider it a `skos:exactMatch`.
 
 **What to Avoid**
 
