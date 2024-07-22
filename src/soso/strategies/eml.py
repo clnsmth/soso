@@ -117,8 +117,6 @@ class EML(StrategyInterface):
                 "measurementTechnique": get_methods(item),
                 "unitText": item.findtext(".//standardUnit")
                 or item.findtext(".//customUnit"),
-                "minValue": item.findtext(".//minimum"),
-                "maxValue": item.findtext(".//maximum"),
             }
             property_value = {
                 key: value for key, value in property_value.items() if value is not None
@@ -434,16 +432,16 @@ def convert_single_date_time_type(
             "@type": "time:Instant",
             "time:inTimePosition": {
                 "@type": "time:TimePosition",
+                "time:hasTRS": {
+                    "@type": "xsd:string",
+                    "value": single_date_time.findtext(".//timeScaleName"),
+                },
                 "time:numericPosition": {
                     "@type": "xsd:decimal",
                     "value": numeric_position,
                 },
             },
             "gstime:uncertainty": {"@type": "xsd:decimal", "value": uncertainty},
-            "time:hasTRS": {
-                "@type": "xsd:string",
-                "value": single_date_time.findtext(".//timeScaleName"),
-            },
         }
     return instant
 
