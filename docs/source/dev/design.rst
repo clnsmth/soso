@@ -74,9 +74,9 @@ Before committing any changes to SSSOM files, it's a good practice to thoroughly
 Predicate Mapping Guidelines
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Our predicate mapping guidelines are based on the `SSSOM guidelines`_, expanding to provide direction for our specific application context. In addition to the SSSOM guidelines, two key factors inform the selection of a mapping predicate: property definition and property type.
+`SSSOM guidelines`_ form the basis of our predicate mapping guidelines. However, we broaden property definitions to include their data types, not only their descriptions. We do this because data types matter to JSON-LD parsers and Schema.org semantics. Therefore, two key factors inform the selection of a mapping predicate: property definition and property type.
 
-**Definitions**: Definitions represent the underlying semantic meaning of a property, discerned by understanding the definitions of the properties being mapped, while considering any relevant context that may influence interpretation.
+**Definitions**: Definitions represent the underlying semantic meaning of a property, discerned by understanding the definitions of the properties being mapped.
 
 **Types**: Types denote the data types in which properties are expressed. Types often adhere to a hierarchy, for example:
 
@@ -84,41 +84,31 @@ Our predicate mapping guidelines are based on the `SSSOM guidelines`_, expanding
 * Text > Numeric > xsd:decimal (e.g., Text is broader than Numeric, and Numeric is broader than xsd:decimal)
 * schema:Date > schema:DateTime (e.g., schema:Date is broader than schema:DateTime)
 
-We've categorized mapping predicates into two cases to expedite definition pinpointing.
+It's important to note that Schema.org properties can accept a range of data types. However, SOSO provides recommendations for these data types, categorized as "preferred" and "acceptable." When mapping data to SOSO, prioritize using the "preferred" data type whenever possible, and fall back to "acceptable" types only if necessary.
+
+We've categorized mapping predicates into two groups to expedite definition selection.
 
 **When Definitions Match**: Consider these predicates:
 
-* `skos:broadMatch`: Definitions match, but object type is broader.
-* `skos:narrowMatch`: Definitions match, but object type is narrower.
 * `skos:exactMatch`: Definitions and types match precisely.
-
-Sometimes, the object is a constant value specified by mapping set curators, forming an exact match by fiat.
-Additionally, if the object is composed of multiple parts needing assembly in a specific way to match the subject definition and type, it's acceptable.
+* `skos:narrowMatch`: Definitions match, but object type is narrower.
+* `skos:broadMatch`: Definitions match, but object type is broader.
 
 **When Definitions Don't Match**: Use these predicates:
 
-* `skos:closeMatch`: Definition doesn't match, but is close (refer to SSSOM guidelines for clarification). Object type may or may not match.
-* `skos:relatedMatch`: Definition doesn't match, but broadly aligns with an analogous concept in a different category (refer to SSSOM guidelines for clarification), and the object type doesn't match.
-* `sssom:NoMapping`: No match found for any of the listed types.
-
-If the object type can be transformed to form an exact match with the subject type using a strategy’s conversion method, treat these types as identical for implementation purposes. However, do not declare them as an exact match in the SSSOM file. Instead, add a note to the "comment" field in the SSSOM file to inform developers and maintainers.
-
-For any inquiries, please reach out. Mapping work is fun but can be challenging!
+* `skos:closeMatch`: Definitions don't match, but are close. Object type may or may not match.
+* `skos:relatedMatch`: Definitions don't match, but broadly align with an analogous concept in a different category. Object type may or may not match.
+* When a mapping can't be established, use `skos:exactMatch` for the property value and `sssom:NoMapping` for the object value.
 
 Mapping Implementation
 ~~~~~~~~~~~~~~~~~~~~~~
 
-This section outlines the conditions for implementing a metadata mapping between a metadata standard and SOSO in code. Our goal is to maintain the fidelity of the semantic information within the metadata by ensuring an exact match between the two schemas.
+This section outlines the conditions for implementing a mapping in code. Our goal is to maintain the fidelity of the semantic information within the metadata by ensuring an exact match between the two schemas.
 
 **Conditions for Implementing a Metadata Mapping**
 
-* **Exact Match**: The subject and object values in the mapping perfectly align.
-* **Transformable Match**: The object value in the mapping can be transformed to achieve an exact match with the subject value through defined logic within the code.
-
-**What to Avoid**
-
-Mappings relying on broader predicate matches (less specific than exact matches) should not be implemented in code. This helps to avoid potential inconsistencies and loss of information.
-
+* **Exact Match**: The subject and object values in the mapping form a `skos:exactMatch` as defined in the SSSOM file.
+* **Transformable Match**: The subject and object values in the mapping form a `skos:narrowMatch` or `skos:broadMatch` but the object value(s) can be transformed to achieve a `skos:exactMatch`. Note, in such cases, do not declare them as a `skos:exactMatch` in the SSSOM file, instead, add a note to the `comment` field to alert developers.
 
 Testing
 -------
