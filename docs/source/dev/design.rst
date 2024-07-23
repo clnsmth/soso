@@ -27,9 +27,10 @@ Non-functional design requirements we considered:
 
 * The application should be intuitive for novice users.
 * Meets performance requirements for batch conversion or real-time updates of metadata records in data repositories.
+* Test each conversion strategy against a consistent set of pre-defined criteria.
 
-Strategy Pattern
-----------------
+Architecture
+------------
 
 The system architecture implements the `Strategy Pattern`_, a behavioral design pattern that allows us to define a set of algorithms for converting metadata, encapsulate each one, and make them interchangeable. This pattern enables the client code to choose an algorithm or strategy at runtime without needing to know the details of each algorithm's implementation. This flexibility applies not only to metadata conversion but also to a test interface implementing a consistent set of checks.
 
@@ -48,7 +49,7 @@ Implementation Overview:
 
 With this pattern, new support for metadata standards or versions can be easily added as strategy modules without modifying the client code or test suite.
 
-Users typically define workflows that iterate over a series of metadata files. For each file, along with its corresponding strategy and any unmappable properties expressed as `kwargs`, users invoke `main.convert`, which then returns a SOSO record.
+Users typically define workflows that iterate over a series of metadata files. For each file, along with its corresponding strategy and any unmappable properties expressed as `kwargs`, users invoke `convert`, which then returns a SOSO record.
 
 .. image:: sequence_diagram.png
    :alt: Strategy Pattern
@@ -62,14 +63,16 @@ We utilize the `Simple Standard for Sharing Ontological Mappings`_ (SSSOM) for s
 
 We apply SSSOM following `SSSOM guidelines`_, with some nuanced additions tailored to our project's needs. One such addition is the inclusion of a `subject_category` column, which aids in grouping and improving the readability of highly nested `subject_id` values. Additionally, we've formatted `subject_id` values using an arbitrary hierarchical path-like expression, enhancing clarity for the reader in understanding which property is being referenced. Note, while this path is human-readable, it is not machine-actionable.
 
-Beyond these general differences, each metadata standard's mapping may have unique nuances that should be considered. These are documented in each metadata standard's SSSOM .yml file, located in the `src/soso/data/` directory.
+Beyond these general differences, each metadata standard's mapping may have unique nuances that should be considered. These are documented in each metadata standard's SSSOM.yml file, located in the `src/soso/data/` directory.
 
-Creating or updating a metadata standard's SSSOM files involves subjectively mapping properties. To mitigate subjectivity, we've established a set of mapping guidelines (see below). Additionally, we recommend having a second set of eyes review any mapping work to identify potential biases or misunderstandings. The original mapping creator is listed in the SSSOM and can serve as a helpful reference for clarification.
+Creating or updating a metadata standard's SSSOM files involves subjectively mapping properties. To mitigate subjectivity, we've established a set of :ref:`predicate-mapping-guidelines`. Additionally, we recommend having a second set of eyes review any mapping work to identify potential biases or misunderstandings. The original mapping creator is listed in the SSSOM and can serve as a helpful reference for clarification.
 
 Before committing any changes to SSSOM files, it's a good practice to thoroughly review them to ensure unintended alterations haven't been made to other parts of the SSSOM files. Given the file's extensive information and nuanced formatting, careful attention to detail is important.
 
-.. _Simple Standard for Sharing Ontological Mappings: https://mapping-commons.github.io/sssom/about/
+.. _Simple Standard for Sharing Ontological Mappings: https://mapping-commons.github.io/sssom/
 .. _SSSOM guidelines: https://mapping-commons.github.io/sssom/mapping-predicates/
+
+.. _predicate-mapping-guidelines:
 
 Predicate Mapping Guidelines
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -113,7 +116,7 @@ This section outlines the conditions for implementing a mapping in code. Our goa
 Testing
 -------
 
-The test suite utilizes the strategy design pattern to implement a standardized set of checks that all strategies must undergo (`tests/test_strategies.py`). It verifies that returned property values (resource types and data types) adhere to SOSO conventions. It ensures that null values (e.g., `""` for strings) or containers (e.g., `[]` for lists) are not returned, thereby reducing the accumulation of detritus in the resultant SOSO record. Additionally, verification tests against snapshots of full SOSO records help check the consistency of inputs and outputs produced by the system (`tests/test_main.py`).
+The test suite utilizes the strategy design pattern to implement a standardized set of checks that all strategies must undergo (`tests/test_strategies.py`). It verifies that returned property values (resource types and data types) adhere to SOSO conventions. It ensures that null values (e.g., `""`) or containers (e.g., `[]`) are not returned, thereby reducing the accumulation of detritus in the resultant SOSO record. Additionally, verification tests against snapshots of full SOSO records help check the consistency of inputs and outputs produced by the system (`tests/test_main.py`).
 
 Setting up tests for a new strategy requires only creating a strategy instance, essentially a metadata record read into the strategy module, and running through each method test in the `test_strategies.py` module. To test negative cases, an empty metadata record is used. This helps ensure that strategy methods correctly handle scenarios where the metadata record lacks content.
 
@@ -122,12 +125,12 @@ Strategy-specific utility functions are tested in their own test suite module na
 Schema Versioning
 -----------------
 
-To ensure compatibility with multiple versions of supported metadata standards, this application employs a schema version handling mechanism. During conversion:
+To ensure compatibility with multiple versions of supported metadata standards, `soso` employs a schema version handling mechanism. During conversion:
 
-* The application parses the schema version information directly from the metadata record itself.
-* This extracted information is then stored as an attribute within the conversion strategy.
-* Conversion methods for individual properties can access this schema version attribute allowing the flow control logic within the conversion process to leverage the schema version.
-* Based on the identified version, the logic applies specific processing rules for each property.
+* The conversion strategy parses the schema version information directly from the metadata record itself.
+* This extracted information is then stored as an attribute within the strategy.
+* Conversion methods for individual properties can access this attribute allowing the flow control logic within the conversion process to leverage the schema version.
+* Based on the identified version, the logic applies specific processing rules.
 
 This approach ensures that even backward-incompatible changes introduced between schema versions are handled gracefully, maintaining overall conversion success.
 
@@ -139,7 +142,7 @@ The Strategy Pattern employed in our application enables a high degree of user c
 * Properties that don’t map from a metadata standard but require external data, such as dataset landing page URLs.
 * Properties requiring custom processing due to community-specific application of metadata standards.
 
-These cases can be addressed by providing information as `kwargs` to the main.convert function, which overrides properties corresponding to `kwargs` key names, or by modifying existing strategy methods through method overrides. For further details, refer to the user :ref:`quickstart`.
+These cases can be addressed by providing information as `kwargs` to the convert function, which overrides properties corresponding to `kwargs` key names, or by modifying existing strategy methods through method overrides. For further details, refer to the user :ref:`quickstart`.
 
 Setting Up a New Metadata Conversion Strategy
 ---------------------------------------------
@@ -186,7 +189,7 @@ Steps:
 
 8. **Verification Tests:**
 
-  * Add a snapshot of the expected SOSO record generated by `main.convert` to `tests/data/` for verification tests.
+  * Add a snapshot of the expected SOSO record generated by `convert` to `tests/data/` for verification tests.
 
 9. **Testing:**
 
@@ -208,4 +211,4 @@ Before settling on the Strategy Pattern as the design for this project, we consi
 
 The benefits of the JSON-LD Framing approach include ease of extension to other metadata standards through the creation of new crosswalks and simplified maintenance, as modifications are primarily made to the crosswalk file. However, this approach has its downsides. Some metadata standards cannot be serialized to JSON-LD, necessitating additional custom code. Additionally, when dealing with metadata standards with nested properties, framing results in information loss, as framing works best for flat sets of properties.
 
-Ultimately, we determined that the potential loss of information during conversion outweighed the benefits of simplified maintenance. Furthermore, it was not evident that JSON-LD Framing offered a less complex solution compared to the Strategy Pattern.
+Ultimately, we determined that the potential loss of information during conversion outweighed the benefits of simplified maintenance.

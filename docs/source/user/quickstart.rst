@@ -29,7 +29,7 @@ The primary function is to convert metadata records into SOSO markup. To perform
     >>> r
     '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
 
-For a list of available strategies, please refer to the documentation of the `main.convert` function.
+For a list of available strategies, please refer to the documentation of the `convert` function.
 
 
 Adding Unmappable Properties
@@ -165,14 +165,14 @@ The `soso` package is designed to be both flexible and extensible. By following 
             return r
 
 
-If you have any questions or need help, please don't hesitate to reach out to us.
+If you have any questions or need help, please don't hesitate to reach out.
 
 Notes
 -----
 
 **Adding Vocabularies**
 
-The `main.convert` function only recognizes vocabularies that are specified within its implementation. You can view the source code for more details on these vocabularies. If you add additional vocabularies to a SOSO graph using property overwrites and method overrides, these vocabularies will have to be defined within an embedded context.
+The `convert` function only recognizes vocabularies that are specified within its implementation. You can view the source code for more details on these vocabularies. If you add additional vocabularies to a SOSO graph using property overwrites and method overrides, these vocabularies will have to be defined within an embedded context.
 
 **Leverage Partial Property Method Implementations**
 

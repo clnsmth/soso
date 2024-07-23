@@ -42,7 +42,7 @@ Here are a sequence of steps to help with your code contribution:
 3. Install the package by running ``poetry install`` at the command line.
 4. Verify that all tests pass on your system by running ``poetry run pytest`` at the command line. In case of failures, conduct a thorough investigation. If you require assistance in diagnosing the issue, follow the guidelines for filing :ref:`bug-reports`.
 5. Construct test cases that effectively illustrate the bug or feature.
-6. Implement your changes, including any relevant documentation updates following our :ref:`documentation-contributions` fguidelines.
+6. Implement your changes, including any relevant documentation updates following our :ref:`documentation-contributions` guidelines.
 7. Re-run the complete test suite to ensure the success of all tests.
 8. Format and analyze your code according to our :ref:`code-format-and-analysis` guidelines.
 9. Ensure the docs build following the :ref:`documentation-contributions` guidelines.
@@ -115,6 +115,6 @@ If you are proposing a feature, please use the `Feature request`_ issue template
 Commit Messages
 ---------------
 
-Commit messages are incredibly valuable for understanding our project's code. When crafting your commit message, please provide context about the changes being made and the reasons behind the chosen implementation.
+Commit messages are incredibly valuable for understanding our project's code. When crafting your commit message, please provide context about the changes being made and the reasons behind them.
 
 To ensure readability, we recommend to keep the commit message header under 52 characters and the body within 72 characters.
