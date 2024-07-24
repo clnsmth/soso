@@ -3,7 +3,7 @@
 Quickstart
 ==========
 
-Welcome to the Quickstart guide! Whether you're a beginner or experienced developer, this guide helps you install our package, set up dependencies, and explore core functionalities.
+Welcome to the Quickstart guide! Whether you're a beginner or experienced developer, this guide helps you install the package, set up dependencies, and explore core functionalities.
 
 Installation
 ------------
