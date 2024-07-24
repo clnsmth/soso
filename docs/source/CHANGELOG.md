@@ -2,7 +2,7 @@
 
 ## Release Process and Guidelines
 
-In our project, we adhere to the principles of [Semantic Versioning](http://semver.org/) when it comes to our releases. By following this release process, we ensure the orderly progression of our project while maintaining compatibility and providing necessary bug fixes and improvements.
+This project follows the principles of [Semantic Versioning](http://semver.org/) for releases. This helps us maintain an orderly progression to the project while maintaining compatibility and providing necessary bug fixes and improvements.
 
 *Major Releases*: A major release introduces significant changes, including those that break compatibility with previous versions. These releases are identified with a version number in the format of `X.0.0`. For instance, if the previous release was `1.2.7`, the next major version will be labeled as `2.0.0`.
 

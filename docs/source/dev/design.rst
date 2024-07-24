@@ -3,7 +3,7 @@
 Project Design
 ==============
 
-Welcome to the design document for our project! This document provides an in-depth overview of the architectural design, key components, and design principles behind our work. It aims to enhance your understanding of our project's design philosophy and empower you to contribute effectively.
+Welcome to the design document for `soso`! This document provides an in-depth overview of the architectural design, key components, and design principles behind our work. It aims to enhance your understanding of our project's design philosophy and empower you to contribute effectively.
 
 We encourage you to explore this document and reach out with any questions or suggestions. Your feedback is invaluable as we continuously improve and evolve our project.
 
@@ -61,7 +61,7 @@ Metadata Mapping
 
 We utilize the `Simple Standard for Sharing Ontological Mappings`_ (SSSOM) for semantic mapping metadata standards to SOSO. SSSOM provides a framework for expressing the match precision and other essential information to guide developer implementations.
 
-We apply SSSOM following `SSSOM guidelines`_, with some nuanced additions tailored to our project's needs. One such addition is the inclusion of a `subject_category` column, which aids in grouping and improving the readability of highly nested `subject_id` values. Additionally, we've formatted `subject_id` values using an arbitrary hierarchical path-like expression, enhancing clarity for the reader in understanding which property is being referenced. Note, while this path is human-readable, it is not machine-actionable.
+We apply SSSOM following `SSSOM guidelines`_, with some nuanced additions tailored to the project's needs. One such addition is the inclusion of a `subject_category` column, which aids in grouping and improving the readability of highly nested `subject_id` values. Additionally, we've formatted `subject_id` values using an arbitrary hierarchical path-like expression, enhancing clarity for the reader in understanding which property is being referenced. Note, while this path is human-readable, it is not machine-actionable.
 
 Beyond these general differences, each metadata standard's mapping may have unique nuances that should be considered. These are documented in each metadata standard's SSSOM.yml file, located in the `src/soso/data/` directory.
 
@@ -137,12 +137,14 @@ This approach ensures that even backward-incompatible changes introduced between
 Customization
 -------------
 
-The Strategy Pattern employed in our application enables a high degree of user customization to solve common challenges:
+The Strategy Pattern employed in this application enables a high degree of user customization to solve common challenges:
 
 * Properties that don’t map from a metadata standard but require external data, such as dataset landing page URLs.
 * Properties requiring custom processing due to community-specific application of metadata standards.
 
 These cases can be addressed by providing information as `kwargs` to the convert function, which overrides properties corresponding to `kwargs` key names, or by modifying existing strategy methods through method overrides. For further details, refer to the user :ref:`quickstart`.
+
+.. _setting-up-a-new-metadata-conversion-strategy:
 
 Setting Up a New Metadata Conversion Strategy
 ---------------------------------------------

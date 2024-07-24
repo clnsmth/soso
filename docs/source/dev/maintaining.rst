@@ -5,12 +5,12 @@ Maintainers Guide
 
 Many thanks for your help maintaining our project! Without your contribution, development would be considerably slower and the user community left waiting longer.
 
-This document complements the `Contributor's Guide <contributing.html>`_ by providing additional steps for integrating contributions into our project's code base. As a maintainer, you are also a contributor, so please use the contributor guide when making changes in order to keep the development process open and consistent (note :ref:`developing-features-as-a-maintainer`).
+This document complements the `Contributor's Guide <contributing.html>`_ by providing additional steps for integrating contributions into the project's code base. As a maintainer, you are also a contributor, so please use the contributor guide when making changes in order to keep the development process open and consistent (note :ref:`developing-features-as-a-maintainer`).
 
 Be Courteous
 ------------
 
-Sometimes we need to meet contributors halfway. This means more work on our part but for benefit of our project and community. Please be courteous and patient.
+Sometimes we need to meet contributors halfway. This means more work on our part but for benefit of the project and community. Please be courteous and patient.
 
 If you are unable to respond fully to a pull request or issue in a timely manner, please let the contributor know that you will get to it as soon as you can.
 
@@ -158,7 +158,7 @@ CI Workflow
 The CI workflow is run on each pull request and push to the `development` and `main` branches. It performs the following steps:
 
 1. Formats code in *src/* and *tests/* using `Black`_. This check is strictly enforced and will fail the workflow.
-2. Analyzes code in *src/* and *tests/* using our project's `Pylint`_ configuration (see :ref:`code-format-and-analysis`). This check is not strictly enforced and will not fail the workflow. However, generally, Pylint recommendations should be followed.
+2. Analyzes code in *src/* and *tests/* using the project's `Pylint`_ configuration (see :ref:`code-format-and-analysis`). This check is not strictly enforced and will not fail the workflow. However, generally, Pylint recommendations should be followed.
 3. Runs tests in *tests/* using `Pytest`_. This check is strictly enforced and will fail the workflow.
 4. Builds the documentation (see :ref:`documentation-contributions`). This check is strictly enforced and will fail the workflow.
 
