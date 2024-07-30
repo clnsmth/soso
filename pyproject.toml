@@ -26,7 +26,7 @@ black = "^24.0.0"
 python-semantic-release = "^9.0.0"
 
 [tool.semantic_release]
-version_variable = "pyproject.toml:version" # version location
+version_toml = ["pyproject.toml:tool.poetry.version"] # version location
 branch = "convert"                             # branch to make releases of
 changelog_file = "docs/source/CHANGELOG.md" # changelog file
 build_command = "poetry build"              # build dists
