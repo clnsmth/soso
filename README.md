@@ -6,15 +6,33 @@
 
 For creating [Science On Schema.Org](https://github.com/ESIPFed/science-on-schema.org) (SOSO) markup in dataset landing pages to improve data discovery through search engines.
 
-[TODO: Include brief demonstration of how to use this package.]
-
 ## Installation
 
-Install the current release from GitHub.
+Currently, `soso` is only available on GitHub.  To install it, you need to have [pip](https://pip.pypa.io/en/stable/installation/) installed. Once pip is installed, you can install `soso` by running the following command in your terminal:
 
-```bash
-pip install git+https://github.com/clnsmth/soso.git#egg=soso
-```
+    $ pip install git+https://github.com/clnsmth/soso.git@main
+
+## Metadata Conversion
+
+The primary function is to convert metadata records into SOSO markup. To perform a conversion, specify the file path of the metadata and the desired conversion strategy. Each metadata standard corresponds to a specific strategy.
+
+    >>> from soso.main import convert
+    >>> r = convert(file='metadata.xml', strategy='EML')
+    >>> r
+    '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
+
+Some SOSO properties may not be derived from metadata records alone. In such cases, additional information can be provided via `kwargs`, where keys match the property name, and values are the property value.
+
+For example, the `url` property representing the landing page URL does not exist in an EML metadata record. But this information is known to the repository hosting the dataset.
+
+    >>> kwargs = {'url': 'https://sample-data-repository.org/dataset/472032'}
+    >>> r = convert(file='metadata.xml', strategy='EML', **kwargs)
+    >>> r
+    '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
+
+It's worth noting that this `kwargs` approach is not limited to supplying unmappable properties; it can be utilized to override any top-level SOSO property.
+
+Unmappable properties are listed in the strategy documentation.
 
 ## API Reference and User Guide
 
