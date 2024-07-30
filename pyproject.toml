@@ -27,14 +27,17 @@ python-semantic-release = "^9.0.0"
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:tool.poetry.version"] # version location
-branch = "convert"                             # branch to make releases of
-changelog_file = "docs/source/CHANGELOG.md" # changelog file
+branch = "main"                             # branch to make releases of
 build_command = "poetry build"              # build dists
 dist_path = "dist/"                         # where to put dists
 upload_to_release = true                    # auto-convert GitHub release
 upload_to_pypi = false                      # don't auto-upload to PyPI
 remove_dist = false                         # don't remove dists
 patch_without_tag = false                    # patch release by default
+
+[tool.semantic_release.changelog]
+template_dir = "docs/source/_templates/"     # changelog template directory
+
 
 [tool.pylint.'MESSAGES.CONTROL']
 disable = "too-many-public-methods,c-extension-no-member"
