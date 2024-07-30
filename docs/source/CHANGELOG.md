@@ -219,4 +219,10 @@
 
 * Stub out codebase following a Strategy Design Pattern ([`faa473a`](https://github.com/clnsmth/soso/commit/faa473abf6dd8397bb193c6e000a3f555e12b8a9))
 
+
+## v0.0.0 (2024-07-29)
+
+
+### Unknown
+
 * Initialize git repository ([`ecbb794`](https://github.com/clnsmth/soso/commit/ecbb794a45ea989042a61f4e785ae777b0b4d048))
