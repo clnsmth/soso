@@ -53,10 +53,10 @@ jobs:
     # Test
     - name: Test with pytest
       run: poetry run pytest tests/ --cov=soso --cov-report=xml
-    - name: Use Codecov to track coverage
-      uses: codecov/codecov-action@v3
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4.0.1
       with:
-        files: ./coverage.xml   # coverage report
+        token: ${{ secrets.CODECOV_TOKEN }}
 
     # Build docs
     - name: Build documentation
