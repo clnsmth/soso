@@ -97,8 +97,6 @@ When a feature is complete and ready for integration with the project, it should
 
 If at this point, part of the feature was forgotten, don't restore the `feature branch`, rather open a new pull request on `development`, and iterate back through the contributor process.
 
-.. _merging-development-into-convert:
-
 Merging Development into Main
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
