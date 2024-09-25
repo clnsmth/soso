@@ -215,3 +215,4 @@ def test_is_url():
     """Test that a string is a URL or not"""
     assert is_url("http://purl.dataone.org/odo/ECSO_00001203") is True
     assert is_url("A free text description.") is False
+    assert is_url(None) is False
