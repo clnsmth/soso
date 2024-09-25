@@ -4,7 +4,12 @@ from mimetypes import guess_type
 from typing import Union
 from lxml import etree
 from soso.interface import StrategyInterface
-from soso.utilities import delete_null_values, limit_to_5000_characters, as_numeric
+from soso.utilities import (
+    delete_null_values,
+    limit_to_5000_characters,
+    as_numeric,
+    is_url,
+)
 
 
 class EML(StrategyInterface):
@@ -592,9 +597,12 @@ def convert_user_id(user_id: list) -> Union[dict, None]:
                 otherwise None.
     """
     if len(user_id) != 0:
+        url = user_id[0].text if is_url(user_id[0].text) else None
         property_value = {
+            "@id": url,
             "@type": "PropertyValue",
             "propertyID": user_id[0].get("directory"),
+            "url": url,
             "value": user_id[0].text,
         }
     else:
