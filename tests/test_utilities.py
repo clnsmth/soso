@@ -4,7 +4,7 @@ import warnings
 from pathlib import PosixPath
 from json import dumps
 import pytest
-from soso.utilities import validate
+from soso.utilities import validate, is_url
 from soso.utilities import get_example_metadata_file_path, get_empty_metadata_file_path
 from soso.utilities import get_shacl_file_path
 from soso.utilities import delete_null_values
@@ -209,3 +209,9 @@ def test_as_numeric():
     assert as_numeric("1.0") == 1.0
     assert as_numeric("text") is None
     assert as_numeric(None) is None
+
+
+def test_is_url():
+    """Test that a string is a URL or not"""
+    assert is_url("http://purl.dataone.org/odo/ECSO_00001203") is True
+    assert is_url("A free text description.") is False

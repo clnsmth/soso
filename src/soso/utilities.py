@@ -1,6 +1,7 @@
 """Utilities"""
 
 import urllib.error
+from urllib.parse import urlparse
 from importlib import resources
 from numbers import Number
 from json import dumps
@@ -248,3 +249,16 @@ def as_numeric(value: Any) -> Union[None, int, float]:
         except ValueError:
             numeric_value = None
     return numeric_value
+
+
+def is_url(text: str) -> bool:
+    """
+    :param text: The string to be checked.
+    :returns: True if the string is likely a URL, False otherwise.
+    :note: A string is considered a URL if it has scheme and network
+        location values.
+    """
+    res = urlparse(text)
+    if res.scheme != "" and res.netloc != "":
+        return True
+    return False
