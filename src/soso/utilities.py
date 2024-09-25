@@ -259,6 +259,6 @@ def is_url(text: str) -> bool:
         location values.
     """
     res = urlparse(text)
-    if res.scheme != "" and res.netloc != "":
+    if len(res.scheme) > 0 and len(res.netloc) > 0:
         return True
     return False
