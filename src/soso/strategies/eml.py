@@ -280,6 +280,7 @@ class EML(StrategyInterface):
                 "name": item.findtext("title"),
                 "url": item.findtext("awardUrl"),
                 "funder": {
+                    "@id": item.findtext("funderIdentifier"),
                     "@type": "Organization",
                     "name": item.findtext("funderName"),
                     "identifier": item.findtext("funderIdentifier"),
