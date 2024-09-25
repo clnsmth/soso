@@ -274,6 +274,7 @@ class EML(StrategyInterface):
         funding = []
         for item in self.metadata.xpath(".//dataset/project/award"):
             res = {
+                "@id": item.findtext("awardUrl"),
                 "@type": "MonetaryGrant",
                 "identifier": item.findtext("awardNumber"),
                 "name": item.findtext("title"),
