@@ -550,8 +550,10 @@ def test_convert_user_id_returns_value_and_type():
     root = etree.fromstring(xml_content)
     res = convert_user_id([root])  # requires element to be in a list
     assert isinstance(res, dict)
+    assert res["@id"] == "https://orcid.org/0000-0002-6091-xxxx"
     assert res["@type"] == "PropertyValue"
     assert res["propertyID"] == "ORCID"
+    assert res["url"] == "https://orcid.org/0000-0002-6091-xxxx"
     assert res["value"] == "https://orcid.org/0000-0002-6091-xxxx"
 
     # Negative case: If the "userId" element is not present, the function will
