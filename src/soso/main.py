@@ -42,6 +42,7 @@ def convert(file: str, strategy: str, **kwargs: dict) -> str:
             "ts": "http://resource.geosciml.org/vocabulary/timescale/",
             "xsd": "https://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html",
         },
+        "@id": strategy.get_id(),
         "@type": "Dataset",
         "name": strategy.get_name(),
         "description": strategy.get_description(),

@@ -38,6 +38,11 @@ class StrategyInterface:
         self.schema_version = schema_version
         self.kwargs = kwargs
 
+    def get_id(self):
+        """
+        :returns: The @id property for the dataset.
+        """
+
     def get_name(self):
         """
         :returns: A descriptive name of a dataset.

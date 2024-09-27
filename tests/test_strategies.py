@@ -52,6 +52,18 @@ def test_strategy_reads_schema_version(strategy_instance, strategy_instance_no_m
 # consistent test suite.
 
 
+@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
+def test_get_id_returns_expected_type(strategy_instance, strategy_instance_no_meta):
+    """Test that the get_id method returns the expected type."""
+    # Positive case
+    res = strategy_instance.get_id()
+    assert is_not_null(res)
+    assert is_property_type(res, ["schema:URL"])
+    # Negative case
+    res = strategy_instance_no_meta.get_id()
+    assert res is None
+
+
 def test_get_name_returns_expected_type(strategy_instance, strategy_instance_no_meta):
     """Test that the get_name method returns the expected type."""
     # Positive case
