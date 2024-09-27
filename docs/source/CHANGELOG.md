@@ -2,6 +2,35 @@
 
 
 
+## v0.2.0 (2024-09-27)
+
+
+### Ci
+
+* ci: fix code coverage report generation ([`3bed01d`](https://github.com/clnsmth/soso/commit/3bed01dd29fe28db41bdaf0b18aac7046d329485)) 
+
+### Documentation
+
+* docs: enforce `schema:URL` type for `@id` in EML strategy SSSOM ([`9a5149d`](https://github.com/clnsmth/soso/commit/9a5149dfc9ca372212c64ee4e1ec8bd17b07a5d2)) 
+* docs: update SSSOM file for EML strategy ([`97ad0b7`](https://github.com/clnsmth/soso/commit/97ad0b770b409da0e2260fba1d3ec15d7a8fa3a4)) 
+* docs: update codecov badge to reflect current coverage ([`8f70c10`](https://github.com/clnsmth/soso/commit/8f70c10241653107c55460e724831e235e6d2f2c)) 
+* docs: correct branch reference for codecov and documentation ([`490d382`](https://github.com/clnsmth/soso/commit/490d382b0fe7635a5f825acf65dce53b82635a22)) 
+* docs: enhance README with installation and quickstart ([`851ed49`](https://github.com/clnsmth/soso/commit/851ed4986c63bd850bd9bf288981ec776ab30eb1)) 
+* docs: correct _templates/ structure for proper rendering ([`5a3e878`](https://github.com/clnsmth/soso/commit/5a3e87869fada55248a260d17f8545c03e304d25)) 
+
+### Feature
+
+* feat: add @id for Dataset type in EML strategy ([`b41a572`](https://github.com/clnsmth/soso/commit/b41a572009688f19e929e5516fbf9efd3a999a16)) 
+* feat: add @id for Dataset type in strategy interface ([`bf86774`](https://github.com/clnsmth/soso/commit/bf86774449bf723f62ce547bb639fab52f62350a)) 
+* feat: implement heuristic URL validation utility ([`0c7729f`](https://github.com/clnsmth/soso/commit/0c7729fbd20219cfc4f122336b862e61e6d14291)) 
+
+### Fix
+
+* fix: add @id for Organization type in EML strategy ([`0765e08`](https://github.com/clnsmth/soso/commit/0765e08703580c547881a47bfdbe8720bc27a499)) 
+* fix: add @id for MonetaryGrant type in EML strategy ([`cdbdafd`](https://github.com/clnsmth/soso/commit/cdbdafd3107a965b4ae7b21b346d8287a04a5477)) 
+* fix: incorrect comparison of bytes and string objects ([`f883bfd`](https://github.com/clnsmth/soso/commit/f883bfda01f8b753abc8f8e93dcb00a3a4af3f8d)) 
+* fix: add @id for identifier of Person and Org type in EML strategy ([`98887ee`](https://github.com/clnsmth/soso/commit/98887eeaf1bddd238fc519a81f42f8d78921e637)) 
+
 ## v0.1.0 (2024-07-30)
 
 
@@ -218,11 +247,5 @@
 ### Unknown
 
 * Stub out codebase following a Strategy Design Pattern ([`faa473a`](https://github.com/clnsmth/soso/commit/faa473abf6dd8397bb193c6e000a3f555e12b8a9))
-
-
-## v0.0.0 (2024-07-29)
-
-
-### Unknown
 
 * Initialize git repository ([`ecbb794`](https://github.com/clnsmth/soso/commit/ecbb794a45ea989042a61f4e785ae777b0b4d048))
