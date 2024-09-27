@@ -32,6 +32,7 @@ class EML(StrategyInterface):
         <https://github.com/ESIPFed/science-on-schema.org/blob/master/guides/Dataset.md>`_.
 
         Below are unmappable properties for this strategy:
+            - @id of the Dataset
             - url
             - sameAs
             - version
@@ -57,6 +58,10 @@ class EML(StrategyInterface):
         self.file = file
         self.schema_version = get_schema_version(self.metadata)
         self.kwargs = kwargs
+
+    def get_id(self) -> None:
+        dataset_id = None  # EML does not map to the @id of the Dataset type
+        return delete_null_values(dataset_id)
 
     def get_name(self) -> Union[str, None]:
         name = self.metadata.findtext(".//dataset/title")
