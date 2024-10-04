@@ -1,5 +1,6 @@
 """Utilities"""
 
+import re
 import urllib.error
 from urllib.parse import urlparse
 from importlib import resources
@@ -215,6 +216,13 @@ def generate_citation_from_doi(url: str, style: str, locale: str) -> Union[str, 
         headers = {"Accept": "text/x-bibliography; style=" + style, "locale": locale}
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
+
+        # An HTTPS prefixed invalid DOI will return an HTML document that is
+        # not a citation. This is an issue in the content negotiation defined
+        # at: https://citation.crosscite.org/docs.html#sec-4-1.
+        if is_html(response.text):
+            return None
+
         return response.text
     except requests.exceptions.RequestException as citation_error:
         print(f"An error occurred while generating the citation: " f"{citation_error}")
@@ -262,3 +270,12 @@ def is_url(text: str) -> bool:
     if len(res.scheme) > 0 and len(res.netloc) > 0:
         return True
     return False
+
+
+def is_html(text: str) -> bool:
+    """
+    :param text: The string to be checked.
+    :returns: True if the string is likely an HTML document, False otherwise.
+    """
+    basic_html_pattern = r"<!DOCTYPE\s+html>|<html.*?>.*</html>"
+    return bool(re.search(basic_html_pattern, text, re.DOTALL | re.IGNORECASE))
