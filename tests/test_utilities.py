@@ -6,7 +6,7 @@ from json import dumps
 import pytest
 from soso.utilities import validate, is_url
 from soso.utilities import get_example_metadata_file_path, get_empty_metadata_file_path
-from soso.utilities import get_shacl_file_path
+from soso.utilities import get_shacl_file_path, is_html
 from soso.utilities import delete_null_values
 from soso.utilities import delete_unused_vocabularies
 from soso.utilities import generate_citation_from_doi
@@ -183,12 +183,19 @@ def test_generate_citation_from_doi():
     """Test that the generate_citation_from_doi function returns a citation
     for a valid DOI and set of parameters, and that it returns None
     otherwise."""
+
     # success
     doi = "https://doi.org/10.6073/pasta/e6c261fbd143e720af5a46a9a131a616"
     citation = generate_citation_from_doi(doi, style="apa", locale="en-US")
     assert isinstance(citation, str) and len(citation) > 0
+
     # failure
     doi = "10.6073/pasta/e6c261fbd143e720af5a46a9a131a616"
+    citation = generate_citation_from_doi(doi, style="apa", locale="en-US")
+    assert citation is None
+
+    # failure - looks like a valid DOI but is not registered
+    doi = "https://doi.org/10.5072/FK2/8b98e4f8c25bccc7263eda701c6969e8"
     citation = generate_citation_from_doi(doi, style="apa", locale="en-US")
     assert citation is None
 
@@ -216,3 +223,9 @@ def test_is_url():
     assert is_url("http://purl.dataone.org/odo/ECSO_00001203") is True
     assert is_url("A free text description.") is False
     assert is_url(None) is False
+
+
+def test_is_html():
+    """Test that a string is HTML or not"""
+    assert is_html("<!DOCTYPE html><html><head></head></html>") is True
+    assert is_html("A free text description.") is False
