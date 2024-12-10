@@ -15,7 +15,7 @@ def strategy_names() -> list:
     """
     :returns: The names of available strategies.
     """
-    return ["eml"]
+    return ["eml", "spase"]
 
 
 @pytest.fixture(params=[EML])
