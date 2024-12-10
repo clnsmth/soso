@@ -40,7 +40,7 @@ class SPASE(StrategyInterface):
             raise ValueError(file + " must be an XML file.")
         super().__init__(metadata=etree.parse(file))
         self.file = file
-        self.schema_version = None
+        self.schema_version = get_schema_version(self.metadata)
         self.kwargs = kwargs
 
     def get_id(self) -> None:
@@ -169,3 +169,15 @@ class SPASE(StrategyInterface):
 
 
 # Below are utility functions for the SPASE strategy.
+
+
+def get_schema_version(metadata: etree.ElementTree) -> str:
+    """
+    :param metadata:    The SPASE metadata object as an XML tree.
+
+    :returns:   The version of the SPASE schema used in the metadata record.
+    """
+    schema_version = metadata.findtext(
+        "{http://www.spase-group.org/data/schema}Version"
+    )
+    return schema_version

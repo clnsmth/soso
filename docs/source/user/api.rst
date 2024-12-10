@@ -23,6 +23,13 @@ EML Strategy
     :members:
     :noindex:
 
+SPASE Strategy
+--------------
+
+.. autoclass:: soso.strategies.spase.SPASE
+    :members:
+    :noindex:
+
 Utilities
 ---------
 
