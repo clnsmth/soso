@@ -69,12 +69,14 @@ def get_sssom_file_path(strategy: str) -> pathlib.PosixPath:
 def get_example_metadata_file_path(strategy: str) -> pathlib.PosixPath:
     """Return the file path of an example metadata file.
 
-    :param strategy: Metadata strategy. Can be: EML.
+    :param strategy: Metadata strategy. Can be: EML, SPASE.
 
     :returns: File path.
     """
     if strategy.lower() == "eml":
         file_path = resources.files("soso.data").joinpath("eml.xml")
+    elif strategy.lower() == "spase":
+        file_path = resources.files("soso.data").joinpath("spase.xml")
     else:
         raise ValueError("Invalid choice!")
     return file_path
@@ -88,6 +90,8 @@ def get_empty_metadata_file_path(strategy: str) -> pathlib.PosixPath:
     """
     if strategy.lower() == "eml":
         file_path = resources.files("soso.data").joinpath("eml_empty.xml")
+    elif strategy.lower() == "spase":
+        file_path = resources.files("soso.data").joinpath("spase_empty.xml")
     else:
         raise ValueError("Invalid choice!")
     return file_path

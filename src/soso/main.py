@@ -2,6 +2,7 @@
 
 from json import dumps
 from soso.strategies.eml import EML
+from soso.strategies.spase import SPASE
 from soso.utilities import delete_unused_vocabularies
 
 
@@ -24,6 +25,8 @@ def convert(file: str, strategy: str, **kwargs: dict) -> str:
     # operate on them.
     if strategy.lower() == "eml":
         strategy = EML(file, **kwargs)
+    elif strategy.lower() == "spase":
+        strategy = SPASE(file, **kwargs)
     else:
         raise ValueError("Invalid choice!")
 
