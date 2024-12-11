@@ -44,19 +44,26 @@ class SPASE(StrategyInterface):
         self.kwargs = kwargs
 
     def get_id(self) -> None:
-        dataset_id = None
+        """schema:identifier: spase:ResourceHeader/DOI, spase:ResourceID"""
+        dataset_id = self.metadata.findtext(".//NumericalData/ResourceID")
+        dataset_id.extend(self.metadata.findtext(".//NumericalData/ResourceHeader/DOI")
         return delete_null_values(dataset_id)
 
     def get_name(self) -> None:
-        name = None
+        """schema:description: spase:ResourceHeader/ResourceName"""
+        name = self.metadata.findtext(".//NumericalData/ResourceHeader/ResourceName")
         return delete_null_values(name)
 
     def get_description(self) -> None:
-        description = None
+        """schema:description: spase:ResourceHeader/Description"""
+        description = self.metadata.findtext(".//NumericalData/ResourceHeader/Description")
         return delete_null_values(description)
 
     def get_url(self) -> None:
-        url = None
+        """schema:url: spase:ResourceHeader/DOI (or spase:ResourceID updated to https://hpde.io domain, if no DOI)"""
+        url = self.metadata.findtext(".//NumericalData/ResourceHeader/DOI")
+        if delete_null_values(url) is None:
+            url = self.metadata.findtext(".//NumericalData/ResourceID").replace("spase://", "https://hpde.io/")
         return delete_null_values(url)
 
     def get_same_as(self) -> None:
