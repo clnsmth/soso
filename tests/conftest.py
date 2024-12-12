@@ -52,6 +52,7 @@ def soso_properties() -> list:
     :returns: The names of SOSO properties.
     """
     return [
+        "@id",
         "@context",
         "@type",
         "name",
