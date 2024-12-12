@@ -47,8 +47,7 @@ class SPASE(StrategyInterface):
     def get_id(self) -> None:
         """schema:identifier: spase:ResourceID)"""
         dataset_id = self.metadata.findtext(
-            ".//spase:NumericalData/spase:ResourceID",
-            namespaces=self.namespaces
+            ".//spase:NumericalData/spase:ResourceID", namespaces=self.namespaces
         )
         return delete_null_values(dataset_id)
 
@@ -56,7 +55,7 @@ class SPASE(StrategyInterface):
         """schema:description: spase:ResourceHeader/ResourceName"""
         name = self.metadata.findtext(
             ".//spase:NumericalData/spase:ResourceHeader/spase:ResourceName",
-            namespaces=self.namespaces
+            namespaces=self.namespaces,
         )
         return delete_null_values(name)
 
@@ -64,7 +63,7 @@ class SPASE(StrategyInterface):
         """schema:description: spase:ResourceHeader/Description"""
         description = self.metadata.findtext(
             ".//spase:NumericalData/spase:ResourceHeader/spase:Description",
-            namespaces=self.namespaces
+            namespaces=self.namespaces,
         )
         return delete_null_values(description)
 
@@ -72,12 +71,11 @@ class SPASE(StrategyInterface):
         """schema:url: spase:ResourceHeader/DOI (or spase:ResourceID updated to https://hpde.io domain, if no DOI)"""
         url = self.metadata.findtext(
             ".//spase:NumericalData/spase:ResourceHeader/spase:DOI",
-            namespaces=self.namespaces
+            namespaces=self.namespaces,
         )
         if delete_null_values(url) is None:
             url = self.metadata.findtext(
-                ".//spase:NumericalData/spase:ResourceID",
-                namespaces=self.namespaces
+                ".//spase:NumericalData/spase:ResourceID", namespaces=self.namespaces
             ).replace("spase://", "https://hpde.io/")
         return delete_null_values(url)
 
