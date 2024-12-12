@@ -2,6 +2,26 @@
 
 
 
+## v0.3.0 (2024-12-12)
+
+
+### Feature
+
+* feat: first set of mapping implementation #213 ([`6b07636`](https://github.com/clnsmth/soso/commit/6b0763649922fbe884bf4db8756622a493e98e14)) 
+* feat: establish SPASE conversion strategy (#213) ([`3ce2b25`](https://github.com/clnsmth/soso/commit/3ce2b2526dffac806d4d63eef6981e1fe5253dc3)) 
+* feat: add SPASE empty file #213 ([`b4f5ad1`](https://github.com/clnsmth/soso/commit/b4f5ad19d432c0ccf9e1925e4771aa568c3e445e)) 
+* feat: create example spase.xml for testing (#213) ([`cbef3a1`](https://github.com/clnsmth/soso/commit/cbef3a16849ddbda784028d5efb37cb3c3ab97ac)) 
+
+### Fix
+
+* fix: prevent invalid property assignments in SOSO records (#218) ([`de3b430`](https://github.com/clnsmth/soso/commit/de3b4307146207d96085408d3e322a92efd6b2dd)) 
+* fix: correct XML declaration in example SPASE file (#213) ([`599807e`](https://github.com/clnsmth/soso/commit/599807e18b8b05200c37413e1be8674c45fe2ffb)) 
+* fix: enhance `generate_citation_from_doi` for invalid input handling ([`ceb6706`](https://github.com/clnsmth/soso/commit/ceb6706b225ec75e3146586ca60c1dd6a7dc8236)) 
+
+### Test
+
+* test: add missing `@id` property to test fixture (#213) ([`5d980c8`](https://github.com/clnsmth/soso/commit/5d980c83df8e2738f86af23de55f941d49be3562)) 
+
 ## v0.2.0 (2024-09-27)
 
 
