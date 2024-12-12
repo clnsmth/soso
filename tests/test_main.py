@@ -78,3 +78,13 @@ def test_convert_with_kwargs(soso_properties):
     res = loads(res)
     for key, value in kwargs.items():
         assert res[key] == value
+
+    # But it should not work in reverse. I.e. any kwargs not in the SOSO
+    # properties should be ignored.
+    res = convert(
+        file=get_example_metadata_file_path("EML"),
+        strategy="eml",
+        **{"not_a_property": "value"},
+    )
+    res = loads(res)
+    assert "not_a_property" not in res

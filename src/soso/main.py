@@ -79,9 +79,11 @@ def convert(file: str, strategy: str, **kwargs: dict) -> str:
         "prov:wasGeneratedBy": strategy.get_was_generated_by(),
     }
 
-    # Override with user defined properties
+    # Override with user defined properties. Only override properties that
+    # exist in the graph, because we don't want to add unrecognized properties.
     for key, value in kwargs.items():
-        graph[key] = value
+        if key in graph:
+            graph[key] = value
 
     # Remove properties where get methods returned None, so the user is
     # return a clean graph.
