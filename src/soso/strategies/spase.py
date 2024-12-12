@@ -41,29 +41,44 @@ class SPASE(StrategyInterface):
         super().__init__(metadata=etree.parse(file))
         self.file = file
         self.schema_version = get_schema_version(self.metadata)
+        self.namespaces = {"spase": "http://www.spase-group.org/data/schema"}
         self.kwargs = kwargs
 
     def get_id(self) -> None:
-        """schema:identifier: spase:ResourceHeader/DOI, spase:ResourceID"""
-        dataset_id = self.metadata.findtext(".//NumericalData/ResourceID")
-        dataset_id.extend(self.metadata.findtext(".//NumericalData/ResourceHeader/DOI")
+        """schema:identifier: spase:ResourceID)"""
+        dataset_id = self.metadata.findtext(
+            ".//spase:NumericalData/spase:ResourceID",
+            namespaces=self.namespaces
+        )
         return delete_null_values(dataset_id)
 
     def get_name(self) -> None:
         """schema:description: spase:ResourceHeader/ResourceName"""
-        name = self.metadata.findtext(".//NumericalData/ResourceHeader/ResourceName")
+        name = self.metadata.findtext(
+            ".//spase:NumericalData/spase:ResourceHeader/spase:ResourceName",
+            namespaces=self.namespaces
+        )
         return delete_null_values(name)
 
     def get_description(self) -> None:
         """schema:description: spase:ResourceHeader/Description"""
-        description = self.metadata.findtext(".//NumericalData/ResourceHeader/Description")
+        description = self.metadata.findtext(
+            ".//spase:NumericalData/spase:ResourceHeader/spase:Description",
+            namespaces=self.namespaces
+        )
         return delete_null_values(description)
 
     def get_url(self) -> None:
         """schema:url: spase:ResourceHeader/DOI (or spase:ResourceID updated to https://hpde.io domain, if no DOI)"""
-        url = self.metadata.findtext(".//NumericalData/ResourceHeader/DOI")
+        url = self.metadata.findtext(
+            ".//spase:NumericalData/spase:ResourceHeader/spase:DOI",
+            namespaces=self.namespaces
+        )
         if delete_null_values(url) is None:
-            url = self.metadata.findtext(".//NumericalData/ResourceID").replace("spase://", "https://hpde.io/")
+            url = self.metadata.findtext(
+                ".//spase:NumericalData/spase:ResourceID",
+                namespaces=self.namespaces
+            ).replace("spase://", "https://hpde.io/")
         return delete_null_values(url)
 
     def get_same_as(self) -> None:
