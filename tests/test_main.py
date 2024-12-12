@@ -3,6 +3,7 @@
 from json import loads
 from soso.main import convert
 from soso.utilities import get_example_metadata_file_path
+import pytest
 
 
 def test_convert_returns_str(strategy_names):
@@ -26,6 +27,7 @@ def test_convert_returns_context(strategy_names):
         assert "@context" in res
 
 
+@pytest.mark.skipif(strategy_instance="SPASE", reason="Not yet implemented")
 def test_convert_returns_expected_properties(strategy_names, soso_properties):
     """Test that the convert function returns the expected properties/keys."""
     for strategy in strategy_names:

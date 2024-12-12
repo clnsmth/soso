@@ -41,22 +41,42 @@ class SPASE(StrategyInterface):
         super().__init__(metadata=etree.parse(file))
         self.file = file
         self.schema_version = get_schema_version(self.metadata)
+        self.namespaces = {"spase": "http://www.spase-group.org/data/schema"}
         self.kwargs = kwargs
 
-    def get_id(self) -> None:
-        dataset_id = None
+    def get_id(self) -> str:
+        """schema:identifier: spase:ResourceID)"""
+        dataset_id = self.metadata.findtext(
+            ".//spase:NumericalData/spase:ResourceID", namespaces=self.namespaces
+        )
         return delete_null_values(dataset_id)
 
-    def get_name(self) -> None:
-        name = None
+    def get_name(self) -> str:
+        """schema:description: spase:ResourceHeader/ResourceName"""
+        name = self.metadata.findtext(
+            ".//spase:NumericalData/spase:ResourceHeader/spase:ResourceName",
+            namespaces=self.namespaces,
+        )
         return delete_null_values(name)
 
-    def get_description(self) -> None:
-        description = None
+    def get_description(self) -> str:
+        """schema:description: spase:ResourceHeader/Description"""
+        description = self.metadata.findtext(
+            ".//spase:NumericalData/spase:ResourceHeader/spase:Description",
+            namespaces=self.namespaces,
+        )
         return delete_null_values(description)
 
-    def get_url(self) -> None:
-        url = None
+    def get_url(self) -> str:
+        """schema:url: spase:ResourceHeader/DOI (or spase:ResourceID updated to https://hpde.io domain, if no DOI)"""
+        url = self.metadata.findtext(
+            ".//spase:NumericalData/spase:ResourceHeader/spase:DOI",
+            namespaces=self.namespaces,
+        )
+        if delete_null_values(url) is None:
+            url = self.metadata.findtext(
+                ".//spase:NumericalData/spase:ResourceID", namespaces=self.namespaces
+            ).replace("spase://", "https://hpde.io/")
         return delete_null_values(url)
 
     def get_same_as(self) -> None:
