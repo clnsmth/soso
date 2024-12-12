@@ -44,14 +44,14 @@ class SPASE(StrategyInterface):
         self.namespaces = {"spase": "http://www.spase-group.org/data/schema"}
         self.kwargs = kwargs
 
-    def get_id(self) -> None:
+    def get_id(self) -> str:
         """schema:identifier: spase:ResourceID)"""
         dataset_id = self.metadata.findtext(
             ".//spase:NumericalData/spase:ResourceID", namespaces=self.namespaces
         )
         return delete_null_values(dataset_id)
 
-    def get_name(self) -> None:
+    def get_name(self) -> str:
         """schema:description: spase:ResourceHeader/ResourceName"""
         name = self.metadata.findtext(
             ".//spase:NumericalData/spase:ResourceHeader/spase:ResourceName",
@@ -59,7 +59,7 @@ class SPASE(StrategyInterface):
         )
         return delete_null_values(name)
 
-    def get_description(self) -> None:
+    def get_description(self) -> str:
         """schema:description: spase:ResourceHeader/Description"""
         description = self.metadata.findtext(
             ".//spase:NumericalData/spase:ResourceHeader/spase:Description",
@@ -67,7 +67,7 @@ class SPASE(StrategyInterface):
         )
         return delete_null_values(description)
 
-    def get_url(self) -> None:
+    def get_url(self) -> str:
         """schema:url: spase:ResourceHeader/DOI (or spase:ResourceID updated to https://hpde.io domain, if no DOI)"""
         url = self.metadata.findtext(
             ".//spase:NumericalData/spase:ResourceHeader/spase:DOI",

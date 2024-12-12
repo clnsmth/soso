@@ -52,7 +52,6 @@ def test_strategy_reads_schema_version(strategy_instance, strategy_instance_no_m
 # consistent test suite.
 
 
-@pytest.mark.skipif(strategy_instance="SPASE", reason="Not yet implemented")
 @pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_id_returns_expected_type(strategy_instance, strategy_instance_no_meta):
     """Test that the get_id method returns the expected type."""
@@ -65,7 +64,6 @@ def test_get_id_returns_expected_type(strategy_instance, strategy_instance_no_me
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="SPASE", reason="Not yet implemented")
 def test_get_name_returns_expected_type(strategy_instance, strategy_instance_no_meta):
     """Test that the get_name method returns the expected type."""
     # Positive case
@@ -77,7 +75,6 @@ def test_get_name_returns_expected_type(strategy_instance, strategy_instance_no_
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="SPASE", reason="Not yet implemented")
 def test_get_description_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -91,7 +88,6 @@ def test_get_description_returns_expected_type(
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="SPASE", reason="Not yet implemented")
 @pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_url_returns_expected_type(strategy_instance, strategy_instance_no_meta):
     """Test that the get_url method returns the expected type."""
