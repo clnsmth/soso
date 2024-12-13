@@ -347,7 +347,6 @@ def test_get_temporal_coverage_returns_expected_type(
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="SPASE", reason="Not yet implemented")
 def test_get_spatial_coverage_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
