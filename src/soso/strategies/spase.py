@@ -157,8 +157,8 @@ class SPASE(StrategyInterface):
             spatial_coverage.append(
                 {
                     "@type": "schema:Place",
-                    "@id": f"http://www.spase-group.org/data/schema/{item.text.replace('.', '_').upper()}",
-                    "schema:alternateName": item.text,
+                    "identifier": f"http://www.spase-group.org/data/schema/{item.text.replace('.', '_').upper()}",
+                    "alternateName": item.text,
                 }
             )
         return delete_null_values(spatial_coverage)
