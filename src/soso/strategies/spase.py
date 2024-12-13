@@ -5,6 +5,7 @@ from soso.interface import StrategyInterface
 from soso.utilities import (
     delete_null_values,
 )
+from typing import Union, List, Dict
 
 # pylint: disable=duplicate-code
 
@@ -143,9 +144,24 @@ class SPASE(StrategyInterface):
         temporal_coverage = None
         return delete_null_values(temporal_coverage)
 
-    def get_spatial_coverage(self) -> None:
-        spatial_coverage = None
-        return spatial_coverage
+    def get_spatial_coverage(self) -> Union[List[Dict], None]:
+        # Mapping: schema:spatial_coverage = list of spase:NumericalData/spase:ObservedRegion/*
+        # Each object is:
+        #   {"@type": schema:Place, "@id": URI}
+        # Using URIs, as defined in: https://github.com/polyneme/topst-spase-rdf-tools/blob/main/data/spase.owl
+        spatial_coverage = []
+        for item in self.metadata.findall(
+            ".//spase:NumericalData/spase:ObservedRegion",
+            namespaces=self.namespaces,
+        ):
+            spatial_coverage.append(
+                {
+                    "@type": "schema:Place",
+                    "identifier": f"http://www.spase-group.org/data/schema/{item.text.replace('.', '_').upper()}",
+                    "alternateName": item.text,
+                }
+            )
+        return delete_null_values(spatial_coverage)
 
     def get_creator(self) -> None:
         creator = None
