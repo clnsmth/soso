@@ -5,6 +5,7 @@ from soso.interface import StrategyInterface
 from soso.utilities import (
     delete_null_values,
 )
+from typing import Union
 
 # pylint: disable=duplicate-code
 
@@ -79,8 +80,12 @@ class SPASE(StrategyInterface):
             ).replace("spase://", "https://hpde.io/")
         return delete_null_values(url)
 
-    def get_same_as(self) -> None:
-        same_as = None
+    def get_same_as(self) -> Union[None, str]:
+        # Mapping: schema:same_as = spase:ResourceHeader/spase:PriorID if present
+        same_as = self.metadata.findtext(
+            ".//spase:NumericalData/spase:ResourceHeader/spase:PriorID",
+            namespaces=self.namespaces,
+        )
         return delete_null_values(same_as)
 
     def get_version(self) -> None:
