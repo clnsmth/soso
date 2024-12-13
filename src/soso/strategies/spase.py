@@ -52,7 +52,7 @@ class SPASE(StrategyInterface):
         return delete_null_values(dataset_id)
 
     def get_name(self) -> str:
-        # Mapping: schema:description = spase:ResourceHeader/ResourceName
+        # Mapping: schema:description = spase:ResourceHeader/spase:ResourceName
         name = self.metadata.findtext(
             ".//spase:NumericalData/spase:ResourceHeader/spase:ResourceName",
             namespaces=self.namespaces,
@@ -60,7 +60,7 @@ class SPASE(StrategyInterface):
         return delete_null_values(name)
 
     def get_description(self) -> str:
-        # Mapping: schema:description = spase:ResourceHeader/Description
+        # Mapping: schema:description = spase:ResourceHeader/spase:Description
         description = self.metadata.findtext(
             ".//spase:NumericalData/spase:ResourceHeader/spase:Description",
             namespaces=self.namespaces,
@@ -68,7 +68,7 @@ class SPASE(StrategyInterface):
         return delete_null_values(description)
 
     def get_url(self) -> str:
-        # Mapping: schema:url = spase:ResourceHeader/DOI (or spase:ResourceID updated to https://hpde.io domain, if no DOI)
+        # Mapping: schema:url = spase:ResourceHeader/spase:DOI (or spase:ResourceID updated to https://hpde.io domain, if no DOI)
         url = self.metadata.findtext(
             ".//spase:NumericalData/spase:ResourceHeader/spase:DOI",
             namespaces=self.namespaces,
