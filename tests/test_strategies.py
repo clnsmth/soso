@@ -100,7 +100,6 @@ def test_get_url_returns_expected_type(strategy_instance, strategy_instance_no_m
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="SPASE", reason="Not yet implemented")
 @pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
 def test_get_same_as_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
