@@ -32,6 +32,7 @@ class SPASE(StrategyInterface):
 
         Below are unmappable properties for this strategy:
             - [includedInDataCatalog]
+            - [version]
     """
 
     def __init__(self, file: str, **kwargs: dict):
@@ -69,6 +70,7 @@ class SPASE(StrategyInterface):
         )
         return delete_null_values(description)
 
+    # will need to make general for all SPASE record categories eventually
     def get_url(self) -> str:
         # Mapping: schema:url = spase:ResourceHeader/spase:DOI (or https://hpde.io landing page, if no DOI)
         url = self.metadata.findtext(
@@ -112,11 +114,14 @@ class SPASE(StrategyInterface):
         #    is_accessible_for_free = False
         return delete_null_values(is_accessible_for_free)
 
-    def get_keywords(self) -> None:
+    def get_keywords(self) -> Union[str, None]:
         keywords = None
+        for child in self.root[1]:
+            if child.tag.endswith("Keyword"):
+                keywords = child.text
         return delete_null_values(keywords)
 
-    def get_identifier(self) -> tuple:
+    def get_identifier(self) -> Union[tuple, None]:
         # Mapping: schema:identifier = spase:ResourceHeader/spase:DOI (or https://hpde.io landing page, if no DOI)
         url = self.get_url()
         # if SPASE record has a DOI
@@ -133,7 +138,7 @@ class SPASE(StrategyInterface):
             identifier = url
         return identifier
 
-    def get_citation(self) -> str:
+    def get_citation(self) -> Union[str, None]:
         # Mapping: schema:citation = spase:ResourceHeader/spase:PublicationInfo/spase:Authors
         # AND spase:ResourceHeader/spase:PublicationInfo/spase:PublicationDate
         # AND spase:ResourceHeader/spase:PublicationInfo/spase:PublishedBy
@@ -146,33 +151,38 @@ class SPASE(StrategyInterface):
         pub = ""
         dataset = ""
 
-        # iterate thru to find ResourceHeader
-        for child in self.root[1]:
-            if child.tag.endswith("ResourceHeader"):
-                targetChild = child
-                # iterate thru to find PublicationInfo
-                for child in targetChild:
-                    if child.tag.endswith("PublicationInfo"):
-                        PI_child = child
-                        for child in PI_child:
-                            # collect preferred author
-                            if child.tag.endswith("Authors"):
-                                author = child.text
-                                author = author.replace(";", ",")
-                            elif child.tag.endswith("PublicationDate"):
-                                pubDate = child.text
-                                pubDate = pubDate[:4]
-                            # collect preferred publisher
-                            elif child.tag.endswith("PublishedBy"):
-                                pub = child.text
-                            # collect preferred dataset
-                            elif child.tag.endswith("Title"):
-                                dataset = child.text
+        author, authorRole, pubDate, pub, dataset = get_authors(self.metadata)
+        authorStr = str(author)
+        authorStr = authorStr.replace("[", "").replace("]","")
+        authorStr = authorStr.replace("'","")
+        # if author was pulled from ContactID
+        if ";" not in authorStr:
+            if "Person/" in authorStr:
+                path, sep, authorStr = authorStr.partition("Person/")
+                givenName, sep, familyName = authorStr.partition(".")
+                initial, sep, familyName = familyName.partition(".")
+                givenName = givenName + ', ' + initial + '.'
+                authorStr = familyName + ", " + givenName
+        else:
+            authorStr = authorStr.replace(";", ",")
+
+        # assign backup values if not found in desired locations
+        if pub == '':
+            pub = "NASA Heliophysics Digital Resource Library"
+        if pubDate == "":
+            # iterate thru to find ResourceHeader
+            for child in self.root[1]:
+                if child.tag.endswith("ResourceHeader"):
+                    targetChild = child
+                    # iterate thru to find ReleaseDate (temp pubYr)
+                    for child in targetChild:
+                        if child.tag.endswith("ReleaseDate"):
+                            pubDate = child.text[:4]
         DOI = self.get_url()
         if dataset:
-            citation = f"{author} ({pubDate}). {dataset}. {pub}. {DOI}"
+            citation = f"{authorStr} ({pubDate}). {dataset}. {pub}. {DOI}"
         else:
-            citation = f"{author} ({pubDate}). {pub}. {DOI}"
+            citation = f"{authorStr} ({pubDate}). {pub}. {DOI}"
         return delete_null_values(citation)
 
     def get_variable_measured(self) -> None:
@@ -234,49 +244,75 @@ class SPASE(StrategyInterface):
             )
         return delete_null_values(spatial_coverage)
 
-    def get_creator(self) -> list:
+    def get_creator(self) -> Union[list, None]:
         # Mapping: schema:creator = spase:ResourceHeader/spase:PublicationInfo/spase:Authors 
         # OR schema:creator = spase:ResourceHeader/spase:Contact/spase:PersonID
         
-        author, authorRole = get_authors(self.metadata)
+        author, authorRole, pubDate, pub, dataset = get_authors(self.metadata)
         authorStr = str(author)
         authorStr = authorStr.replace("[", "").replace("]","")
         creator = []
-        print(authorStr)
-        if ";" in authorStr:
-            author = authorStr.split(";")
-        else:
-            # unfinished: need to fix number of times loop runs since this runs up to num of chars in string
-            path, sep, author = authorStr.partition("Person/")
-        # iterate over each person in author string
-        for person in author:
-            # keep track of position so roles will match
-            print(len(author))
-            index = author.index(person)
-            print(index)
-            # get rid of extra quotations
-            person = person.replace("'","")
-            # if all creators were found in PublicationInfo/Authors
-            if authorRole == ["Author"]:
-                familyName, sep, givenName = person.partition(",")
-                creator.append({"@type": "Role", 
-                                "roleName": f"{authorRole[0]}",
-                                "creator": {"@type": "Person",
-                                            "name": f"{person}",
-                                            "givenName": f"{givenName}",
-                                            "familyName": f"{familyName}"}
-                                            })
-            else:
-                givenName, sep, familyName = person.partition(".")
+        #print(authorStr)
+        # if creators were found in Contact/PersonID
+        if "Person/" in authorStr:
+            # if multiple found, split them and iterate thru one by one
+            authorStr = authorStr.split("',")
+            for person in authorStr:
+                path, sep, author = person.partition("Person/")
+                # get rid of extra quotations
+                author = author.replace("'","")
+                # keep track of position so roles will match
+                index = author.index(person)
+                givenName, sep, familyName = author.partition(".")
                 initial, sep, familyName = familyName.partition(".")
-                givenName = givenName + "." + initial
+                givenName = givenName + ' ' + initial + '.'
                 creator.append({"@type": "Role", 
                                 "roleName": f"{authorRole[index]}",
                                 "creator": {"@type": "Person",
-                                            "name": f"{person}",
+                                            "name": f"{author}",
                                             "givenName": f"{givenName}",
                                             "familyName": f"{familyName}"}
                                             })
+        # if all creators were found in PublicationInfo/Authors
+        else:
+            # if there are multiple authors
+            if (";" in authorStr) or (".," in authorStr):
+                if (";" in authorStr):
+                    author = authorStr.split(";")
+                else:
+                    author = authorStr.split("., ")
+                # iterate over each person in author string
+                for person in author:
+                    # get rid of extra quotations
+                    person = person.replace("'","")
+                    # if first name is abbreviated
+                    if (not person.endswith(".")):
+                        person += "."
+                    # remove 'and' from name
+                    if "and " in person:
+                        person = person.replace("and ", "")
+                    if authorRole == ["Author"]:
+                        familyName, sep, givenName = person.partition(", ")
+                        creator.append({"@type": "Role", 
+                                        "roleName": f"{authorRole[0]}",
+                                        "creator": {"@type": "Person",
+                                                    "name": f"{person}",
+                                                    "givenName": f"{givenName}",
+                                                    "familyName": f"{familyName}"}
+                                                    })
+            # if there is only one author listed
+            else:
+                # get rid of extra quotations
+                person = authorStr.replace("'","")
+                if authorRole == ["Author"]:
+                    familyName, sep, givenName = person.partition(",")
+                    creator.append({"@type": "Role", 
+                                    "roleName": f"{authorRole[0]}",
+                                    "creator": {"@type": "Person",
+                                                "name": f"{person}",
+                                                "givenName": f"{givenName}",
+                                                "familyName": f"{familyName}"}
+                                                })
         return delete_null_values(creator)
 
     def get_contributor(self) -> None:
@@ -340,6 +376,9 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
     # local vars needed
     author = []
     authorRole = []
+    pubDate = ""
+    pub = ""
+    dataset = ""
     PI_child = None
     priority = False
     root = metadata.getroot()
@@ -377,19 +416,80 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                                     authorRole.append(child.text)
                                 # mark that highest priority backup author was found
                                 priority = True
+                            # backup publisher
+                            elif child.text == "Publisher":
+                                pub = child.text
     if PI_child is not None:
         for child in PI_child:
             # collect preferred author
             if child.tag.endswith("Authors"):
                 author = [child.text]
                 authorRole = ["Author"]
-    return author, authorRole
+            elif child.tag.endswith("PublicationDate"):
+                pubDate = child.text
+                pubDate = pubDate[:4]
+            # collect preferred publisher
+            elif child.tag.endswith("PublishedBy"):
+                pub = child.text
+            # collect preferred dataset
+            elif child.tag.endswith("Title"):
+                dataset = child.text
+    return author, authorRole, pubDate, pub, dataset
 
+def getPaths(entry, paths):
+    """Takes the absolute path of a SPASE record directory to be walked
+    to extract all SPASE records present. Returns these paths using the
+    list parameter paths, which holds the absolute paths generated by
+    the function.
+
+    :param entry: A string of the absolute path of the SPASE record directory
+                    to be searched/walked to find all SPASE records within.
+    :type entry: String
+    :param paths: A list to hold absolute paths of all SPASE records found
+                    within the given directory
+    :type paths: list
+    :return: A list containing the absolute paths of all SPASE records found
+                within the given directory.
+    :rtype: list
+    """
+    import os
+    if os.path.exists(entry):
+        for root, dirs, files in os.walk(entry):
+            if files:
+                for file in files:
+                    paths.append(root + "/" + file)
+    else:
+        print(entry + " does not exist")
+    return paths
+
+# list that holds SPASE records already checked
+searched = []
+SPASE_paths = []
+folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/ACE/EPAM"
+SPASE_paths = getPaths(folder, SPASE_paths)
+print("You entered " + folder)
+if len(SPASE_paths) == 0:
+    print("No records found. Returning.")
+else:
+    print("The number of records is " + str(len(SPASE_paths)))
 #testSpase = SPASE("C:/Users/zboqu/NASA Internship/soso-spase/src/soso/data/spase.xml")
-testSpase = SPASE("C:/Users/zboqu/NASA Internship/NASA/NumericalData/Cassini/MAG/PT60S.xml")
-#print(testSpase.get_is_accessible_for_free())
-#print(testSpase.get_citation())
-#print(testSpase.get_identifier())
-result = testSpase.get_creator()
-for each in result:
-    print(each)
+#testSpase = SPASE("C:/Users/zboqu/NASA Internship/NASA/NumericalData/Cassini/MAG/PT60S.xml")
+    #iterate through all SPASE records returned by PathGrabber
+    # TODO: figure out why an error occurs at this filePath
+    for r, record in enumerate(SPASE_paths[24:30]):
+        if record not in searched:
+            # scrape metadata for each record
+            statusMessage = f"Extracting metadata from record {r+1}"
+            statusMessage += f" of {len(SPASE_paths)}"
+            print(statusMessage)
+            print(record)
+            testSpase = SPASE(record)
+            #print(testSpase.get_is_accessible_for_free())
+            print(testSpase.get_citation())
+            print(testSpase.get_identifier())
+            result = testSpase.get_creator()
+            for each in result:
+                print(each)
+
+            # add record to searched
+            searched.append(record)
