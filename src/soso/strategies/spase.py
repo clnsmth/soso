@@ -6,6 +6,7 @@ from soso.utilities import (
     delete_null_values,
 )
 from typing import Union, List, Dict
+import re
 
 # pylint: disable=duplicate-code
 
@@ -124,10 +125,14 @@ class SPASE(StrategyInterface):
         return delete_null_values(is_accessible_for_free)
 
     def get_keywords(self) -> Union[str, None]:
-        keywords = None
-        for child in self.root[1]:
-            if child.tag.endswith("Keyword"):
-                keywords = child.text
+        keywords = []
+        for child in self.root[1].iter(tag=etree.Element):
+                if child.tag.endswith("Keyword"):
+                    keywords.append(child.text)
+        if keywords == []:
+            keywords = None
+        else:
+            keywords = str(keywords).replace("[", "").replace("]", "")
         return delete_null_values(keywords)
 
     def get_identifier(self) -> Union[tuple, None]:
@@ -166,27 +171,30 @@ class SPASE(StrategyInterface):
         authorStr = str(authorTemp)
         authorStr = authorStr.replace("[", "").replace("]","")
         authorStr = authorStr.replace("'","")
-        # if author was pulled from ContactID
-        if ";" not in authorStr:
+        authorStr = authorStr.replace(" and ", " ")
+        # if author is not empty
+        if authorTemp:
+            # if author was pulled from ContactID
             if "Person/" in authorStr:
                 # if multiple found, split them and iterate thru one by one
                 if len(authorTemp) > 1:
-                    #authorTemp = authorStr.split(", ")
                     for person in authorTemp:
                         path, sep, authorStr = person.partition("Person/")
                         givenName, sep, familyName = authorStr.partition(".")
                         #print(givenName)
                         #print(familyName)
                         #print(authorStr)
-                        # if name has initial(s)
+                        # if name has initial(s) already
                         if ("." in familyName):
                             initial, sep, familyName = familyName.partition(".")
-                            givenName = givenName + " " + initial + '.'
-                        # add commas to separate each name until last name in list
-                        if i > (len(authorTemp) - 1):
-                            author += [familyName + ", " + givenName + ","]
+                            givenName = givenName[0] + ". " + initial + "."
                         else:
+                            givenName = givenName[0] + "."
+                        # add commas to separate each name until last name in list
+                        if (i < (len(authorTemp) - 1)):
                             author += [familyName + ", " + givenName]
+                        else:
+                            author += ["& " + familyName + ", " + givenName]
                         i += 1
                     # reformat author string
                     author = str(author).replace("[", "").replace("]","")
@@ -194,24 +202,74 @@ class SPASE(StrategyInterface):
                 # if only one Contact found
                 else:
                     path, sep, authorTemp = authorStr.partition("Person/")
+                    #print(authorTemp)
                     givenName, sep, familyName = authorTemp.partition(".")
-                    # if name has initial(s)
+                    # if name has initial(s) already
                     if ("." in familyName):
                         initial, sep, familyName = familyName.partition(".")
-                        givenName = givenName + ' ' + initial + '.'
+                        givenName = givenName[0] + ". " + initial + "."
+                    else:
+                        givenName = givenName[0] + "."
                     author = familyName + ", " + givenName
             # case when in PubInfo but only one author
+            elif ";" not in authorStr:
+                # in case there are multiple w/o ;
+                if "., " in authorStr:
+                    authorStr = authorStr.replace(".,", "..,")
+                    authorTemp = authorStr.split("., ")
+                    if "and " in authorTemp[-1]:
+                        authorTemp[-1].replace("and ", "& ")
+                    else:
+                        authorTemp[-1] = "& " + authorTemp[-1]
+                    author = str(authorTemp).replace("[", "").replace("]","")
+                    author = author.replace("'","")
+                else:
+                    familyName, sep, givenName = authorStr.partition(", ")
+                    # if name has initial(s) already
+                    if ("," in givenName):
+                        givenName, sep, initial = givenName.partition(", ")
+                        givenName = givenName[0] + ". " + initial
+                    else:
+                        givenName = givenName[0] + "."
+                    author = familyName + ", " + givenName
+            # handle case when multiple authors pulled from PubInfo
             else:
+                authorTemp = authorStr.split("; ")
+                #print(authorTemp)
+                authorStr = ""
+                for each in authorTemp:
+                    eachTemp = str(each).replace("[", "").replace("]","")
+                    #print(eachTemp)
+                    if (", " in eachTemp) or ("." in eachTemp):
+                        if ", " in eachTemp:
+                            familyName, sep, givenName = eachTemp.partition(", ")
+                        else:
+                            givenName, sep, familyName = eachTemp.partition(".")
+                    #print(familyName)
+                    #print(givenName)
+                    # if name has initial(s) already
+                    if ("." in familyName):
+                        initial, sep, familyName = familyName.partition(".")
+                        givenName = givenName[0] + ". " + initial + "."                    
+                    elif ("," in givenName):
+                        givenName, sep, initial = givenName.partition(", ")
+                        givenName = givenName[0] + ". " + initial
+                    else:
+                        givenName = givenName[0] + "."
+                    if authorTemp.index(each) == (len(authorTemp)-1):
+                        familyName = "& " + familyName
+                    else:
+                        givenName += ", "
+                    authorStr += familyName + ", " + givenName
                 author = authorStr
-        # handle case when multiple authors pulled from PubInfo
+        # no author was found
         else:
-            author = authorStr.replace(";", ",")
+            author = ""
         # assign backup values if not found in desired locations
         if pub == '':
             pub = "NASA Heliophysics Digital Resource Library"
         if pubDate == "":
             # iterate thru to find ResourceHeader
-            #for child in self.root[1]:
             for child in self.root[1].iter(tag=etree.Element):
                 if child.tag.endswith("ResourceHeader"):
                     targetChild = child
@@ -298,9 +356,6 @@ class SPASE(StrategyInterface):
             # if multiple found, split them and iterate thru one by one
             if "'," in authorStr:
                 multiple = True
-                #authorStr = authorStr.split("', ")
-                #authorStr[0] += "'"
-            print(author)
             for person in author:
                 if multiple:
                     # keep track of position so roles will match
@@ -338,7 +393,10 @@ class SPASE(StrategyInterface):
                     person = person.replace("'","")
                     # if first name is abbreviated
                     if (not person.endswith(".")):
-                        person += "."
+                        # if initial doesnt have a period, add one
+                        if (re.search(r"[A-Z][.][A-Z]", person) is not None):
+                            #print(re.search(r"[A-Z][.][A-Z]", person))
+                            person += "."
                     # remove 'and' from name
                     if "and " in person:
                         person = person.replace("and ", "")
@@ -433,21 +491,13 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
     PI_child = None
     priority = False
     root = metadata.getroot()
-    #print(type(root[1]))
-    #print()
-    #print(root[1])
     # holds role values that are not considered for author var
     UnapprovedAuthors = ["MetadataContact", "ArchiveSpecialist",
                         "HostContact", "Publisher", "User"]
 
     # iterate thru to find ResourceHeader
-    #for child in root[1]:
     for child in root[1].iter(tag=etree.Element):
-        #print()
         if child.tag.endswith("ResourceHeader"):
-            #print(type(child))
-            #print()
-            #print(child)
             targetChild = child
             # iterate thru to find PublicationInfo
             for child in targetChild:
@@ -495,7 +545,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                 dataset = child.text
     return author, authorRole, pubDate, pub, dataset
 
-def getPaths(entry, paths):
+def getPaths(entry, paths) -> list:
     """Takes the absolute path of a SPASE record directory to be walked
     to extract all SPASE records present. Returns these paths using the
     list parameter paths, which holds the absolute paths generated by
@@ -521,44 +571,59 @@ def getPaths(entry, paths):
         print(entry + " does not exist")
     return paths
 
-# list that holds SPASE records already checked
-searched = []
-SPASE_paths = []
-folder = "C:/Users/zboqu/NASA Internship/NASA/DisplayData"
-#folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/ACE/EPAM"
-#folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/Cassini/MAG"
-SPASE_paths = getPaths(folder, SPASE_paths)
-print("You entered " + folder)
-if len(SPASE_paths) == 0:
-    print("No records found. Returning.")
-else:
-    print("The number of records is " + str(len(SPASE_paths)))
-#testSpase = SPASE("C:/Users/zboqu/NASA Internship/soso-spase/src/soso/data/spase.xml")
-#testSpase = SPASE("C:/Users/zboqu/NASA Internship/NASA/NumericalData/ACE/EPAM\LEFS150\MFSA\SolarWindFrame\Sectored\HeavyIon\Fluxes/PT17M.xml")
-    #iterate through all SPASE records returned by PathGrabber
-    # Note: starting at record 24 in below folder, end of author string is formatted wrong with "and first last" instead of "and last, first" (SPASE issue)
-    # Successfully passed for all 129 records in NumericalData/ACE/EPAM folder
-    for r, record in enumerate(SPASE_paths[:26]):
-        if record not in searched:
-            # scrape metadata for each record
-            statusMessage = f"Extracting metadata from record {r+1}"
-            statusMessage += f" of {len(SPASE_paths)}"
-            print(statusMessage)
-            print(record)
-            testSpase = SPASE(record)
-            #print(testSpase.get_is_accessible_for_free())
-            citation = (testSpase.get_citation())
-            print(citation)
-            identifier = (testSpase.get_identifier())
-            print(identifier)
-            creator = testSpase.get_creator()
-            if creator is not None:
-                for each in creator:
-                    print(each)
-            else:
-                print("No creators were found according to the priority rules")
+def main(folder, printFlag = True) -> None:
+    # list that holds SPASE records already checked
+    searched = []
 
-            # add record to searched
-            searched.append(record)
-            print("Metadata successfully extracted")
-            print()
+    SPASE_paths = []
+
+    # obtains all filepaths to all SPASE records found in given directory
+    SPASE_paths = getPaths(folder, SPASE_paths)
+    print("You entered " + folder)
+    if len(SPASE_paths) == 0:
+        print("No records found. Returning.")
+    else:
+        print("The number of records is " + str(len(SPASE_paths)))
+        # iterate through all SPASE records
+        # Note: starting at record 24 in ACE/EPAM folder, end of author string is formatted wrong with "and first last" instead of "and last, first" (SPASE issue)
+        # Successfully passed for all 129 records in NumericalData/ACE/EPAM folder and all 187 in DisplayData
+        # In DisplayData, records 130, 167-70 has authors formatted wrong
+        # DisplayData: record 70 is ex w multiple contacts, ACE has ex's w multiple authors
+        for r, record in enumerate(SPASE_paths):
+            if record not in searched:
+                # scrape metadata for each record
+                statusMessage = f"Extracting metadata from record {r+1}"
+                statusMessage += f" of {len(SPASE_paths)}"
+                print(statusMessage)
+                print(record)
+                testSpase = SPASE(record)
+                #print(testSpase.get_is_accessible_for_free())
+                keywords = (testSpase.get_keywords())
+                citation = (testSpase.get_citation())
+                identifier = (testSpase.get_identifier())
+                creator = testSpase.get_creator()
+
+                if printFlag:
+                    if keywords is None:
+                        print("No keywords found")
+                    else:
+                        print(keywords)
+                    print(citation)
+                    print(identifier)
+                    if creator is not None:
+                        for each in creator:
+                            print(each)
+                    else:
+                        print("No creators were found according to the priority rules")
+                print("Metadata extraction completed")
+                print()
+
+                # add record to searched
+                searched.append(record)
+
+# test directories
+#folder = "C:/Users/zboqu/NASA Internship/NASA/DisplayData"
+#folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/ACE/EPAM"
+folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/Cassini/MAG"
+#folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion")
+main(folder, False)
