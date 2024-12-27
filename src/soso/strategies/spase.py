@@ -125,6 +125,7 @@ class SPASE(StrategyInterface):
         return delete_null_values(is_accessible_for_free)
 
     def get_keywords(self) -> Union[str, None]:
+        # Mapping: schema:keywords = spase:ResourceHeader/spase:Keyword
         keywords = []
         for child in self.root[1].iter(tag=etree.Element):
                 if child.tag.endswith("Keyword"):
@@ -137,6 +138,8 @@ class SPASE(StrategyInterface):
 
     def get_identifier(self) -> Union[tuple, None]:
         # Mapping: schema:identifier = spase:ResourceHeader/spase:DOI (or https://hpde.io landing page, if no DOI)
+        # Each item is: {@id: URL, @type: schema:PropertyValue, propertyID: URI for identifier scheme, value: identifier value, url: URL}
+        # Uses identifier scheme URI, provided at: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#identifier
         url = self.get_url()
         # if SPASE record has a DOI
         if "doi" in url:
@@ -267,7 +270,20 @@ class SPASE(StrategyInterface):
             author = ""
         # assign backup values if not found in desired locations
         if pub == '':
-            pub = "NASA Heliophysics Digital Resource Library"
+            # TODO: ask if this process should be used to find backup pub
+            #for child in self.root[1].iter(tag=etree.Element):
+                #if child.tag.endswith("AccessInformation"):
+                    #targetChild = child
+                    # iterate thru children to locate RepositoryID
+                    #for child in targetChild:
+                        #if child.tag.endswith("RepositoryID"):
+                            # use partition to split text by Repository/
+                            #    and assign only the text after it to pub
+                            #(before, sep, after) = child.text.partition("Repo" +
+                                                                        #"sitory/")
+                            #pub = after
+            if pub == '':
+                pub = "NASA Heliophysics Digital Resource Library"
         if pubDate == "":
             # iterate thru to find ResourceHeader
             for child in self.root[1].iter(tag=etree.Element):
@@ -284,8 +300,33 @@ class SPASE(StrategyInterface):
             citation = f"{author} ({pubDate}). {pub}. {DOI}"
         return delete_null_values(citation)
 
-    def get_variable_measured(self) -> None:
-        variable_measured = None
+    def get_variable_measured(self) -> Union[List[Dict], None]:
+        # Mapping: schema:variable_measured = /spase:Parameters/spase:Name, Description, Units, ValidMin, ValidMax
+        # Each object is:
+        #   {"@type": schema:PropertyValue, "name": Name, "description": Description, "unitText": Units,
+        #       "minValue": ValidMin, "maxValue": ValidMax}
+        # Following schema:PropertyValue found at: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#variables
+        variable_measured = []
+        for child in self.root[1].iter(tag=etree.Element):
+            if child.tag.endswith("Parameter"):
+                targetChild = child
+                for child in targetChild:
+                    if child.tag.endswith("Name"):
+                        paramName = child.text
+                    elif child.tag.endswith("Description"):
+                        paramDesc = child.text
+                    elif child.tag.endswith("Units"):
+                        unit = child.text
+                    elif child.tag.endswith("ValidMin"):
+                        minVal = child.text
+                    elif child.tag.endswith("ValidMax"):
+                        maxVal = child.text
+                variable_measured.append({"@type": "PropertyValue", 
+                                        "name": f"{paramName}",
+                                        "description": f"{paramDesc}",
+                                        "unitText": f"{unit}",
+                                        "minValue": f"{minVal}",
+                                        "maxValue": f"{maxVal}"})
         return delete_null_values(variable_measured)
 
     def get_included_in_data_catalog(self) -> None:
@@ -296,12 +337,38 @@ class SPASE(StrategyInterface):
         encoding_format = None
         return delete_null_values(encoding_format)
 
-    def get_distribution(self) -> None:
-        distribution = None
+    def get_distribution(self) -> Union[List[Dict], None]:
+        # Mapping: schema:distribution = /spase:AccessInformation/spase:AccessURL/spase:URL
+        # AND /spase:AccessInformation/spase:Format
+        # Each object is:
+        #   {"@type": schema:DataDownload, "contentURL": URL, "encodingFormat": Format}
+        # Following schema:DataDownload found at: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#accessing-data-through-a-service-endpoint
+        distribution = []
+        dataDownloads, potentialActions = get_accessURLs(self)
+        for k, v in dataDownloads.items():
+            distribution.append({"@type": "DataDownload",
+                                "contentUrl": f"{k}",
+                                "encodingFormat": f"{v}"})
+        for k, v in potentialActions.items():
+            v = str(v).replace("[", "").replace("]", "")
+            encoder, sep, prodKeys = v.partition(",")
+            distribution.append({"@type": "DataDownload",
+                                "contentUrl": f"{k}",
+                                "encodingFormat": f"{encoder}"})
         return delete_null_values(distribution)
 
-    def get_potential_action(self) -> None:
-        potential_action = None
+    def get_potential_action(self) -> Union[List[Dict], None]:
+        potential_action = {}
+        dataDownloads, potentialActions = get_accessURLs(self)
+        for k, v in dataDownloads.items():
+            # Unfinished, have to figure out what to put here
+            potential_action.append({"@type": "SearchAction",
+                                "target": {"@type": "EntryPoint",
+                                            "contentType": "",
+                                            "urlTemplate": "",
+                                            "description": "",
+                                            "httpMethod": ""}
+                                })
         return delete_null_values(potential_action)
 
     def get_date_created(self) -> None:
@@ -320,8 +387,22 @@ class SPASE(StrategyInterface):
         expires = None
         return delete_null_values(expires)
 
-    def get_temporal_coverage(self) -> None:
-        temporal_coverage = None
+    def get_temporal_coverage(self) -> Union[Dict, None]:
+        # Mapping: schema:temporal_coverage = spase:TemporalDescription/spase:TimeSpan/*
+        # Each object is:
+        #   {"@context": schema.org, "@type": schema:Dataset, name: ResourceName, temporalCoverage: StartDate and StopDate|RelativeStopDate}
+        # Using format as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#temporal-coverage
+        ResourceName = self.get_name()
+        desiredTag = self.root[1].tag.split("}")
+        SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:TemporalDescription/spase:TimeSpan/spase:StartDate"
+        start = self.metadata.findtext(
+            SPASE_Location,
+            namespaces=self.namespaces,
+        )
+        temporal_coverage = {"@context": "https://schema.org/",
+                            "@type": "schema:Dataset",
+                            "name": f"{ResourceName}",
+                            "temporalCoverage": f"{start}"}
         return delete_null_values(temporal_coverage)
 
     def get_spatial_coverage(self) -> Union[List[Dict], None]:
@@ -330,8 +411,10 @@ class SPASE(StrategyInterface):
         #   {"@type": schema:Place, "@id": URI}
         # Using URIs, as defined in: https://github.com/polyneme/topst-spase-rdf-tools/blob/main/data/spase.owl
         spatial_coverage = []
+        desiredTag = self.root[1].tag.split("}")
+        SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ObservedRegion"
         for item in self.metadata.findall(
-            ".//spase:NumericalData/spase:ObservedRegion",
+            SPASE_Location,
             namespaces=self.namespaces,
         ):
             spatial_coverage.append(
@@ -346,7 +429,9 @@ class SPASE(StrategyInterface):
     def get_creator(self) -> Union[List, None]:
         # Mapping: schema:creator = spase:ResourceHeader/spase:PublicationInfo/spase:Authors 
         # OR schema:creator = spase:ResourceHeader/spase:Contact/spase:PersonID
-        
+        # Each item is:
+        #   {@type: Role, roleName: Contact Role, creator: {@type: Person, name: Author Name, givenName: First Name, familyName: Last Name}}
+        # Using schema:Creator as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#roles-of-people
         author, authorRole, pubDate, pub, dataset = get_authors(self.metadata)
         authorStr = str(author).replace("[", "").replace("]","")
         creator = []
@@ -480,7 +565,8 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
     :param metadata:    The SPASE metadata object as an XML tree.
     
     :returns: The highest priority authors found within the SPASE record as a list
-                as well as a list of their roles, respectively.
+                as well as a list of their roles, the publication date, publisher,
+                and the title of the publication.
     """
     # local vars needed
     author = []
@@ -571,11 +657,63 @@ def getPaths(entry, paths) -> list:
         print(entry + " does not exist")
     return paths
 
-def main(folder, printFlag = True) -> None:
+def get_accessURLs(metadata: etree.ElementTree) -> tuple:
+    """
+    :param metadata:    The SPASE metadata object as an XML tree.
+    
+    :returns: The AccessURLs found in the SPASE record, separated into two dictionaries,
+                dataDownloads and potentialActions, depending on if they have a product key
+                associated with them or not.
+    """
+    dataDownloads = {}
+    potentialActions = {}
+    AccessURLs = {}
+    root = metadata.getroot()
+    # iterate thru children to locate Access Information
+    for child in root[1].iter(tag=etree.Element):
+        if child.tag.endswith("AccessInformation"):
+            targetChild = child
+            # iterate thru children to locate AccessURL and Format
+            for child in targetChild:
+                if child.tag.endswith("Format"):
+                    encoder = child.text
+                elif child.tag.endswith("AccessURL"):
+                    targetChild = child
+                    # iterate thru children to locate URL
+                    for child in targetChild:
+                        if child.tag.endswith("URL"):
+                            url = child.text
+                            # provide "NULL" value in case no keys are found
+                            AccessURLs[url] = []
+                        # check if URL has a product key
+                        elif child.tag.endswith("ProductKey"):
+                            prodKey = child.text
+                            # if only one prodKey exists
+                            if AccessURLs[url] == []:
+                                AccessURLs[url] = [prodKey]
+                            # if multiple prodKeys exist
+                            else:
+                                AccessURLs[url] += [prodKey]
+                    # continue to check for additional AccessURLs
+                    continue
+            # continue to check for additional Access Informations
+            continue
+    for k, v in AccessURLs.items():
+        # if URL has no prodKeys at all, add to the dataDownloads dictionary
+        if not v:
+            dataDownloads[k] = encoder
+        # if URL has prodKeys, add to the potentialActions dictionary
+        else:
+            potentialActions[k] = [encoder, v]
+    return dataDownloads, potentialActions
+
+#TODO: add docstring
+def main(folder, parameterDesired = False, printFlag = True) -> None:
     # list that holds SPASE records already checked
     searched = []
 
     SPASE_paths = []
+    noCreators = []
 
     # obtains all filepaths to all SPASE records found in given directory
     SPASE_paths = getPaths(folder, SPASE_paths)
@@ -597,11 +735,13 @@ def main(folder, printFlag = True) -> None:
                 print(statusMessage)
                 print(record)
                 testSpase = SPASE(record)
+
                 #print(testSpase.get_is_accessible_for_free())
-                keywords = (testSpase.get_keywords())
-                citation = (testSpase.get_citation())
-                identifier = (testSpase.get_identifier())
+                keywords = testSpase.get_keywords()
+                citation = testSpase.get_citation()
+                identifier = testSpase.get_identifier()
                 creator = testSpase.get_creator()
+                variable_measured = testSpase.get_variable_measured()
 
                 if printFlag:
                     if keywords is None:
@@ -615,6 +755,13 @@ def main(folder, printFlag = True) -> None:
                             print(each)
                     else:
                         print("No creators were found according to the priority rules")
+                        # TODO: once testing is done add export for records who lack desired creators
+                        # append ResourceID and ResourceHeader of the record for exporting to spreadsheet
+                        #noCreators.append()
+                if parameterDesired:
+                    if variable_measured is not None:
+                        for variable in variable_measured:
+                            print(variable)
                 print("Metadata extraction completed")
                 print()
 
@@ -624,6 +771,6 @@ def main(folder, printFlag = True) -> None:
 # test directories
 #folder = "C:/Users/zboqu/NASA Internship/NASA/DisplayData"
 #folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/ACE/EPAM"
-folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/Cassini/MAG"
-#folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion")
-main(folder, False)
+#folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/Cassini/MAG"
+folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
+main(folder)
