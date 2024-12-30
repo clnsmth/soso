@@ -7,6 +7,7 @@ from soso.utilities import (
 )
 from typing import Union, List, Dict
 import re
+from datetime import datetime, timedelta
 
 # pylint: disable=duplicate-code
 
@@ -132,8 +133,8 @@ class SPASE(StrategyInterface):
                     keywords.append(child.text)
         if keywords == []:
             keywords = None
-        else:
-            keywords = str(keywords).replace("[", "").replace("]", "")
+        #else:
+            #keywords = str(keywords).replace("[", "").replace("]", "")
         return delete_null_values(keywords)
 
     def get_identifier(self) -> Union[tuple, None]:
@@ -307,6 +308,10 @@ class SPASE(StrategyInterface):
         #       "minValue": ValidMin, "maxValue": ValidMax}
         # Following schema:PropertyValue found at: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#variables
         variable_measured = []
+        paramDesc = ""
+        unit = ""
+        minVal = ""
+        maxVal = ""
         for child in self.root[1].iter(tag=etree.Element):
             if child.tag.endswith("Parameter"):
                 targetChild = child
@@ -344,31 +349,78 @@ class SPASE(StrategyInterface):
         #   {"@type": schema:DataDownload, "contentURL": URL, "encodingFormat": Format}
         # Following schema:DataDownload found at: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#accessing-data-through-a-service-endpoint
         distribution = []
-        dataDownloads, potentialActions = get_accessURLs(self)
+        dataDownloads, potentialActions = get_accessURLs(self.metadata)
         for k, v in dataDownloads.items():
             distribution.append({"@type": "DataDownload",
                                 "contentUrl": f"{k}",
-                                "encodingFormat": f"{v}"})
+                                "encodingFormat": f"{v[0]}"})
+        # keep?
         for k, v in potentialActions.items():
-            v = str(v).replace("[", "").replace("]", "")
-            encoder, sep, prodKeys = v.partition(",")
+            #encoder, sep, prodKeys = v.partition(",")
+            #encoder = encoder.replace("[", "")
+            encoder = v[0]
             distribution.append({"@type": "DataDownload",
                                 "contentUrl": f"{k}",
                                 "encodingFormat": f"{encoder}"})
         return delete_null_values(distribution)
 
     def get_potential_action(self) -> Union[List[Dict], None]:
-        potential_action = {}
-        dataDownloads, potentialActions = get_accessURLs(self)
-        for k, v in dataDownloads.items():
-            # Unfinished, have to figure out what to put here
-            potential_action.append({"@type": "SearchAction",
-                                "target": {"@type": "EntryPoint",
-                                            "contentType": "",
-                                            "urlTemplate": "",
-                                            "description": "",
-                                            "httpMethod": ""}
-                                })
+        # Mapping: schema:potentialAction = /spase:AccessInformation/spase:AccessURL/spase:URL
+        # AND /spase:AccessInformation/spase:Format
+        # Following schema:potentialAction found at: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#accessing-data-through-a-service-endpoint
+        potential_action = []
+        dataDownloads, potentialActions = get_accessURLs(self.metadata)
+        temp_covg = self.get_temporal_coverage()
+        start, sep, end = temp_covg["temporalCoverage"].partition("/")
+        if end == "":
+            date, sep, time = start.partition("T")
+            time = time.replace("Z", "")
+            if "." in time:
+                time, sep, ms = time.partition(".")
+            dt_string = date + " " + time
+            dt_obj = datetime.strptime(dt_string, "%Y-%m-%d %H:%M:%S")
+            # make stop time 1 second after start time
+            end = dt_obj + timedelta(seconds=1)
+            end = str(end).replace(" ", "T")
+
+        # loop thru all AccessURLs
+        for k, v in potentialActions.items():
+            prodKeys = v[1]
+            encoding = v[0]
+            pattern = "(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?"
+
+            # loop thru all product keys if there are multiple
+            for prodKey in prodKeys:
+                prodKey = prodKey.replace("\"", "")
+                # if link is a hapi link, provide the hapi interface web service to download data
+                if "/hapi" in k:
+                    potential_action.append({"@type": "SearchAction",
+                                        "target": {"@type": "EntryPoint",
+                                                    "contentType": f"{encoding}",
+                                                    "urlTemplate": f"{k}/data?id={prodKey}&time.min=(start)&time.max=(end)",
+                                                    "description": "Download dataset labeled by id based on the requested start and end dates",
+                                                    "httpMethod": "GET"},
+                                        "query-input": [
+                                            {"@type": "PropertyValueSpecification",
+                                            "valueName": "start",
+                                            "description": f"A UTC ISO DateTime. Use {start} as default value.",
+                                            "valueRequired": True,
+                                            "valuePattern": f"{pattern}"},
+                                            {"@type": "PropertyValueSpecification",
+                                            "valueName": "end",
+                                            "description": f"A UTC ISO DateTime. Use {end} as default value.",
+                                            "valueRequired": True,
+                                            "valuePattern": f"{pattern}"}
+                                        ]
+                    })
+                # use GSFC CDAWeb portal to download CDF
+                else:
+                    potential_action.append({"@type": "SearchAction",
+                                        "target": {"@type": "URL",
+                                                    "encodingFormat": f"{encoding}",
+                                                    "url": f"{k}",
+                                                    "description": "Download dataset data in CSV or JSON form at this URL"}
+                                                    })
         return delete_null_values(potential_action)
 
     def get_date_created(self) -> None:
@@ -392,17 +444,21 @@ class SPASE(StrategyInterface):
         # Each object is:
         #   {"@context": schema.org, "@type": schema:Dataset, name: ResourceName, temporalCoverage: StartDate and StopDate|RelativeStopDate}
         # Using format as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#temporal-coverage
-        ResourceName = self.get_name()
         desiredTag = self.root[1].tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:TemporalDescription/spase:TimeSpan/spase:StartDate"
         start = self.metadata.findtext(
             SPASE_Location,
             namespaces=self.namespaces,
         )
-        temporal_coverage = {"@context": "https://schema.org/",
-                            "@type": "schema:Dataset",
-                            "name": f"{ResourceName}",
-                            "temporalCoverage": f"{start}"}
+        SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:TemporalDescription/spase:TimeSpan/spase:StopDate"
+        stop = self.metadata.findtext(
+            SPASE_Location,
+            namespaces=self.namespaces,
+        )
+        if stop:
+            temporal_coverage = {"temporalCoverage": f"{start}/{stop}"}
+        else:
+            temporal_coverage = {"temporalCoverage": f"{start}"}
         return delete_null_values(temporal_coverage)
 
     def get_spatial_coverage(self) -> Union[List[Dict], None]:
@@ -665,19 +721,31 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
                 dataDownloads and potentialActions, depending on if they have a product key
                 associated with them or not.
     """
+    # needed local vars
     dataDownloads = {}
     potentialActions = {}
     AccessURLs = {}
+    encoding = []
+    encoder = []
+    i = 0
+    j = 0
     root = metadata.getroot()
+
+    # get Formats before iteration due to order of elements in SPASE record
+    desiredTag = root[1].tag.split("}")
+    SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:AccessInformation/spase:Format"
+    for item in metadata.findall(
+        SPASE_Location,
+        namespaces={"spase": "http://www.spase-group.org/data/schema"},):
+        encoding.append(item.text)
+
     # iterate thru children to locate Access Information
     for child in root[1].iter(tag=etree.Element):
         if child.tag.endswith("AccessInformation"):
             targetChild = child
             # iterate thru children to locate AccessURL and Format
             for child in targetChild:
-                if child.tag.endswith("Format"):
-                    encoder = child.text
-                elif child.tag.endswith("AccessURL"):
+                if child.tag.endswith("AccessURL"):
                     targetChild = child
                     # iterate thru children to locate URL
                     for child in targetChild:
@@ -685,6 +753,8 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
                             url = child.text
                             # provide "NULL" value in case no keys are found
                             AccessURLs[url] = []
+                            # append an encoder for each URL
+                            encoder.append(encoding[j])
                         # check if URL has a product key
                         elif child.tag.endswith("ProductKey"):
                             prodKey = child.text
@@ -697,14 +767,17 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
                     # continue to check for additional AccessURLs
                     continue
             # continue to check for additional Access Informations
+            j += 1
             continue
     for k, v in AccessURLs.items():
         # if URL has no prodKeys at all, add to the dataDownloads dictionary
         if not v:
-            dataDownloads[k] = encoder
+            #print(i)
+            dataDownloads[k] = [encoder[i]]
         # if URL has prodKeys, add to the potentialActions dictionary
         else:
-            potentialActions[k] = [encoder, v]
+            potentialActions[k] = [encoder[i], v]
+        i += 1
     return dataDownloads, potentialActions
 
 #TODO: add docstring
@@ -727,7 +800,7 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
         # Successfully passed for all 129 records in NumericalData/ACE/EPAM folder and all 187 in DisplayData
         # In DisplayData, records 130, 167-70 has authors formatted wrong
         # DisplayData: record 70 is ex w multiple contacts, ACE has ex's w multiple authors
-        for r, record in enumerate(SPASE_paths):
+        for r, record in enumerate(SPASE_paths[68:]):
             if record not in searched:
                 # scrape metadata for each record
                 statusMessage = f"Extracting metadata from record {r+1}"
@@ -742,22 +815,31 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
                 identifier = testSpase.get_identifier()
                 creator = testSpase.get_creator()
                 variable_measured = testSpase.get_variable_measured()
+                temporal_coverage = testSpase.get_temporal_coverage()
+                distribution = testSpase.get_distribution()
+                potential_action = testSpase.get_potential_action()
 
                 if printFlag:
                     if keywords is None:
                         print("No keywords found")
                     else:
                         print(keywords)
-                    print(citation)
-                    print(identifier)
-                    if creator is not None:
-                        for each in creator:
-                            print(each)
-                    else:
-                        print("No creators were found according to the priority rules")
+                    #print(citation)
+                    #print(identifier)
+                    #if creator is not None:
+                        #for each in creator:
+                            #print(each)
+                    #else:
+                        #print("No creators were found according to the priority rules")
                         # TODO: once testing is done add export for records who lack desired creators
                         # append ResourceID and ResourceHeader of the record for exporting to spreadsheet
                         #noCreators.append()
+                    for url in distribution:
+                        print(url)
+                    if potential_action is not None:
+                        for download_links in potential_action:
+                            print(download_links)
+                    print(temporal_coverage)
                 if parameterDesired:
                     if variable_measured is not None:
                         for variable in variable_measured:
@@ -769,8 +851,8 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
                 searched.append(record)
 
 # test directories
-#folder = "C:/Users/zboqu/NASA Internship/NASA/DisplayData"
+folder = "C:/Users/zboqu/NASA Internship/NASA/DisplayData"
 #folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/Cassini/MAG"
-folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-main(folder)
+#folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
+main(folder, False, False)
