@@ -35,6 +35,7 @@ class SPASE(StrategyInterface):
         Below are unmappable properties for this strategy:
             - [includedInDataCatalog]
             - [version]
+            - [subject_of]
     """
 
     def __init__(self, file: str, **kwargs: dict):
@@ -172,6 +173,7 @@ class SPASE(StrategyInterface):
         i = 0
 
         authorTemp, authorRole, pubDate, pub, dataset = get_authors(self.metadata)
+        pubDate = pubDate[:4]
         authorStr = str(authorTemp)
         authorStr = authorStr.replace("[", "").replace("]","")
         authorStr = authorStr.replace("'","")
@@ -371,17 +373,23 @@ class SPASE(StrategyInterface):
         potential_action = []
         dataDownloads, potentialActions = get_accessURLs(self.metadata)
         temp_covg = self.get_temporal_coverage()
-        start, sep, end = temp_covg["temporalCoverage"].partition("/")
-        if end == "":
-            date, sep, time = start.partition("T")
-            time = time.replace("Z", "")
-            if "." in time:
-                time, sep, ms = time.partition(".")
-            dt_string = date + " " + time
-            dt_obj = datetime.strptime(dt_string, "%Y-%m-%d %H:%M:%S")
-            # make stop time 1 second after start time
-            end = dt_obj + timedelta(seconds=1)
-            end = str(end).replace(" ", "T")
+        if temp_covg is not None:
+            start, sep, end = temp_covg["temporalCoverage"].partition("/")
+            if end == "":
+                date, sep, time = start.partition("T")
+                time = time.replace("Z", "")
+                if "." in time:
+                    time, sep, ms = time.partition(".")
+                dt_string = date + " " + time
+                dt_obj = datetime.strptime(dt_string, "%Y-%m-%d %H:%M:%S")
+                # make stop time 1 second after start time
+                end = dt_obj + timedelta(seconds=1)
+                end = str(end).replace(" ", "T")
+            startSent = f"Use {start} as default value."
+            endSent = f"Use {end} as default value."
+        else:
+            startSent = ""
+            endSent = ""
 
         # loop thru all AccessURLs
         for k, v in potentialActions.items():
@@ -403,12 +411,12 @@ class SPASE(StrategyInterface):
                                         "query-input": [
                                             {"@type": "PropertyValueSpecification",
                                             "valueName": "start",
-                                            "description": f"A UTC ISO DateTime. Use {start} as default value.",
+                                            "description": f"A UTC ISO DateTime. {startSent}",
                                             "valueRequired": True,
                                             "valuePattern": f"{pattern}"},
                                             {"@type": "PropertyValueSpecification",
                                             "valueName": "end",
-                                            "description": f"A UTC ISO DateTime. Use {end} as default value.",
+                                            "description": f"A UTC ISO DateTime. {endSent}",
                                             "valueRequired": True,
                                             "valuePattern": f"{pattern}"}
                                         ]
@@ -423,16 +431,42 @@ class SPASE(StrategyInterface):
                                                     })
         return delete_null_values(potential_action)
 
-    def get_date_created(self) -> None:
-        date_created = None
+    def get_date_created(self) -> Union[str, None]:
+        # Mapping: schema:dateCreated = spase:ResourceHeader/spase:ReleaseDate
+        # OR spase:ResourceHeader/spase:RevisionHistory/spase:RevisionEvent/spase:ReleaseDate
+        # Using schema:DateTime as defined in: https://schema.org/DateTime
+        release, revisions = get_dates(self.metadata)
+        if revisions == []:
+            date_created = str(release).replace(" ", "T")
+        # find earliest date in revision history
+        else:
+            #print("RevisionHistory found!")
+            date_created = str(revisions[0])
+            if len(revisions) > 1:
+                for i in range(1, len(revisions)):
+                    if (revisions[i] < revisions[i-1]):
+                        date_created = str(revisions[i])
+            if datetime.strptime(date_created, "%Y-%m-%d %H:%M:%S") > release:
+                raise ValueError("dateModified is before dateCreated!")
+            date_created = date_created.replace(" ", "T")
         return delete_null_values(date_created)
 
-    def get_date_modified(self) -> None:
-        date_modified = None
+    def get_date_modified(self) -> Union[str, None]:
+        # Mapping: schema:dateModified = spase:ResourceHeader/spase:ReleaseDate
+        # Using schema:DateTime as defined in: https://schema.org/DateTime
+        release, revisions = get_dates(self.metadata)
+        date_modified = str(release).replace(" ", "T")
         return delete_null_values(date_modified)
 
     def get_date_published(self) -> None:
-        date_published = None
+        # Mapping: schema:datePublished = spase:ResourceHeader/spase:PublicationInfo/spase:PublicationDate
+        # Using schema:DateTime as defined in: https://schema.org/DateTime        
+        author, authorRole, pubDate, publisher, dataset = get_authors(self.metadata)
+        if pubDate == "":
+            date_published = None
+        else:
+            date_published = pubDate.replace(" ", "T")
+            date_published = date_published.replace("Z", "")
         return delete_null_values(date_published)
 
     def get_expires(self) -> None:
@@ -455,10 +489,13 @@ class SPASE(StrategyInterface):
             SPASE_Location,
             namespaces=self.namespaces,
         )
-        if stop:
-            temporal_coverage = {"temporalCoverage": f"{start}/{stop}"}
+        if start:
+            if stop:
+                temporal_coverage = {"temporalCoverage": f"{start}/{stop}"}
+            else:
+                temporal_coverage = {"temporalCoverage": f"{start}"}
         else:
-            temporal_coverage = {"temporalCoverage": f"{start}"}
+            temporal_coverage = None
         return delete_null_values(temporal_coverage)
 
     def get_spatial_coverage(self) -> Union[List[Dict], None]:
@@ -573,12 +610,92 @@ class SPASE(StrategyInterface):
         provider = None
         return delete_null_values(provider)
 
-    def get_publisher(self) -> None:
-        publisher = None
+    def get_publisher(self) -> Union[Dict, None]:
+        # Mapping: schema:publisher = spase:ResourceHeader/spase:Contacts
+        # OR spase:ResourceHeader/spase:PublicationInfo/spase:PublishedBy
+        # Each item is:
+        #   {@type: Organization, name: PublishedBy OR Contact (if Role = Publisher)}
+        # Using schema:Organization as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#publisher-and-provider
+        author, authorRole, pubDate, publisher, dataset = get_authors(self.metadata)
+        if publisher == "":
+            publisher = None
+        else:
+            publisher = {"@type": "Organization",
+                            "name": f"{publisher}"}
         return delete_null_values(publisher)
 
-    def get_funding(self) -> None:
+    def get_funding(self) -> Union[List[Dict], None]:
+        # Mapping: schema:funding = spase:ResourceHeader/spase:Funding/spase:Agency 
+        # AND spase:ResourceHeader/spase:Funding/spase:Project
+        # AND spase:ResourceHeader/spase:Funding/spase:AwardNumber
+        # Each item is:
+        #   {@type: MonetaryGrant, funder: {@type: Person or Organization, name: Agency}, identifier: AwardNumber, name: Project}
+        # Using schema:MonetaryGrant as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#funding
         funding = None
+        agency = []
+        project = []
+        award = []
+        # iterate thru to find all info related to funding
+        for child in self.root[1].iter(tag=etree.Element):
+            if child.tag.endswith("Funding"):
+                targetChild = child
+                for child in targetChild:
+                    if child.tag.endswith("Agency"):
+                        agency.append(child.text)
+                    elif child.tag.endswith("Project"):
+                        project.append(child.text)
+                    elif child.tag.endswith("AwardNumber"):
+                        award.append(child.text)
+        # if funding info was found
+        if agency:
+            funding = []
+            i = 0
+            for funder in agency:
+                # if award number was found
+                if award:
+                    # funded by an agency
+                    if ";" not in funder:
+                        funding.append({"@type": "MonetaryGrant",
+                                        "funder": {"@type": "Organization",
+                                                    "name": f"{funder}"
+                                        },
+                                        "identifier": f"{award[i]}",
+                                        "name": f"{project[i]}"
+                                    })
+                    # funded by a person and/thru an agency
+                    else:
+                        org, sep, person = funder.partition("; ")
+                        funding.append({"@type": "MonetaryGrant",
+                                        "funder": [{"@type": "Organization",
+                                                    "name": f"{org}"},
+                                                    {"@type": "Person",
+                                                    "name": f"{person}"}
+                                        ],
+                                        "identifier": f"{award[i]}",
+                                        "name": f"{project[i]}"
+                                    })
+                # if award number was not found
+                else:
+                    # funded by an agency
+                    if ";" not in funder:
+                        funding.append({"@type": "MonetaryGrant",
+                                        "funder": {"@type": "Organization",
+                                                    "name": f"{funder}"
+                                        },
+                                        "name": f"{project[i]}"
+                                    })
+                    # funded by a person and/thru an agency
+                    else:
+                        org, sep, person = funder.partition("; ")
+                        funding.append({"@type": "MonetaryGrant",
+                                        "funder": [{"@type": "Organization",
+                                                    "name": f"{org}"},
+                                                    {"@type": "Person",
+                                                    "name": f"{person}"}
+                                        ],
+                                        "name": f"{project[i]}"
+                                    })
+                i += 1
         return delete_null_values(funding)
 
     def get_license(self) -> None:
@@ -593,8 +710,21 @@ class SPASE(StrategyInterface):
         was_derived_from = None
         return delete_null_values(was_derived_from)
 
-    def get_is_based_on(self) -> None:
-        is_based_on = None
+    def get_is_based_on(self) -> Union[List, None]:
+        # Mapping: schema:isBasedOn = spase:ResourceHeader/spase:Association/spase:AssociationID
+        is_based_on = []
+        for child in self.root[1].iter(tag=etree.Element):
+            if child.tag.endswith("Association"):
+                targetChild = child
+                for child in targetChild:
+                    if child.tag.endswith("AssociationID"):
+                        A_ID = child.text
+                    elif child.tag.endswith("AssociationType"):
+                        type = child.text
+                if type == "DerivedFrom":
+                    is_based_on.append(A_ID)
+        if is_based_on == []:
+            is_based_on = None
         return delete_null_values(is_based_on)
 
     def get_was_generated_by(self) -> None:
@@ -618,11 +748,16 @@ def get_schema_version(metadata: etree.ElementTree) -> str:
 
 def get_authors(metadata: etree.ElementTree) -> tuple:
     """
+    Takes an XML tree and scrapes the desired authors (with their roles), publication date,
+        publisher, and publication title. It then returns these items, with the author and
+        author roles as lists and the rest as strings.
+
     :param metadata:    The SPASE metadata object as an XML tree.
-    
+    :type entry: etree.ElementTree object
     :returns: The highest priority authors found within the SPASE record as a list
                 as well as a list of their roles, the publication date, publisher,
                 and the title of the publication.
+    :rtype: tuple
     """
     # local vars needed
     author = []
@@ -678,7 +813,6 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                 authorRole = ["Author"]
             elif child.tag.endswith("PublicationDate"):
                 pubDate = child.text
-                pubDate = pubDate[:4]
             # collect preferred publisher
             elif child.tag.endswith("PublishedBy"):
                 pub = child.text
@@ -780,6 +914,42 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
         i += 1
     return dataDownloads, potentialActions
 
+def get_dates(metadata: etree.ElementTree) -> tuple:
+    
+    root = metadata.getroot()
+    RevisionHistory = []
+
+    for child in root[1].iter(tag=etree.Element):
+        if child.tag.endswith("ResourceHeader"):
+            targetChild = child
+            for child in targetChild:
+                # find ReleaseDate
+                if child.tag.endswith("ReleaseDate"):
+                    date, sep, time = child.text.partition("T")
+                    if "Z" in child.text:
+                        time = time.replace("Z", "")
+                    if "." in child.text:
+                        time, sep, after = time.partition(".")
+                    dt_string = date + " " + time
+                    dt_obj = datetime.strptime(dt_string, "%Y-%m-%d %H:%M:%S")
+                    ReleaseDate = dt_obj
+                elif child.tag.endswith("RevisionHistory"):
+                    RHChild = child
+                    for child in RHChild:
+                        REChild = child
+                        for child in REChild:
+                            if child.tag.endswith("ReleaseDate"):
+                                date, sep, time = child.text.partition("T")
+                                if "Z" in child.text:
+                                    time = time.replace("Z", "")
+                                if "." in child.text:
+                                    time, sep, after = time.partition(".")
+                                dt_string = date + " " + time
+                                dt_obj = datetime.strptime(dt_string,
+                                                        "%Y-%m-%d %H:%M:%S")
+                                RevisionHistory.append(dt_obj)
+    return ReleaseDate, RevisionHistory
+
 #TODO: add docstring
 def main(folder, parameterDesired = False, printFlag = True) -> None:
     # list that holds SPASE records already checked
@@ -800,7 +970,9 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
         # Successfully passed for all 129 records in NumericalData/ACE/EPAM folder and all 187 in DisplayData
         # In DisplayData, records 130, 167-70 has authors formatted wrong
         # DisplayData: record 70 is ex w multiple contacts, ACE has ex's w multiple authors
-        for r, record in enumerate(SPASE_paths[68:]):
+        # ReleaseDate is not most recent at this dataset (causes dateModified to be incorrect): C:/Users/zboqu/NASA Internship/NASA/DisplayData\SDO\AIA\SSC
+        #   And some here too: C:/Users/zboqu/NASA Internship/NASA/DisplayData\STEREO-A\SECCHI\, C:/Users/zboqu/NASA Internship/NASA/DisplayData\STEREO-B\SECCHI
+        for r, record in enumerate(SPASE_paths):
             if record not in searched:
                 # scrape metadata for each record
                 statusMessage = f"Extracting metadata from record {r+1}"
@@ -814,16 +986,22 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
                 citation = testSpase.get_citation()
                 identifier = testSpase.get_identifier()
                 creator = testSpase.get_creator()
+                publisher = testSpase.get_publisher()
                 variable_measured = testSpase.get_variable_measured()
                 temporal_coverage = testSpase.get_temporal_coverage()
                 distribution = testSpase.get_distribution()
                 potential_action = testSpase.get_potential_action()
+                funding = testSpase.get_funding()
+                date_created = testSpase.get_date_created()
+                date_modified = testSpase.get_date_modified()
+                date_published = testSpase.get_date_published()
+                is_based_on = testSpase.get_is_based_on()
 
                 if printFlag:
-                    if keywords is None:
-                        print("No keywords found")
-                    else:
-                        print(keywords)
+                    #if keywords is None:
+                        #print("No keywords found")
+                    #else:
+                        #print(keywords)
                     #print(citation)
                     #print(identifier)
                     #if creator is not None:
@@ -834,12 +1012,35 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
                         # TODO: once testing is done add export for records who lack desired creators
                         # append ResourceID and ResourceHeader of the record for exporting to spreadsheet
                         #noCreators.append()
-                    for url in distribution:
-                        print(url)
-                    if potential_action is not None:
-                        for download_links in potential_action:
-                            print(download_links)
-                    print(temporal_coverage)
+                    #print(date_created)
+                    #print(date_modified)
+                    #if date_published is not None:
+                        #print(date_published)
+                    #else:
+                        #print("No publication date was found.")
+                    #if publisher is not None:
+                        #print(publisher)
+                    #else:
+                        #print("No publisher was found.")
+                    #for url in distribution:
+                        #print(url)
+                    #if potential_action is not None:
+                        #for download_links in potential_action:
+                            #print(download_links)
+                    #if temporal_coverage is not None:
+                        #print(temporal_coverage)
+                    #else:
+                        #print("No start/stop times were found.")
+                    #if funding is not None:
+                        #for funder in funding:
+                            #print(funder)
+                    #else:
+                        #print("No funding info was found.")
+                    if is_based_on is not None:
+                        print("Yay!")
+                        print(is_based_on)
+                    else:
+                        print("No AssociationID was found.")
                 if parameterDesired:
                     if variable_measured is not None:
                         for variable in variable_measured:
@@ -855,4 +1056,4 @@ folder = "C:/Users/zboqu/NASA Internship/NASA/DisplayData"
 #folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/Cassini/MAG"
 #folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-main(folder, False, False)
+main(folder, False, True)
