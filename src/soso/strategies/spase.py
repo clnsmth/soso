@@ -81,6 +81,10 @@ class SPASE(StrategyInterface):
 
     def get_url(self) -> str:
         # Mapping: schema:url = spase:ResourceHeader/spase:DOI (or https://hpde.io landing page, if no DOI)
+        # TODO: figure out why root[1] no longer points to the SPASE Directory name
+        #for elt in self.root.iter(tag=etree.Element):
+            #print(elt.tag)
+        print(self.root[4].tag)
         desiredTag = self.root[1].tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ResourceHeader/spase:DOI"
         url = self.metadata.findtext(
@@ -176,7 +180,7 @@ class SPASE(StrategyInterface):
         pubDate = pubDate[:4]
         authorStr = str(authorTemp)
         authorStr = authorStr.replace("[", "").replace("]","")
-        authorStr = authorStr.replace("'","")
+        authorStr = authorStr.replace("\"","")
         authorStr = authorStr.replace(" and ", " ")
         # if author is not empty
         if authorTemp:
@@ -236,7 +240,13 @@ class SPASE(StrategyInterface):
                         givenName, sep, initial = givenName.partition(", ")
                         givenName = givenName[0] + ". " + initial
                     else:
-                        givenName = givenName[0] + "."
+                        # handle case when name is not formatted correctly
+                        if givenName == "":
+                            givenName, sep, familyName = familyName.partition(". ")
+                            initial, sep, familyName = familyName.partition(" ")
+                            givenName = givenName + ". " + initial[0] + "."
+                        else:
+                            givenName = givenName[0] + "."
                     author = familyName + ", " + givenName
             # handle case when multiple authors pulled from PubInfo
             else:
@@ -244,6 +254,8 @@ class SPASE(StrategyInterface):
                 #print(authorTemp)
                 authorStr = ""
                 for each in authorTemp:
+                    familyName = None
+                    givenName = None
                     eachTemp = str(each).replace("[", "").replace("]","")
                     #print(eachTemp)
                     if (", " in eachTemp) or ("." in eachTemp):
@@ -253,20 +265,26 @@ class SPASE(StrategyInterface):
                             givenName, sep, familyName = eachTemp.partition(".")
                     #print(familyName)
                     #print(givenName)
-                    # if name has initial(s) already
-                    if ("." in familyName):
-                        initial, sep, familyName = familyName.partition(".")
-                        givenName = givenName[0] + ". " + initial + "."                    
-                    elif ("," in givenName):
-                        givenName, sep, initial = givenName.partition(", ")
-                        givenName = givenName[0] + ". " + initial
+                    if familyName is not None:
+                        # if name has initial(s) already
+                        if ("." in familyName):
+                            initial, sep, familyName = familyName.partition(".")
+                            givenName = givenName[0] + ". " + initial + "."                    
+                        elif ("," in givenName):
+                            givenName, sep, initial = givenName.partition(", ")
+                            givenName = givenName[0] + ". " + initial
+                        else:
+                            givenName = givenName[0] + "."
+                        if authorTemp.index(each) == (len(authorTemp)-1):
+                            familyName = "& " + familyName
+                        else:
+                            givenName += ", "
+                        authorStr += familyName + ", " + givenName
                     else:
-                        givenName = givenName[0] + "."
-                    if authorTemp.index(each) == (len(authorTemp)-1):
-                        familyName = "& " + familyName
-                    else:
-                        givenName += ", "
-                    authorStr += familyName + ", " + givenName
+                        if authorTemp.index(each) == (len(authorTemp)-1):
+                            authorStr += "& " + eachTemp
+                        else:
+                            authorStr += eachTemp + ", "
                 author = authorStr
         # no author was found
         else:
@@ -293,7 +311,7 @@ class SPASE(StrategyInterface):
                 if child.tag.endswith("ResourceHeader"):
                     targetChild = child
                     # iterate thru to find ReleaseDate (temp pubYr)
-                    for child in targetChild:
+                    for child in targetChild.iter(tag=etree.Element):
                         if child.tag.endswith("ReleaseDate"):
                             pubDate = child.text[:4]
         DOI = self.get_url()
@@ -317,7 +335,7 @@ class SPASE(StrategyInterface):
         for child in self.root[1].iter(tag=etree.Element):
             if child.tag.endswith("Parameter"):
                 targetChild = child
-                for child in targetChild:
+                for child in targetChild.iter(tag=etree.Element):
                     if child.tag.endswith("Name"):
                         paramName = child.text
                     elif child.tag.endswith("Description"):
@@ -590,9 +608,14 @@ class SPASE(StrategyInterface):
             # if there is only one author listed
             else:
                 # get rid of extra quotations
-                person = authorStr.replace("'","")
+                person = authorStr.replace("\"","")
                 if authorRole == ["Author"]:
                     familyName, sep, givenName = person.partition(",")
+                    # handle case when name is not formatted correctly
+                    if givenName == "":
+                        givenName, sep, familyName = familyName.partition(". ")
+                        initial, sep, familyName = familyName.partition(" ")
+                        givenName = givenName + ". " + initial[0] + "."
                     creator.append({"@type": "Role", 
                                     "roleName": f"{authorRole[0]}",
                                     "creator": {"@type": "Person",
@@ -639,7 +662,7 @@ class SPASE(StrategyInterface):
         for child in self.root[1].iter(tag=etree.Element):
             if child.tag.endswith("Funding"):
                 targetChild = child
-                for child in targetChild:
+                for child in targetChild.iter(tag=etree.Element):
                     if child.tag.endswith("Agency"):
                         agency.append(child.text)
                     elif child.tag.endswith("Project"):
@@ -777,13 +800,13 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
         if child.tag.endswith("ResourceHeader"):
             targetChild = child
             # iterate thru to find PublicationInfo
-            for child in targetChild:
+            for child in targetChild.iter(tag=etree.Element):
                 if child.tag.endswith("PublicationInfo"):
                     PI_child = child
                 elif child.tag.endswith("Contact"):
                     C_Child = child
                     # iterate thru Contact to find PersonID and Role
-                    for child in C_Child:
+                    for child in C_Child.iter(tag=etree.Element):
                         # find PersonID
                         if child.tag.endswith("PersonID"):
                             # store PersonID
@@ -806,7 +829,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                             elif child.text == "Publisher":
                                 pub = child.text
     if PI_child is not None:
-        for child in PI_child:
+        for child in PI_child.iter(tag=etree.Element):
             # collect preferred author
             if child.tag.endswith("Authors"):
                 author = [child.text]
@@ -878,11 +901,11 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
         if child.tag.endswith("AccessInformation"):
             targetChild = child
             # iterate thru children to locate AccessURL and Format
-            for child in targetChild:
+            for child in targetChild.iter(tag=etree.Element):
                 if child.tag.endswith("AccessURL"):
                     targetChild = child
                     # iterate thru children to locate URL
-                    for child in targetChild:
+                    for child in targetChild.iter(tag=etree.Element):
                         if child.tag.endswith("URL"):
                             url = child.text
                             # provide "NULL" value in case no keys are found
@@ -922,7 +945,7 @@ def get_dates(metadata: etree.ElementTree) -> tuple:
     for child in root[1].iter(tag=etree.Element):
         if child.tag.endswith("ResourceHeader"):
             targetChild = child
-            for child in targetChild:
+            for child in targetChild.iter(tag=etree.Element):
                 # find ReleaseDate
                 if child.tag.endswith("ReleaseDate"):
                     date, sep, time = child.text.partition("T")
@@ -935,9 +958,9 @@ def get_dates(metadata: etree.ElementTree) -> tuple:
                     ReleaseDate = dt_obj
                 elif child.tag.endswith("RevisionHistory"):
                     RHChild = child
-                    for child in RHChild:
+                    for child in RHChild.iter(tag=etree.Element):
                         REChild = child
-                        for child in REChild:
+                        for child in REChild.iter(tag=etree.Element):
                             if child.tag.endswith("ReleaseDate"):
                                 date, sep, time = child.text.partition("T")
                                 if "Z" in child.text:
@@ -972,7 +995,8 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
         # DisplayData: record 70 is ex w multiple contacts, ACE has ex's w multiple authors
         # ReleaseDate is not most recent at this dataset (causes dateModified to be incorrect): C:/Users/zboqu/NASA Internship/NASA/DisplayData\SDO\AIA\SSC
         #   And some here too: C:/Users/zboqu/NASA Internship/NASA/DisplayData\STEREO-A\SECCHI\, C:/Users/zboqu/NASA Internship/NASA/DisplayData\STEREO-B\SECCHI
-        for r, record in enumerate(SPASE_paths):
+        #                       C:/Users/zboqu/NASA Internship/NASA/NumericalData\Cluster-Rumba\WBD\BM2
+        for r, record in enumerate(SPASE_paths[2517:2576]):
             if record not in searched:
                 # scrape metadata for each record
                 statusMessage = f"Extracting metadata from record {r+1}"
@@ -1036,6 +1060,7 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
                             #print(funder)
                     #else:
                         #print("No funding info was found.")
+                    # only 16 in DisplayData have this, none in ACE/EPAM, 6 in NumericalData
                     if is_based_on is not None:
                         print("Yay!")
                         print(is_based_on)
@@ -1052,8 +1077,13 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
                 searched.append(record)
 
 # test directories
-folder = "C:/Users/zboqu/NASA Internship/NASA/DisplayData"
+#folder = "C:/Users/zboqu/NASA Internship/NASA/DisplayData"
 #folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/Cassini/MAG"
 #folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
+
+# start at list item 132 if want to skip EPAM folder
+#folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/ACE"
+# start at list item 163 if want to skip ACE folder
+folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData"
 main(folder, False, True)
