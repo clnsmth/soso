@@ -49,10 +49,16 @@ class SPASE(StrategyInterface):
         self.namespaces = {"spase": "http://www.spase-group.org/data/schema"}
         self.kwargs = kwargs
         self.root = self.metadata.getroot()
+        # find element in tree to iterate over
+        for elt in self.root.iter(tag=etree.Element):
+            if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+                self.desiredRoot = elt
+        # if want to see entire xml file as a string
+        #print(etree.tostring(self.desiredRoot, pretty_print = True).decode(), end=' ')
 
     def get_id(self) -> str:
         # Mapping: schema:identifier = spase:ResourceID
-        desiredTag = self.root[1].tag.split("}")
+        desiredTag = self.desiredRoot.tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ResourceHeader/spase:ResourceID"
         dataset_id = self.metadata.findtext(
             SPASE_Location, namespaces=self.namespaces
@@ -61,7 +67,7 @@ class SPASE(StrategyInterface):
 
     def get_name(self) -> str:
         # Mapping: schema:description = spase:ResourceHeader/spase:ResourceName
-        desiredTag = self.root[1].tag.split("}")
+        desiredTag = self.desiredRoot.tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ResourceHeader/spase:ResourceName"
         name = self.metadata.findtext(
             SPASE_Location,
@@ -71,7 +77,7 @@ class SPASE(StrategyInterface):
 
     def get_description(self) -> str:
         # Mapping: schema:description = spase:ResourceHeader/spase:Description
-        desiredTag = self.root[1].tag.split("}")
+        desiredTag = self.desiredRoot.tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ResourceHeader/spase:Description"
         description = self.metadata.findtext(
             SPASE_Location,
@@ -81,18 +87,14 @@ class SPASE(StrategyInterface):
 
     def get_url(self) -> str:
         # Mapping: schema:url = spase:ResourceHeader/spase:DOI (or https://hpde.io landing page, if no DOI)
-        # TODO: figure out why root[1] no longer points to the SPASE Directory name
-        #for elt in self.root.iter(tag=etree.Element):
-            #print(elt.tag)
-        print(self.root[4].tag)
-        desiredTag = self.root[1].tag.split("}")
+        desiredTag = self.desiredRoot.tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ResourceHeader/spase:DOI"
         url = self.metadata.findtext(
             SPASE_Location,
             namespaces=self.namespaces,
         )
         if delete_null_values(url) is None:
-            desiredTag = self.root[1].tag.split("}")
+            desiredTag = self.desiredRoot.tag.split("}")
             SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ResourceID"
             url = self.metadata.findtext(
                 SPASE_Location, namespaces=self.namespaces
@@ -115,7 +117,7 @@ class SPASE(StrategyInterface):
         #access = ""
 
         # iterate thru to find AccessInfo
-        #for child in self.root[1]:
+        #for child in self.desiredRoot:
         #    if access == "Open":
         #        break
         #    if child.tag.endswith("AccessInformation"):
@@ -133,13 +135,11 @@ class SPASE(StrategyInterface):
     def get_keywords(self) -> Union[str, None]:
         # Mapping: schema:keywords = spase:ResourceHeader/spase:Keyword
         keywords = []
-        for child in self.root[1].iter(tag=etree.Element):
-                if child.tag.endswith("Keyword"):
-                    keywords.append(child.text)
+        for child in self.desiredRoot.iter(tag=etree.Element):
+            if child.tag.endswith("Keyword"):
+                keywords.append(child.text)
         if keywords == []:
             keywords = None
-        #else:
-            #keywords = str(keywords).replace("[", "").replace("]", "")
         return delete_null_values(keywords)
 
     def get_identifier(self) -> Union[tuple, None]:
@@ -173,10 +173,11 @@ class SPASE(StrategyInterface):
         author = []
         pubDate = ""
         pub = ""
+        contributor = []
         dataset = ""
         i = 0
 
-        authorTemp, authorRole, pubDate, pub, dataset = get_authors(self.metadata)
+        authorTemp, authorRole, pubDate, pub, contributor, dataset = get_authors(self.metadata)
         pubDate = pubDate[:4]
         authorStr = str(authorTemp)
         authorStr = authorStr.replace("[", "").replace("]","")
@@ -292,7 +293,7 @@ class SPASE(StrategyInterface):
         # assign backup values if not found in desired locations
         if pub == '':
             # TODO: ask if this process should be used to find backup pub
-            #for child in self.root[1].iter(tag=etree.Element):
+            #for child in self.desiredRoot.iter(tag=etree.Element):
                 #if child.tag.endswith("AccessInformation"):
                     #targetChild = child
                     # iterate thru children to locate RepositoryID
@@ -307,7 +308,7 @@ class SPASE(StrategyInterface):
                 pub = "NASA Heliophysics Digital Resource Library"
         if pubDate == "":
             # iterate thru to find ResourceHeader
-            for child in self.root[1].iter(tag=etree.Element):
+            for child in self.desiredRoot.iter(tag=etree.Element):
                 if child.tag.endswith("ResourceHeader"):
                     targetChild = child
                     # iterate thru to find ReleaseDate (temp pubYr)
@@ -332,7 +333,7 @@ class SPASE(StrategyInterface):
         unit = ""
         minVal = ""
         maxVal = ""
-        for child in self.root[1].iter(tag=etree.Element):
+        for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("Parameter"):
                 targetChild = child
                 for child in targetChild.iter(tag=etree.Element):
@@ -479,7 +480,7 @@ class SPASE(StrategyInterface):
     def get_date_published(self) -> None:
         # Mapping: schema:datePublished = spase:ResourceHeader/spase:PublicationInfo/spase:PublicationDate
         # Using schema:DateTime as defined in: https://schema.org/DateTime        
-        author, authorRole, pubDate, publisher, dataset = get_authors(self.metadata)
+        author, authorRole, pubDate, publisher, contributor, dataset = get_authors(self.metadata)
         if pubDate == "":
             date_published = None
         else:
@@ -496,7 +497,7 @@ class SPASE(StrategyInterface):
         # Each object is:
         #   {"@context": schema.org, "@type": schema:Dataset, name: ResourceName, temporalCoverage: StartDate and StopDate|RelativeStopDate}
         # Using format as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#temporal-coverage
-        desiredTag = self.root[1].tag.split("}")
+        desiredTag = self.desiredRoot.tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:TemporalDescription/spase:TimeSpan/spase:StartDate"
         start = self.metadata.findtext(
             SPASE_Location,
@@ -522,7 +523,7 @@ class SPASE(StrategyInterface):
         #   {"@type": schema:Place, "@id": URI}
         # Using URIs, as defined in: https://github.com/polyneme/topst-spase-rdf-tools/blob/main/data/spase.owl
         spatial_coverage = []
-        desiredTag = self.root[1].tag.split("}")
+        desiredTag = self.desiredRoot.tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ObservedRegion"
         for item in self.metadata.findall(
             SPASE_Location,
@@ -543,7 +544,7 @@ class SPASE(StrategyInterface):
         # Each item is:
         #   {@type: Role, roleName: Contact Role, creator: {@type: Person, name: Author Name, givenName: First Name, familyName: Last Name}}
         # Using schema:Creator as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#roles-of-people
-        author, authorRole, pubDate, pub, dataset = get_authors(self.metadata)
+        author, authorRole, pubDate, pub, contributor, dataset = get_authors(self.metadata)
         authorStr = str(author).replace("[", "").replace("]","")
         creator = []
         multiple = False
@@ -625,8 +626,34 @@ class SPASE(StrategyInterface):
                                                 })
         return delete_null_values(creator)
 
-    def get_contributor(self) -> None:
-        contributor = None
+    def get_contributor(self) -> Union[List, None]:
+        # Mapping: schema:contributor = spase:ResourceHeader/spase:Contact/spase:PersonID
+        # Each item is:
+        #   {@type: Role, roleName: Contributor, contributor: {@type: Person, name: Author Name, givenName: First Name, familyName: Last Name}}
+        # Using schema:Person as defined in: https://schema.org/Person
+        author, authorRole, pubDate, pub, contributors, dataset = get_authors(self.metadata)
+        contributorStr = str(contributors).replace("[", "").replace("]","")
+        contributor = []
+        # if contributors were found in Contact/PersonID
+        if "Person/" in contributorStr:
+            for person in contributors:
+                path, sep, contributorStr = person.partition("Person/")
+                # get rid of extra quotations
+                contributorStr = contributorStr.replace("'","")
+                givenName, sep, familyName = contributorStr.partition(".")
+                # if name has initial(s)
+                if ("." in familyName):
+                    initial, sep, familyName = familyName.partition(".")
+                    givenName = givenName + ' ' + initial + '.'
+                contributorStr = givenName + " " + familyName
+                contributorStr = contributorStr.replace("\"", "")
+                contributor.append({"@type": "Role", 
+                                "roleName": "Contributor",
+                                "contributor": {"@type": "Person",
+                                            "name": f"{contributorStr}",
+                                            "givenName": f"{givenName}",
+                                            "familyName": f"{familyName}"}
+                                            })
         return delete_null_values(contributor)
 
     def get_provider(self) -> None:
@@ -639,7 +666,7 @@ class SPASE(StrategyInterface):
         # Each item is:
         #   {@type: Organization, name: PublishedBy OR Contact (if Role = Publisher)}
         # Using schema:Organization as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#publisher-and-provider
-        author, authorRole, pubDate, publisher, dataset = get_authors(self.metadata)
+        author, authorRole, pubDate, publisher, contributor, dataset = get_authors(self.metadata)
         if publisher == "":
             publisher = None
         else:
@@ -659,7 +686,7 @@ class SPASE(StrategyInterface):
         project = []
         award = []
         # iterate thru to find all info related to funding
-        for child in self.root[1].iter(tag=etree.Element):
+        for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("Funding"):
                 targetChild = child
                 for child in targetChild.iter(tag=etree.Element):
@@ -736,7 +763,9 @@ class SPASE(StrategyInterface):
     def get_is_based_on(self) -> Union[List, None]:
         # Mapping: schema:isBasedOn = spase:ResourceHeader/spase:Association/spase:AssociationID
         is_based_on = []
-        for child in self.root[1].iter(tag=etree.Element):
+        derivations = []
+        is_related_to = []
+        for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("Association"):
                 targetChild = child
                 for child in targetChild:
@@ -745,9 +774,16 @@ class SPASE(StrategyInterface):
                     elif child.tag.endswith("AssociationType"):
                         type = child.text
                 if type == "DerivedFrom":
-                    is_based_on.append(A_ID)
-        if is_based_on == []:
+                    derivations.append(A_ID)
+            elif child.tag.endswith("PriorID"):
+                is_related_to.append(child.text)
+        if derivations == []:
             is_based_on = None
+        else:
+            is_based_on = [{"@type": "CreativeWork",
+                                "isBasedOn": f"{derivations}"},
+                            {"@type": "Product",
+                                "isRelatedTo": f"{is_related_to}"}]
         return delete_null_values(is_based_on)
 
     def get_was_generated_by(self) -> None:
@@ -787,16 +823,20 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
     authorRole = []
     pubDate = ""
     pub = ""
+    contributor = []
     dataset = ""
     PI_child = None
     priority = False
     root = metadata.getroot()
+    for elt in root.iter(tag=etree.Element):
+            if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+                desiredRoot = elt
     # holds role values that are not considered for author var
     UnapprovedAuthors = ["MetadataContact", "ArchiveSpecialist",
                         "HostContact", "Publisher", "User"]
 
     # iterate thru to find ResourceHeader
-    for child in root[1].iter(tag=etree.Element):
+    for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("ResourceHeader"):
             targetChild = child
             # iterate thru to find PublicationInfo
@@ -825,6 +865,8 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                                     authorRole.append(child.text)
                                 # mark that highest priority backup author was found
                                 priority = True
+                            elif child.text == "Contributor":
+                                contributor.append(PersonID)
                             # backup publisher
                             elif child.text == "Publisher":
                                 pub = child.text
@@ -842,7 +884,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
             # collect preferred dataset
             elif child.tag.endswith("Title"):
                 dataset = child.text
-    return author, authorRole, pubDate, pub, dataset
+    return author, authorRole, pubDate, pub, contributor, dataset
 
 def getPaths(entry, paths) -> list:
     """Takes the absolute path of a SPASE record directory to be walked
@@ -887,9 +929,12 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
     i = 0
     j = 0
     root = metadata.getroot()
+    for elt in root.iter(tag=etree.Element):
+            if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+                desiredRoot = elt
 
     # get Formats before iteration due to order of elements in SPASE record
-    desiredTag = root[1].tag.split("}")
+    desiredTag = desiredRoot.tag.split("}")
     SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:AccessInformation/spase:Format"
     for item in metadata.findall(
         SPASE_Location,
@@ -897,7 +942,7 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
         encoding.append(item.text)
 
     # iterate thru children to locate Access Information
-    for child in root[1].iter(tag=etree.Element):
+    for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("AccessInformation"):
             targetChild = child
             # iterate thru children to locate AccessURL and Format
@@ -940,9 +985,12 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
 def get_dates(metadata: etree.ElementTree) -> tuple:
     
     root = metadata.getroot()
+    for elt in root.iter(tag=etree.Element):
+            if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+                desiredRoot = elt
     RevisionHistory = []
 
-    for child in root[1].iter(tag=etree.Element):
+    for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("ResourceHeader"):
             targetChild = child
             for child in targetChild.iter(tag=etree.Element):
@@ -993,10 +1041,10 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
         # Successfully passed for all 129 records in NumericalData/ACE/EPAM folder and all 187 in DisplayData
         # In DisplayData, records 130, 167-70 has authors formatted wrong
         # DisplayData: record 70 is ex w multiple contacts, ACE has ex's w multiple authors
-        # ReleaseDate is not most recent at this dataset (causes dateModified to be incorrect): C:/Users/zboqu/NASA Internship/NASA/DisplayData\SDO\AIA\SSC
-        #   And some here too: C:/Users/zboqu/NASA Internship/NASA/DisplayData\STEREO-A\SECCHI\, C:/Users/zboqu/NASA Internship/NASA/DisplayData\STEREO-B\SECCHI
-        #                       C:/Users/zboqu/NASA Internship/NASA/NumericalData\Cluster-Rumba\WBD\BM2
-        for r, record in enumerate(SPASE_paths[2517:2576]):
+        # ReleaseDate is not most recent at this dataset (causes dateModified to be incorrect): C:/Users/zboquet/NASA/DisplayData\SDO\AIA\SSC
+        #   And some here too: C:/Users/zboquet/NASA/DisplayData\STEREO-A\SECCHI\, C:/Users/zboquet/NASA/DisplayData\STEREO-B\SECCHI
+        #                       C:/Users/zboquet/NASA/NumericalData\Cluster-Rumba\WBD\BM2
+        for r, record in enumerate(SPASE_paths):
             if record not in searched:
                 # scrape metadata for each record
                 statusMessage = f"Extracting metadata from record {r+1}"
@@ -1011,6 +1059,7 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
                 identifier = testSpase.get_identifier()
                 creator = testSpase.get_creator()
                 publisher = testSpase.get_publisher()
+                contributor = testSpase.get_contributor()
                 variable_measured = testSpase.get_variable_measured()
                 temporal_coverage = testSpase.get_temporal_coverage()
                 distribution = testSpase.get_distribution()
@@ -1046,6 +1095,12 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
                         #print(publisher)
                     #else:
                         #print("No publisher was found.")
+                    # pos 1161-2 in NumericalData
+                    if contributor is not None:
+                        for person in contributor:
+                            print(person)
+                    else:
+                        print("No contributors found.")
                     #for url in distribution:
                         #print(url)
                     #if potential_action is not None:
@@ -1061,11 +1116,11 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
                     #else:
                         #print("No funding info was found.")
                     # only 16 in DisplayData have this, none in ACE/EPAM, 6 in NumericalData
-                    if is_based_on is not None:
-                        print("Yay!")
-                        print(is_based_on)
-                    else:
-                        print("No AssociationID was found.")
+                    #if is_based_on is not None:
+                        #for each in is_based_on:
+                            #print(each)
+                    #else:
+                        #print("No AssociationID was found.")
                 if parameterDesired:
                     if variable_measured is not None:
                         for variable in variable_measured:
@@ -1077,13 +1132,13 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
                 searched.append(record)
 
 # test directories
-#folder = "C:/Users/zboqu/NASA Internship/NASA/DisplayData"
-#folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/ACE/EPAM"
-#folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/Cassini/MAG"
-#folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
+folder = "C:/Users/zboquet/NASA/DisplayData"
+#folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
+#folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
+#folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
 
 # start at list item 132 if want to skip EPAM folder
-#folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData/ACE"
+#folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 # start at list item 163 if want to skip ACE folder
-folder = "C:/Users/zboqu/NASA Internship/NASA/NumericalData"
+#folder = "C:/Users/zboquet/NASA/NumericalData"
 main(folder, False, True)
