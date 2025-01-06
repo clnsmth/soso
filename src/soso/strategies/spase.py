@@ -181,7 +181,7 @@ class SPASE(StrategyInterface):
         pubDate = pubDate[:4]
         authorStr = str(authorTemp)
         authorStr = authorStr.replace("[", "").replace("]","")
-        authorStr = authorStr.replace("\"","")
+        authorStr = authorStr.replace("'","")
         authorStr = authorStr.replace(" and ", " ")
         # if author is not empty
         if authorTemp:
@@ -477,7 +477,7 @@ class SPASE(StrategyInterface):
         date_modified = str(release).replace(" ", "T")
         return delete_null_values(date_modified)
 
-    def get_date_published(self) -> None:
+    def get_date_published(self) -> Union[str, None]:
         # Mapping: schema:datePublished = spase:ResourceHeader/spase:PublicationInfo/spase:PublicationDate
         # Using schema:DateTime as defined in: https://schema.org/DateTime        
         author, authorRole, pubDate, publisher, contributor, dataset = get_authors(self.metadata)
@@ -588,11 +588,12 @@ class SPASE(StrategyInterface):
                 for person in author:
                     # get rid of extra quotations
                     person = person.replace("'","")
-                    # if first name is abbreviated
+                    # if first name doesnt have a period, check if it is an initial
                     if (not person.endswith(".")):
-                        # if initial doesnt have a period, add one
-                        if (re.search(r"[A-Z][.][A-Z]", person) is not None):
-                            #print(re.search(r"[A-Z][.][A-Z]", person))
+                        # if first name is an initial w/o a period, add one
+                        grp = re.search(r'[\w]{1}\.$', person)
+                        if grp is None:
+                            #print(grp)
                             person += "."
                     # remove 'and' from name
                     if "and " in person:
@@ -930,33 +931,34 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
     j = 0
     root = metadata.getroot()
     for elt in root.iter(tag=etree.Element):
-            if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
-                desiredRoot = elt
+        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+            desiredRoot = elt
 
     # get Formats before iteration due to order of elements in SPASE record
     desiredTag = desiredRoot.tag.split("}")
     SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:AccessInformation/spase:Format"
-    for item in metadata.findall(
-        SPASE_Location,
-        namespaces={"spase": "http://www.spase-group.org/data/schema"},):
+    for item in metadata.findall(SPASE_Location, namespaces={"spase": "http://www.spase-group.org/data/schema"}):
+        #print(f"Adding {item.text} to encoding list.")
         encoding.append(item.text)
+    #print(len(encoding))
 
     # iterate thru children to locate Access Information
     for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("AccessInformation"):
             targetChild = child
             # iterate thru children to locate AccessURL and Format
-            for child in targetChild.iter(tag=etree.Element):
+            for child in targetChild:
                 if child.tag.endswith("AccessURL"):
                     targetChild = child
                     # iterate thru children to locate URL
-                    for child in targetChild.iter(tag=etree.Element):
+                    for child in targetChild:
                         if child.tag.endswith("URL"):
                             url = child.text
                             # provide "NULL" value in case no keys are found
                             AccessURLs[url] = []
                             # append an encoder for each URL
                             encoder.append(encoding[j])
+                            #print(f"Adding {encoding[j]} to encoder list")
                         # check if URL has a product key
                         elif child.tag.endswith("ProductKey"):
                             prodKey = child.text
@@ -966,11 +968,9 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
                             # if multiple prodKeys exist
                             else:
                                 AccessURLs[url] += [prodKey]
-                    # continue to check for additional AccessURLs
-                    continue
-            # continue to check for additional Access Informations
+                    #print(f"leaving {url}")
+            #print(f"exiting AccessInfo #{j}")
             j += 1
-            continue
     for k, v in AccessURLs.items():
         # if URL has no prodKeys at all, add to the dataDownloads dictionary
         if not v:
@@ -1071,58 +1071,64 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
                 is_based_on = testSpase.get_is_based_on()
 
                 if printFlag:
-                    #if keywords is None:
-                        #print("No keywords found")
-                    #else:
-                        #print(keywords)
-                    #print(citation)
-                    #print(identifier)
-                    #if creator is not None:
-                        #for each in creator:
-                            #print(each)
-                    #else:
-                        #print("No creators were found according to the priority rules")
+                    if keywords is None:
+                        print("No keywords found")
+                    else:
+                        print(f"Keywords: {keywords}")
+                    print(f"Citation: {citation}")
+                    print(f"Identifier: {identifier}")
+                    if creator is not None:
+                        print("Creator(s): ")
+                        for each in creator:
+                            print(each)
+                    else:
+                        print("No creators were found according to the priority rules")
                         # TODO: once testing is done add export for records who lack desired creators
                         # append ResourceID and ResourceHeader of the record for exporting to spreadsheet
                         #noCreators.append()
-                    #print(date_created)
-                    #print(date_modified)
-                    #if date_published is not None:
-                        #print(date_published)
-                    #else:
-                        #print("No publication date was found.")
-                    #if publisher is not None:
-                        #print(publisher)
-                    #else:
-                        #print("No publisher was found.")
+                    print(f"Date Created: {date_created}")
+                    print(f"Date Modified: {date_modified}")
+                    if date_published is not None:
+                        print(f"Date Published: {date_published}")
+                    else:
+                        print("No publication date was found.")
+                    if publisher is not None:
+                        print(f"Publisher: {publisher}")
+                    else:
+                        print("No publisher was found.")
                     # pos 1161-2 in NumericalData
                     if contributor is not None:
+                        print("Contributor(s): ")
                         for person in contributor:
                             print(person)
                     else:
                         print("No contributors found.")
-                    #for url in distribution:
-                        #print(url)
-                    #if potential_action is not None:
-                        #for download_links in potential_action:
-                            #print(download_links)
-                    #if temporal_coverage is not None:
-                        #print(temporal_coverage)
-                    #else:
-                        #print("No start/stop times were found.")
-                    #if funding is not None:
-                        #for funder in funding:
-                            #print(funder)
-                    #else:
-                        #print("No funding info was found.")
+                    print("AccessURLs: ")
+                    for url in distribution:
+                        print(url)
+                    if potential_action is not None:
+                        for download_links in potential_action:
+                            print(download_links)
+                    if temporal_coverage is not None:
+                        print(f"Temporal Coverage: {temporal_coverage}")
+                    else:
+                        print("No start/stop times were found.")
+                    if funding is not None:
+                        print("Funding: ")
+                        for funder in funding:
+                            print(funder)
+                    else:
+                        print("No funding info was found.")
                     # only 16 in DisplayData have this, none in ACE/EPAM, 6 in NumericalData
-                    #if is_based_on is not None:
-                        #for each in is_based_on:
-                            #print(each)
-                    #else:
-                        #print("No AssociationID was found.")
+                    if is_based_on is not None:
+                        print("AssociationIDs: ")
+                        for each in is_based_on:
+                            print(each)
+                    else:
+                        print("No AssociationID was found.")
                 if parameterDesired:
                     if variable_measured is not None:
+                        print("Parameters: ")
                         for variable in variable_measured:
                             print(variable)
                 print("Metadata extraction completed")
