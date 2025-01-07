@@ -8,6 +8,7 @@ from soso.utilities import (
 from typing import Union, List, Dict
 import re
 from datetime import datetime, timedelta
+import pandas as pd
 
 # pylint: disable=duplicate-code
 
@@ -59,7 +60,7 @@ class SPASE(StrategyInterface):
     def get_id(self) -> str:
         # Mapping: schema:identifier = spase:ResourceID
         desiredTag = self.desiredRoot.tag.split("}")
-        SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ResourceHeader/spase:ResourceID"
+        SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ResourceID"
         dataset_id = self.metadata.findtext(
             SPASE_Location, namespaces=self.namespaces
         )
@@ -177,7 +178,7 @@ class SPASE(StrategyInterface):
         dataset = ""
         i = 0
 
-        authorTemp, authorRole, pubDate, pub, contributor, dataset = get_authors(self.metadata)
+        authorTemp, authorRole, pubDate, pub, contributor, dataset, backups = get_authors(self.metadata)
         pubDate = pubDate[:4]
         authorStr = str(authorTemp)
         authorStr = authorStr.replace("[", "").replace("]","")
@@ -307,14 +308,8 @@ class SPASE(StrategyInterface):
             if pub == '':
                 pub = "NASA Heliophysics Digital Resource Library"
         if pubDate == "":
-            # iterate thru to find ResourceHeader
-            for child in self.desiredRoot.iter(tag=etree.Element):
-                if child.tag.endswith("ResourceHeader"):
-                    targetChild = child
-                    # iterate thru to find ReleaseDate (temp pubYr)
-                    for child in targetChild.iter(tag=etree.Element):
-                        if child.tag.endswith("ReleaseDate"):
-                            pubDate = child.text[:4]
+            pubDate = self.get_date_modified()
+            pubDate = pubDate[:4]
         DOI = self.get_url()
         if dataset:
             citation = f"{author} ({pubDate}). {dataset}. {pub}. {DOI}"
@@ -465,22 +460,36 @@ class SPASE(StrategyInterface):
                 for i in range(1, len(revisions)):
                     if (revisions[i] < revisions[i-1]):
                         date_created = str(revisions[i])
-            if datetime.strptime(date_created, "%Y-%m-%d %H:%M:%S") > release:
-                raise ValueError("dateModified is before dateCreated!")
             date_created = date_created.replace(" ", "T")
         return delete_null_values(date_created)
 
     def get_date_modified(self) -> Union[str, None]:
         # Mapping: schema:dateModified = spase:ResourceHeader/spase:ReleaseDate
         # Using schema:DateTime as defined in: https://schema.org/DateTime
+        trigger = False
         release, revisions = get_dates(self.metadata)
         date_modified = str(release).replace(" ", "T")
-        return delete_null_values(date_modified)
+        date_created = date_modified
+        # confirm that ReleaseDate is the latest date in the record
+        if revisions != []:
+            #print("RevisionHistory found!")
+            # find latest date in revision history
+            date_created = str(revisions[0])
+            if len(revisions) > 1:
+                for i in range(1, len(revisions)):
+                    if (revisions[i] > revisions[i-1]):
+                        date_created = str(revisions[i])
+            #print(date_created)
+            #print(date_modified)
+            if datetime.strptime(date_created, "%Y-%m-%d %H:%M:%S") != release:
+                #raise ValueError("ReleaseDate is not the latest date in the record!")
+                trigger = True
+        return delete_null_values(date_modified), trigger, date_created
 
     def get_date_published(self) -> Union[str, None]:
         # Mapping: schema:datePublished = spase:ResourceHeader/spase:PublicationInfo/spase:PublicationDate
         # Using schema:DateTime as defined in: https://schema.org/DateTime        
-        author, authorRole, pubDate, publisher, contributor, dataset = get_authors(self.metadata)
+        author, authorRole, pubDate, publisher, contributor, dataset, backups = get_authors(self.metadata)
         if pubDate == "":
             date_published = None
         else:
@@ -544,7 +553,7 @@ class SPASE(StrategyInterface):
         # Each item is:
         #   {@type: Role, roleName: Contact Role, creator: {@type: Person, name: Author Name, givenName: First Name, familyName: Last Name}}
         # Using schema:Creator as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#roles-of-people
-        author, authorRole, pubDate, pub, contributor, dataset = get_authors(self.metadata)
+        author, authorRole, pubDate, pub, contributor, dataset, backups = get_authors(self.metadata)
         authorStr = str(author).replace("[", "").replace("]","")
         creator = []
         multiple = False
@@ -632,7 +641,7 @@ class SPASE(StrategyInterface):
         # Each item is:
         #   {@type: Role, roleName: Contributor, contributor: {@type: Person, name: Author Name, givenName: First Name, familyName: Last Name}}
         # Using schema:Person as defined in: https://schema.org/Person
-        author, authorRole, pubDate, pub, contributors, dataset = get_authors(self.metadata)
+        author, authorRole, pubDate, pub, contributors, dataset, backups = get_authors(self.metadata)
         contributorStr = str(contributors).replace("[", "").replace("]","")
         contributor = []
         # if contributors were found in Contact/PersonID
@@ -667,7 +676,7 @@ class SPASE(StrategyInterface):
         # Each item is:
         #   {@type: Organization, name: PublishedBy OR Contact (if Role = Publisher)}
         # Using schema:Organization as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#publisher-and-provider
-        author, authorRole, pubDate, publisher, contributor, dataset = get_authors(self.metadata)
+        author, authorRole, pubDate, publisher, contributor, dataset, backups = get_authors(self.metadata)
         if publisher == "":
             publisher = None
         else:
@@ -826,6 +835,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
     pub = ""
     contributor = []
     dataset = ""
+    backups = {}
     PI_child = None
     priority = False
     root = metadata.getroot()
@@ -834,7 +844,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                 desiredRoot = elt
     # holds role values that are not considered for author var
     UnapprovedAuthors = ["MetadataContact", "ArchiveSpecialist",
-                        "HostContact", "Publisher", "User"]
+                        "HostContact", "User"]
 
     # iterate thru to find ResourceHeader
     for child in desiredRoot.iter(tag=etree.Element):
@@ -871,6 +881,8 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                             # backup publisher
                             elif child.text == "Publisher":
                                 pub = child.text
+                            elif child.text not in UnapprovedAuthors:
+                                backups[PersonID] = child.text
     if PI_child is not None:
         for child in PI_child.iter(tag=etree.Element):
             # collect preferred author
@@ -885,7 +897,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
             # collect preferred dataset
             elif child.tag.endswith("Title"):
                 dataset = child.text
-    return author, authorRole, pubDate, pub, contributor, dataset
+    return author, authorRole, pubDate, pub, contributor, dataset, backups
 
 def getPaths(entry, paths) -> list:
     """Takes the absolute path of a SPASE record directory to be walked
@@ -993,41 +1005,77 @@ def get_dates(metadata: etree.ElementTree) -> tuple:
     for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("ResourceHeader"):
             targetChild = child
-            for child in targetChild.iter(tag=etree.Element):
+            for child in targetChild:
                 # find ReleaseDate
-                if child.tag.endswith("ReleaseDate"):
-                    date, sep, time = child.text.partition("T")
-                    if "Z" in child.text:
-                        time = time.replace("Z", "")
-                    if "." in child.text:
-                        time, sep, after = time.partition(".")
-                    dt_string = date + " " + time
-                    dt_obj = datetime.strptime(dt_string, "%Y-%m-%d %H:%M:%S")
-                    ReleaseDate = dt_obj
-                elif child.tag.endswith("RevisionHistory"):
-                    RHChild = child
-                    for child in RHChild.iter(tag=etree.Element):
-                        REChild = child
-                        for child in REChild.iter(tag=etree.Element):
-                            if child.tag.endswith("ReleaseDate"):
-                                date, sep, time = child.text.partition("T")
-                                if "Z" in child.text:
-                                    time = time.replace("Z", "")
-                                if "." in child.text:
-                                    time, sep, after = time.partition(".")
-                                dt_string = date + " " + time
-                                dt_obj = datetime.strptime(dt_string,
-                                                        "%Y-%m-%d %H:%M:%S")
-                                RevisionHistory.append(dt_obj)
+                try:
+                    if child.tag.endswith("ReleaseDate"):
+                        date, sep, time = child.text.partition("T")
+                        if "Z" in child.text:
+                            time = time.replace("Z", "")
+                        if "." in child.text:
+                            time, sep, after = time.partition(".")
+                        dt_string = date + " " + time
+                        dt_obj = datetime.strptime(dt_string, "%Y-%m-%d %H:%M:%S")
+                        ReleaseDate = dt_obj
+                    elif child.tag.endswith("RevisionHistory"):
+                        RHChild = child
+                        for child in RHChild:
+                            REChild = child
+                            for child in REChild:
+                                if child.tag.endswith("ReleaseDate"):
+                                    date, sep, time = child.text.partition("T")
+                                    if "Z" in child.text:
+                                        time = time.replace("Z", "")
+                                    if "." in child.text:
+                                        time, sep, after = time.partition(".")
+                                    dt_string = date + " " + time
+                                    dt_obj = datetime.strptime(dt_string,
+                                                            "%Y-%m-%d %H:%M:%S")
+                                    RevisionHistory.append(dt_obj)
+                except AttributeError as err:
+                    continue
     return ReleaseDate, RevisionHistory
 
+def export_dates(R_IDs_Dates, R_Names_Dates, createdDates, modifiedDates, latestDates, DOIs_dates) -> None:
+    # export records w incorrect dates to an excel file
+    df_dates = pd.DataFrame({'ResourceID': R_IDs_Dates,
+                            'ResourceName': R_Names_Dates,
+                            'DOI': DOIs_dates,
+                            'Date of Creation': createdDates,
+                            'Current Release Date': modifiedDates,
+                            'Most Recent Date': latestDates})
+    file_name_dates = "C:/Users/zboquet/Documents/IncorrectDates.xlsx"
+    df_dates.to_excel(file_name_dates,sheet_name='Dates')
+
+def export_authors(R_IDs, R_Names, authors, roles, DOIs) -> None:
+    # export records w/o desired authors to an excel file
+    df_authors = pd.DataFrame({'ResourceID': R_IDs,
+                    'ResourceName': R_Names,
+                    'DOI': DOIs,
+                    'Name': authors,
+                    'Role': roles})
+    #file_name_authors = "C:/Users/zboquet/Documents/noCreatorsDisplayData.xlsx"
+    file_name_authors = "C:/Users/zboquet/Documents/noCreatorsNumericalData.xlsx"
+    df_authors.to_excel(file_name_authors,sheet_name='Contacts')
+
+
 #TODO: add docstring
-def main(folder, parameterDesired = False, printFlag = True) -> None:
+def main(folder, parameterDesired = False, printFlag = True) -> tuple:
     # list that holds SPASE records already checked
     searched = []
 
     SPASE_paths = []
-    noCreators = []
+    authors = []
+    roles = []
+    R_IDs = []
+    R_Names = []
+    R_IDs_Dates = []
+    R_Names_Dates = []
+    createdDates = []
+    modifiedDates = []
+    latestDates = []
+    DOIs = []
+    DOIs_dates =[]
 
     # obtains all filepaths to all SPASE records found in given directory
     SPASE_paths = getPaths(folder, SPASE_paths)
@@ -1052,6 +1100,8 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
                 print(statusMessage)
                 print(record)
                 testSpase = SPASE(record)
+                ResourceName = testSpase.get_name()
+                ResourceID = testSpase.get_id()
 
                 #print(testSpase.get_is_accessible_for_free())
                 keywords = testSpase.get_keywords()
@@ -1066,66 +1116,89 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
                 potential_action = testSpase.get_potential_action()
                 funding = testSpase.get_funding()
                 date_created = testSpase.get_date_created()
-                date_modified = testSpase.get_date_modified()
+                date_modified, trigger, mostRecentDate = testSpase.get_date_modified()
                 date_published = testSpase.get_date_published()
                 is_based_on = testSpase.get_is_based_on()
 
                 if printFlag:
-                    if keywords is None:
-                        print("No keywords found")
-                    else:
-                        print(f"Keywords: {keywords}")
-                    print(f"Citation: {citation}")
-                    print(f"Identifier: {identifier}")
+                    #if keywords is None:
+                        #print("No keywords found")
+                    #else:
+                        #print(f"Keywords: {keywords}")
+                    #print(f"Citation: {citation}")
+                    #print(f"Identifier: {identifier}")
                     if creator is not None:
-                        print("Creator(s): ")
-                        for each in creator:
-                            print(each)
+                        #print("Creator(s): ")
+                        #for each in creator:
+                            #print(each)
+                        print("")
                     else:
-                        print("No creators were found according to the priority rules")
-                        # TODO: once testing is done add export for records who lack desired creators
-                        # append ResourceID and ResourceHeader of the record for exporting to spreadsheet
-                        #noCreators.append()
-                    print(f"Date Created: {date_created}")
-                    print(f"Date Modified: {date_modified}")
-                    if date_published is not None:
-                        print(f"Date Published: {date_published}")
+                        print("No creators were found according to the priority rules. Exporting backups for further analysis.")
+                        # append ResourceID, ResourceName, DOI, and authors with their roles to the export list
+                        author, authorRole, pubDate, pub, contrib, dataset, backups = get_authors(testSpase.metadata)
+                        R_IDs.append(ResourceID)
+                        R_Names.append(ResourceName)
+                        DOIs.append(identifier)
+                        for k,v in backups.items():
+                            authors.append(k)
+                            roles.append(v)
+                            DOIs.append("")
+                            R_IDs.append("")
+                            R_Names.append("")
+                        R_IDs = R_IDs[:len(R_IDs)-1]
+                        R_Names = R_Names[:len(R_Names)-1]
+                        DOIs = DOIs[:len(DOIs)-1]
+                    #print(f"Date Created: {date_created}")
+                    if trigger:
+                        print("This record has incorrect dates. Exporting to spreadsheet for further analysis.")
+                        # create a list of the records who have incorrect dates for exporting to excel
+                        R_IDs_Dates.append(ResourceID)
+                        R_Names_Dates.append(ResourceName)
+                        createdDates.append(date_created)
+                        modifiedDates.append(date_modified)
+                        latestDates.append(mostRecentDate)
+                        DOIs_dates.append(identifier)
                     else:
-                        print("No publication date was found.")
-                    if publisher is not None:
-                        print(f"Publisher: {publisher}")
-                    else:
-                        print("No publisher was found.")
+                        #print(f"Date Modified: {date_modified}")
+                        print("")
+                    #if date_published is not None:
+                        #print(f"Date Published: {date_published}")
+                    #else:
+                        #print("No publication date was found.")
+                    #if publisher is not None:
+                        #print(f"Publisher: {publisher}") 
+                    #else:
+                        #print("No publisher was found.")
                     # pos 1161-2 in NumericalData
-                    if contributor is not None:
-                        print("Contributor(s): ")
-                        for person in contributor:
-                            print(person)
-                    else:
-                        print("No contributors found.")
-                    print("AccessURLs: ")
-                    for url in distribution:
-                        print(url)
-                    if potential_action is not None:
-                        for download_links in potential_action:
-                            print(download_links)
-                    if temporal_coverage is not None:
-                        print(f"Temporal Coverage: {temporal_coverage}")
-                    else:
-                        print("No start/stop times were found.")
-                    if funding is not None:
-                        print("Funding: ")
-                        for funder in funding:
-                            print(funder)
-                    else:
-                        print("No funding info was found.")
+                    #if contributor is not None:
+                        #print("Contributor(s): ")
+                        #for person in contributor:
+                            #print(person)
+                    #else:
+                        #print("No contributors found.")
+                    #print("AccessURLs: ")
+                    #for url in distribution:
+                        #print(url)
+                    #if potential_action is not None:
+                        #for download_links in potential_action:
+                            #print(download_links)
+                    #if temporal_coverage is not None:
+                        #print(f"Temporal Coverage: {temporal_coverage}")
+                    #else:
+                        #print("No start/stop times were found.")
+                    #if funding is not None:
+                        #print("Funding: ")
+                        #for funder in funding:
+                            #print(funder)
+                    #else:
+                        #print("No funding info was found.")
                     # only 16 in DisplayData have this, none in ACE/EPAM, 6 in NumericalData
-                    if is_based_on is not None:
-                        print("AssociationIDs: ")
-                        for each in is_based_on:
-                            print(each)
-                    else:
-                        print("No AssociationID was found.")
+                    #if is_based_on is not None:
+                        #print("AssociationIDs: ")
+                        #for each in is_based_on:
+                            #print(each)
+                    #else:
+                        #print("No AssociationID was found.")
                 if parameterDesired:
                     if variable_measured is not None:
                         print("Parameters: ")
@@ -1136,15 +1209,32 @@ def main(folder, parameterDesired = False, printFlag = True) -> None:
 
                 # add record to searched
                 searched.append(record)
+    return R_IDs, R_Names, R_IDs_Dates, R_Names_Dates, authors, roles, createdDates, modifiedDates, latestDates, DOIs, DOIs_dates
 
 # test directories
-folder = "C:/Users/zboquet/NASA/DisplayData"
+#folder = "C:/Users/zboquet/NASA/DisplayData"
+#R_IDs, R_Names, R_IDs_Dates, R_Names_Dates, authors, roles, createdDates, modifiedDates, latestDates, DOIs, DOIs_dates = main(folder, False, True)
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
 #folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-
+#export_authors(R_IDs, R_Names, authors, roles, DOIs)
 # start at list item 132 if want to skip EPAM folder
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 # start at list item 163 if want to skip ACE folder
-#folder = "C:/Users/zboquet/NASA/NumericalData"
-main(folder, False, True)
+folder = "C:/Users/zboquet/NASA/NumericalData"
+R_IDs2, R_Names2, R_IDs_Dates2, R_Names_Dates2, authors2, roles2, createdDates2, modifiedDates2, latestDates2, DOIs2, DOIs_dates2 = main(folder, False, True)
+export_authors(R_IDs2, R_Names2, authors2, roles2, DOIs2)
+
+# for exporting the dates into one spreadsheet
+#R_IDs += R_IDs2
+#R_Names += R_Names2
+#R_IDs_Dates += R_IDs_Dates2
+#R_Names_Dates += R_Names_Dates2
+#authors += authors2
+#roles += roles2
+#createdDates += createdDates2
+#modifiedDates += modifiedDates2
+#latestDates += latestDates2
+#DOIs += DOIs2
+#DOIs_dates += DOIs_dates2
+#export_dates(R_IDs_Dates, R_Names_Dates, createdDates, modifiedDates, latestDates, DOIs_dates)
