@@ -143,7 +143,7 @@ class SPASE(StrategyInterface):
             keywords = None
         return delete_null_values(keywords)
 
-    def get_identifier(self) -> Union[tuple, None]:
+    def get_identifier(self) -> Union[str, Dict, None]:
         # Mapping: schema:identifier = spase:ResourceHeader/spase:DOI (or https://hpde.io landing page, if no DOI)
         # Each item is: {@id: URL, @type: schema:PropertyValue, propertyID: URI for identifier scheme, value: identifier value, url: URL}
         # Uses identifier scheme URI, provided at: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#identifier
@@ -302,13 +302,11 @@ class SPASE(StrategyInterface):
                         #if child.tag.endswith("RepositoryID"):
                             # use partition to split text by Repository/
                             #    and assign only the text after it to pub
-                            #(before, sep, after) = child.text.partition("Repo" +
-                                                                        #"sitory/")
-                            #pub = after
+                            #(before, sep, pub) = child.text.partition("Repository/")
             if pub == '':
                 pub = "NASA Heliophysics Digital Resource Library"
         if pubDate == "":
-            pubDate = self.get_date_modified()
+            pubDate, trigger, date_created = self.get_date_modified()
             pubDate = pubDate[:4]
         DOI = self.get_url()
         if dataset:
@@ -331,17 +329,20 @@ class SPASE(StrategyInterface):
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("Parameter"):
                 targetChild = child
-                for child in targetChild.iter(tag=etree.Element):
-                    if child.tag.endswith("Name"):
-                        paramName = child.text
-                    elif child.tag.endswith("Description"):
-                        paramDesc = child.text
-                    elif child.tag.endswith("Units"):
-                        unit = child.text
-                    elif child.tag.endswith("ValidMin"):
-                        minVal = child.text
-                    elif child.tag.endswith("ValidMax"):
-                        maxVal = child.text
+                for child in targetChild:
+                    try:
+                        if child.tag.endswith("Name"):
+                            paramName = child.text
+                        elif child.tag.endswith("Description"):
+                            paramDesc = child.text
+                        elif child.tag.endswith("Units"):
+                            unit = child.text
+                        elif child.tag.endswith("ValidMin"):
+                            minVal = child.text
+                        elif child.tag.endswith("ValidMax"):
+                            maxVal = child.text
+                    except AttributeError as err:
+                        continue
                 variable_measured.append({"@type": "PropertyValue", 
                                         "name": f"{paramName}",
                                         "description": f"{paramDesc}",
@@ -370,10 +371,7 @@ class SPASE(StrategyInterface):
             distribution.append({"@type": "DataDownload",
                                 "contentUrl": f"{k}",
                                 "encodingFormat": f"{v[0]}"})
-        # keep?
         for k, v in potentialActions.items():
-            #encoder, sep, prodKeys = v.partition(",")
-            #encoder = encoder.replace("[", "")
             encoder = v[0]
             distribution.append({"@type": "DataDownload",
                                 "contentUrl": f"{k}",
@@ -438,17 +436,18 @@ class SPASE(StrategyInterface):
                 # use GSFC CDAWeb portal to download CDF
                 else:
                     potential_action.append({"@type": "SearchAction",
-                                        "target": {"@type": "URL",
-                                                    "encodingFormat": f"{encoding}",
-                                                    "url": f"{k}",
-                                                    "description": "Download dataset data in CSV or JSON form at this URL"}
-                                                    })
+                                            "target": {"@type": "URL",
+                                                        "encodingFormat": f"{encoding}",
+                                                        "url": f"{k}",
+                                                        "description": "Download dataset data in CSV or JSON form at this URL"}
+                                            })
         return delete_null_values(potential_action)
 
     def get_date_created(self) -> Union[str, None]:
-        # Mapping: schema:dateCreated = spase:ResourceHeader/spase:ReleaseDate
-        # OR spase:ResourceHeader/spase:RevisionHistory/spase:RevisionEvent/spase:ReleaseDate
+        # Mapping: schema:dateCreated = spase:ResourceHeader/spase:PublicationInfo/spase:PublicationDate
         # Using schema:DateTime as defined in: https://schema.org/DateTime
+        #date_created = self.get_date_published
+
         release, revisions = get_dates(self.metadata)
         if revisions == []:
             date_created = str(release).replace(" ", "T")
@@ -521,7 +520,7 @@ class SPASE(StrategyInterface):
             if stop:
                 temporal_coverage = {"temporalCoverage": f"{start}/{stop}"}
             else:
-                temporal_coverage = {"temporalCoverage": f"{start}"}
+                temporal_coverage = {"temporalCoverage": f"{start}/.."}
         else:
             temporal_coverage = None
         return delete_null_values(temporal_coverage)
@@ -602,7 +601,6 @@ class SPASE(StrategyInterface):
                         # if first name is an initial w/o a period, add one
                         grp = re.search(r'[\w]{1}\.$', person)
                         if grp is None:
-                            #print(grp)
                             person += "."
                     # remove 'and' from name
                     if "and " in person:
@@ -644,26 +642,24 @@ class SPASE(StrategyInterface):
         author, authorRole, pubDate, pub, contributors, dataset, backups = get_authors(self.metadata)
         contributorStr = str(contributors).replace("[", "").replace("]","")
         contributor = []
-        # if contributors were found in Contact/PersonID
-        if "Person/" in contributorStr:
-            for person in contributors:
-                path, sep, contributorStr = person.partition("Person/")
-                # get rid of extra quotations
-                contributorStr = contributorStr.replace("'","")
-                givenName, sep, familyName = contributorStr.partition(".")
-                # if name has initial(s)
-                if ("." in familyName):
-                    initial, sep, familyName = familyName.partition(".")
-                    givenName = givenName + ' ' + initial + '.'
-                contributorStr = givenName + " " + familyName
-                contributorStr = contributorStr.replace("\"", "")
-                contributor.append({"@type": "Role", 
+        for person in contributors:
+            path, sep, contributorStr = person.partition("Person/")
+            # get rid of extra quotations
+            contributorStr = contributorStr.replace("'","")
+            givenName, sep, familyName = contributorStr.partition(".")
+            # if name has initial(s)
+            if ("." in familyName):
+                initial, sep, familyName = familyName.partition(".")
+                givenName = givenName + ' ' + initial + '.'
+            contributorStr = givenName + " " + familyName
+            contributorStr = contributorStr.replace("\"", "")
+            contributor.append({"@type": "Role", 
                                 "roleName": "Contributor",
                                 "contributor": {"@type": "Person",
-                                            "name": f"{contributorStr}",
-                                            "givenName": f"{givenName}",
-                                            "familyName": f"{familyName}"}
-                                            })
+                                                "name": f"{contributorStr}",
+                                                "givenName": f"{givenName}",
+                                                "familyName": f"{familyName}"}
+                                        })
         return delete_null_values(contributor)
 
     def get_provider(self) -> None:
@@ -679,6 +675,8 @@ class SPASE(StrategyInterface):
         author, authorRole, pubDate, publisher, contributor, dataset, backups = get_authors(self.metadata)
         if publisher == "":
             publisher = None
+            #RepoID = get_repoID(self.metadata)
+            #(before, sep, publisher) = RepoID.partition("Repository/")
         else:
             publisher = {"@type": "Organization",
                             "name": f"{publisher}"}
@@ -699,7 +697,7 @@ class SPASE(StrategyInterface):
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("Funding"):
                 targetChild = child
-                for child in targetChild.iter(tag=etree.Element):
+                for child in targetChild:
                     if child.tag.endswith("Agency"):
                         agency.append(child.text)
                     elif child.tag.endswith("Project"):
@@ -851,38 +849,44 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
         if child.tag.endswith("ResourceHeader"):
             targetChild = child
             # iterate thru to find PublicationInfo
-            for child in targetChild.iter(tag=etree.Element):
-                if child.tag.endswith("PublicationInfo"):
-                    PI_child = child
-                elif child.tag.endswith("Contact"):
-                    C_Child = child
-                    # iterate thru Contact to find PersonID and Role
-                    for child in C_Child.iter(tag=etree.Element):
-                        # find PersonID
-                        if child.tag.endswith("PersonID"):
-                            # store PersonID
-                            PersonID = child.text
-                        # find Role
-                        elif child.tag.endswith("Role"):
-                            # backup author
-                            if ("PrincipalInvestigator" or "PI") in child.text:
-                                # if a lesser priority author found
-                                #     first, overwrite author lists
-                                if not priority and author:
-                                    author = [PersonID]
-                                    authorRole = [child.text]
-                                else:
-                                    author.append(PersonID)
-                                    authorRole.append(child.text)
-                                # mark that highest priority backup author was found
-                                priority = True
-                            elif child.text == "Contributor":
-                                contributor.append(PersonID)
-                            # backup publisher
-                            elif child.text == "Publisher":
-                                pub = child.text
-                            elif child.text not in UnapprovedAuthors:
-                                backups[PersonID] = child.text
+            for child in targetChild:
+                try:
+                    if child.tag.endswith("PublicationInfo"):
+                        PI_child = child
+                    elif child.tag.endswith("Contact"):
+                        C_Child = child
+                        # iterate thru Contact to find PersonID and Role
+                        for child in C_Child:
+                            try:
+                                # find PersonID
+                                if child.tag.endswith("PersonID"):
+                                    # store PersonID
+                                    PersonID = child.text
+                                # find Role
+                                elif child.tag.endswith("Role"):
+                                    # backup author
+                                    if ("PrincipalInvestigator" or "PI") in child.text:
+                                        # if a lesser priority author found
+                                        #     first, overwrite author lists
+                                        if not priority and author:
+                                            author = [PersonID]
+                                            authorRole = [child.text]
+                                        else:
+                                            author.append(PersonID)
+                                            authorRole.append(child.text)
+                                        # mark that highest priority backup author was found
+                                        priority = True
+                                    elif child.text == "Contributor":
+                                        contributor.append(PersonID)
+                                    # backup publisher
+                                    elif child.text == "Publisher":
+                                        pub = child.text
+                                    elif child.text not in UnapprovedAuthors:
+                                        backups[PersonID] = child.text
+                            except AttributeError as err:
+                                continue
+                except AttributeError as err:
+                    continue
     if PI_child is not None:
         for child in PI_child.iter(tag=etree.Element):
             # collect preferred author
@@ -995,7 +999,11 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
     return dataDownloads, potentialActions
 
 def get_dates(metadata: etree.ElementTree) -> tuple:
-    
+    """
+    :param metadata:    The SPASE metadata object as an XML tree.
+
+    :returns:   The ReleaseDate and a list of all the dates found in RevisionHistory
+    """
     root = metadata.getroot()
     for elt in root.iter(tag=etree.Element):
             if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
@@ -1058,9 +1066,26 @@ def export_authors(R_IDs, R_Names, authors, roles, DOIs) -> None:
     file_name_authors = "C:/Users/zboquet/Documents/noCreatorsNumericalData.xlsx"
     df_authors.to_excel(file_name_authors,sheet_name='Contacts')
 
+def get_repoID(metadata: etree.ElementTree) -> str:
+    root = metadata.getroot()
+    repoID = ""
+    for elt in root.iter(tag=etree.Element):
+        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+            desiredRoot = elt
+    for child in desiredRoot.iter(tag=etree.Element):
+        if child.tag.endswith("AccessInformation"):
+            targetChild = child
+            # iterate thru children to locate RepositoryID
+            for child in targetChild:
+                if child.tag.endswith("RepositoryID"):
+                    repoID = child.text
+    return repoID
 
 #TODO: add docstring
-def main(folder, parameterDesired = False, printFlag = True) -> tuple:
+def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", "identifier", "creator", "publisher",
+                                                        "variable_measured", "temporal_coverage", "distribution",
+                                                        "potential_action", "funding", "date_created", "date_modified",
+                                                        "contributor", "date_published", "is_based_on"]) -> tuple:
     # list that holds SPASE records already checked
     searched = []
 
@@ -1076,6 +1101,9 @@ def main(folder, parameterDesired = False, printFlag = True) -> tuple:
     latestDates = []
     DOIs = []
     DOIs_dates =[]
+    createdDates_Pub = []
+    R_IDs_Pub = []
+    RepoIDs = []
 
     # obtains all filepaths to all SPASE records found in given directory
     SPASE_paths = getPaths(folder, SPASE_paths)
@@ -1102,6 +1130,7 @@ def main(folder, parameterDesired = False, printFlag = True) -> tuple:
                 testSpase = SPASE(record)
                 ResourceName = testSpase.get_name()
                 ResourceID = testSpase.get_id()
+                repoID = get_repoID(testSpase.metadata)
 
                 #print(testSpase.get_is_accessible_for_free())
                 keywords = testSpase.get_keywords()
@@ -1121,109 +1150,137 @@ def main(folder, parameterDesired = False, printFlag = True) -> tuple:
                 is_based_on = testSpase.get_is_based_on()
 
                 if printFlag:
-                    #if keywords is None:
-                        #print("No keywords found")
-                    #else:
-                        #print(f"Keywords: {keywords}")
-                    #print(f"Citation: {citation}")
-                    #print(f"Identifier: {identifier}")
-                    if creator is not None:
-                        #print("Creator(s): ")
-                        #for each in creator:
-                            #print(each)
-                        print("")
-                    else:
-                        print("No creators were found according to the priority rules. Exporting backups for further analysis.")
-                        # append ResourceID, ResourceName, DOI, and authors with their roles to the export list
-                        author, authorRole, pubDate, pub, contrib, dataset, backups = get_authors(testSpase.metadata)
-                        R_IDs.append(ResourceID)
-                        R_Names.append(ResourceName)
-                        DOIs.append(identifier)
-                        for k,v in backups.items():
-                            authors.append(k)
-                            roles.append(v)
-                            DOIs.append("")
-                            R_IDs.append("")
-                            R_Names.append("")
-                        R_IDs = R_IDs[:len(R_IDs)-1]
-                        R_Names = R_Names[:len(R_Names)-1]
-                        DOIs = DOIs[:len(DOIs)-1]
-                    #print(f"Date Created: {date_created}")
-                    if trigger:
-                        print("This record has incorrect dates. Exporting to spreadsheet for further analysis.")
-                        # create a list of the records who have incorrect dates for exporting to excel
-                        R_IDs_Dates.append(ResourceID)
-                        R_Names_Dates.append(ResourceName)
-                        createdDates.append(date_created)
-                        modifiedDates.append(date_modified)
-                        latestDates.append(mostRecentDate)
-                        DOIs_dates.append(identifier)
-                    else:
-                        #print(f"Date Modified: {date_modified}")
-                        print("")
-                    #if date_published is not None:
-                        #print(f"Date Published: {date_published}")
-                    #else:
-                        #print("No publication date was found.")
-                    #if publisher is not None:
-                        #print(f"Publisher: {publisher}") 
-                    #else:
-                        #print("No publisher was found.")
-                    # pos 1161-2 in NumericalData
-                    #if contributor is not None:
-                        #print("Contributor(s): ")
-                        #for person in contributor:
-                            #print(person)
-                    #else:
-                        #print("No contributors found.")
-                    #print("AccessURLs: ")
-                    #for url in distribution:
-                        #print(url)
-                    #if potential_action is not None:
-                        #for download_links in potential_action:
-                            #print(download_links)
-                    #if temporal_coverage is not None:
-                        #print(f"Temporal Coverage: {temporal_coverage}")
-                    #else:
-                        #print("No start/stop times were found.")
-                    #if funding is not None:
-                        #print("Funding: ")
-                        #for funder in funding:
-                            #print(funder)
-                    #else:
-                        #print("No funding info was found.")
-                    # only 16 in DisplayData have this, none in ACE/EPAM, 6 in NumericalData
-                    #if is_based_on is not None:
-                        #print("AssociationIDs: ")
-                        #for each in is_based_on:
-                            #print(each)
-                    #else:
-                        #print("No AssociationID was found.")
-                if parameterDesired:
-                    if variable_measured is not None:
-                        print("Parameters: ")
-                        for variable in variable_measured:
-                            print(variable)
+                    for property in desiredProperties:
+                        if property == "keywords":
+                            if keywords is None:
+                                print("No keywords found")
+                            else:
+                                print(f"Keywords: {keywords}")
+                        elif property == "citation":
+                            print(f"Citation: {citation}")
+                        elif property == "identifier":
+                            print(f"Identifier: {identifier}")
+                        elif property == "creator":
+                            if creator is not None:
+                                print("Creator(s): ")
+                                for each in creator:
+                                    print(each)
+                                #print("")
+                            else:
+                                print("No creators were found according to the priority rules. Exporting backups for further analysis.")
+                                # append ResourceID, ResourceName, DOI, and authors with their roles to the export list
+                                author, authorRole, pubDate, pub, contrib, dataset, backups = get_authors(testSpase.metadata)
+                                R_IDs.append(ResourceID)
+                                R_Names.append(ResourceName)
+                                DOIs.append(identifier)
+                                for k,v in backups.items():
+                                    authors.append(k)
+                                    roles.append(v)
+                                    DOIs.append("")
+                                    R_IDs.append("")
+                                    R_Names.append("")
+                                R_IDs = R_IDs[:len(R_IDs)-1]
+                                R_Names = R_Names[:len(R_Names)-1]
+                                DOIs = DOIs[:len(DOIs)-1]
+                        elif property == "date_created":
+                            print(f"Date Created: {date_created}")
+                        elif property == "date_modified":
+                            if trigger:
+                                print("This record has incorrect dates. Exporting to spreadsheet for further analysis.")
+                                # create a list of the records who have incorrect dates for exporting to excel
+                                R_IDs_Dates.append(ResourceID)
+                                R_Names_Dates.append(ResourceName)
+                                createdDates.append(date_created)
+                                modifiedDates.append(date_modified)
+                                latestDates.append(mostRecentDate)
+                                DOIs_dates.append(identifier)
+                            else:
+                                print(f"Date Modified: {date_modified}")
+                                #print("")
+                        elif property == "date_published":
+                            if date_published is not None:
+                                print(f"Date Published: {date_published}")
+                            else:
+                                print("No publication date was found.")
+                        elif property == "publisher":
+                            if publisher is not None:
+                                print(f"Publisher: {publisher}") 
+                            else:
+                                print("No publisher was found. Exporting to spreadsheet for further analysis.")
+                                R_IDs_Pub.append(ResourceID)
+                                RepoIDs.append(repoID)
+                                createdDates_Pub.append(date_created)
+                        elif property == "contributor":
+                            # pos 1161-2 in NumericalData
+                            if contributor is not None:
+                                print("Contributor(s): ")
+                                for person in contributor:
+                                    print(person)
+                            else:
+                                print("No contributors found.")
+                        elif property == "distribution" or property == "potential_action":
+                            print("AccessURLs: ")
+                            if property == "distribution":
+                                for url in distribution:
+                                    print(url)
+                            else:
+                                if potential_action is not None:
+                                    for download_links in potential_action:
+                                        print(download_links)
+                        elif property == "temporal_coverage":
+                            if temporal_coverage is not None:
+                                print(f"Temporal Coverage: {temporal_coverage}")
+                            else:
+                                print("No start/stop times were found.")
+                        elif property == "funding":
+                            if funding is not None:
+                                print("Funding: ")
+                                for funder in funding:
+                                    print(funder)
+                            else:
+                                print("No funding info was found.")
+                        elif property == "is_based_on":
+                            # only 16 in DisplayData have this, none in ACE/EPAM, 6 in NumericalData
+                            if is_based_on is not None:
+                                print("AssociationIDs: ")
+                                for each in is_based_on:
+                                    print(each)
+                            else:
+                                print("No AssociationID was found.")
+                        elif property == "variable_measured":
+                            if variable_measured is not None:
+                                print("Parameters: ")
+                                for variable in variable_measured:
+                                    print(variable)
                 print("Metadata extraction completed")
                 print()
 
                 # add record to searched
                 searched.append(record)
-    return R_IDs, R_Names, R_IDs_Dates, R_Names_Dates, authors, roles, createdDates, modifiedDates, latestDates, DOIs, DOIs_dates
+    return R_IDs, R_Names, R_IDs_Dates, R_Names_Dates, authors, roles, createdDates, modifiedDates, latestDates, DOIs, DOIs_dates, createdDates_Pub, R_IDs_Pub, RepoIDs
 
 # test directories
 #folder = "C:/Users/zboquet/NASA/DisplayData"
-#R_IDs, R_Names, R_IDs_Dates, R_Names_Dates, authors, roles, createdDates, modifiedDates, latestDates, DOIs, DOIs_dates = main(folder, False, True)
+folder = "C:/Users/zboquet/NASA/NumericalData"
+R_IDs, R_Names, R_IDs_Dates, R_Names_Dates, authors, roles, createdDates, modifiedDates, latestDates, DOIs, DOIs_dates, createdDates_Pub, R_IDs_Pub, RepoIDs = main(folder, True, ["publisher"])
+#export_authors(R_IDs, R_Names, authors, roles, DOIs)
+
+df_pub = pd.DataFrame({'ResourceID': R_IDs_Pub,
+                    'RepositoryID': RepoIDs,
+                    'Date of Creation': createdDates_Pub})
+#file_name_pub = "C:/Users/zboquet/Documents/noPublishersDisplayData.xlsx"
+file_name_pub = "C:/Users/zboquet/Documents/noPublishersNumericalData.xlsx"
+df_pub.to_excel(file_name_pub)
+
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
 #folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-#export_authors(R_IDs, R_Names, authors, roles, DOIs)
 # start at list item 132 if want to skip EPAM folder
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 # start at list item 163 if want to skip ACE folder
-folder = "C:/Users/zboquet/NASA/NumericalData"
-R_IDs2, R_Names2, R_IDs_Dates2, R_Names_Dates2, authors2, roles2, createdDates2, modifiedDates2, latestDates2, DOIs2, DOIs_dates2 = main(folder, False, True)
-export_authors(R_IDs2, R_Names2, authors2, roles2, DOIs2)
+#folder = "C:/Users/zboquet/NASA/NumericalData"
+#R_IDs2, R_Names2, R_IDs_Dates2, R_Names_Dates2, authors2, roles2, createdDates2, modifiedDates2, latestDates2, DOIs2, DOIs_dates2, createdDates_Pub2, R_IDs_Pub2, RepoIDs2 = main(folder, False, True)
+#export_authors(R_IDs2, R_Names2, authors2, roles2, DOIs2)
 
 # for exporting the dates into one spreadsheet
 #R_IDs += R_IDs2
