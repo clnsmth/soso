@@ -37,6 +37,10 @@ class SPASE(StrategyInterface):
             - [includedInDataCatalog]
             - [version]
             - [subject_of]
+            - [expires]
+            - [same_as]
+            - [provider]
+            - [license]
     """
 
     def __init__(self, file: str, **kwargs: dict):
@@ -293,18 +297,8 @@ class SPASE(StrategyInterface):
             author = ""
         # assign backup values if not found in desired locations
         if pub == '':
-            # TODO: ask if this process should be used to find backup pub
-            #for child in self.desiredRoot.iter(tag=etree.Element):
-                #if child.tag.endswith("AccessInformation"):
-                    #targetChild = child
-                    # iterate thru children to locate RepositoryID
-                    #for child in targetChild:
-                        #if child.tag.endswith("RepositoryID"):
-                            # use partition to split text by Repository/
-                            #    and assign only the text after it to pub
-                            #(before, sep, pub) = child.text.partition("Repository/")
-            if pub == '':
-                pub = "NASA Heliophysics Digital Resource Library"
+            RepoID = get_repoID(self.metadata)
+            (before, sep, pub) = RepoID.partition("Repository/")
         if pubDate == "":
             pubDate, trigger, date_created = self.get_date_modified()
             pubDate = pubDate[:4]
@@ -334,7 +328,7 @@ class SPASE(StrategyInterface):
                         if child.tag.endswith("Name"):
                             paramName = child.text
                         elif child.tag.endswith("Description"):
-                            paramDesc = child.text
+                            paramDesc, sep, after = child.text.partition("\n")
                         elif child.tag.endswith("Units"):
                             unit = child.text
                         elif child.tag.endswith("ValidMin"):
@@ -445,21 +439,22 @@ class SPASE(StrategyInterface):
 
     def get_date_created(self) -> Union[str, None]:
         # Mapping: schema:dateCreated = spase:ResourceHeader/spase:PublicationInfo/spase:PublicationDate
+        # OR spase:ResourceHeader/spase:RevisionHistory/spase:ReleaseDate
         # Using schema:DateTime as defined in: https://schema.org/DateTime
-        #date_created = self.get_date_published
+        date_created = self.get_date_published()
 
-        release, revisions = get_dates(self.metadata)
-        if revisions == []:
-            date_created = str(release).replace(" ", "T")
+        #release, revisions = get_dates(self.metadata)
+        #if revisions == []:
+            #date_created = str(release).replace(" ", "T")
         # find earliest date in revision history
-        else:
+        #else:
             #print("RevisionHistory found!")
-            date_created = str(revisions[0])
-            if len(revisions) > 1:
-                for i in range(1, len(revisions)):
-                    if (revisions[i] < revisions[i-1]):
-                        date_created = str(revisions[i])
-            date_created = date_created.replace(" ", "T")
+            #date_created = str(revisions[0])
+            #if len(revisions) > 1:
+                #for i in range(1, len(revisions)):
+                    #if (revisions[i] < revisions[i-1]):
+                        #date_created = str(revisions[i])
+            #date_created = date_created.replace(" ", "T")
         return delete_null_values(date_created)
 
     def get_date_modified(self) -> Union[str, None]:
@@ -487,10 +482,22 @@ class SPASE(StrategyInterface):
 
     def get_date_published(self) -> Union[str, None]:
         # Mapping: schema:datePublished = spase:ResourceHeader/spase:PublicationInfo/spase:PublicationDate
+        # OR spase:ResourceHeader/spase:RevisionHistory/spase:ReleaseDate
         # Using schema:DateTime as defined in: https://schema.org/DateTime        
         author, authorRole, pubDate, publisher, contributor, dataset, backups = get_authors(self.metadata)
+        date_published = None
+        release, revisions = get_dates(self.metadata)
         if pubDate == "":
-            date_published = None
+            if revisions:
+                # find earliest date in revision history
+                date_published = str(revisions[0])
+                if len(revisions) > 1:
+                    for i in range(1, len(revisions)):
+                        if (revisions[i] < revisions[i-1]):
+                            date_published = str(revisions[i])
+                date_published = date_published.replace(" ", "T")
+                date_published = date_published.replace("Z", "")
+                #print("Taken from RevisionHistory")
         else:
             date_published = pubDate.replace(" ", "T")
             date_published = date_published.replace("Z", "")
@@ -503,7 +510,7 @@ class SPASE(StrategyInterface):
     def get_temporal_coverage(self) -> Union[Dict, None]:
         # Mapping: schema:temporal_coverage = spase:TemporalDescription/spase:TimeSpan/*
         # Each object is:
-        #   {"@context": schema.org, "@type": schema:Dataset, name: ResourceName, temporalCoverage: StartDate and StopDate|RelativeStopDate}
+        #   {temporalCoverage: StartDate and StopDate|RelativeStopDate}
         # Using format as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#temporal-coverage
         desiredTag = self.desiredRoot.tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:TemporalDescription/spase:TimeSpan/spase:StartDate"
@@ -642,6 +649,9 @@ class SPASE(StrategyInterface):
         author, authorRole, pubDate, pub, contributors, dataset, backups = get_authors(self.metadata)
         contributorStr = str(contributors).replace("[", "").replace("]","")
         contributor = []
+        # holds role values that are not initially considered for contributor var
+        CuratorRoles = ["HostContact", "GeneralContact", "DataProducer", "MetadataContact", "TechnicalContact"]
+        
         for person in contributors:
             path, sep, contributorStr = person.partition("Person/")
             # get rid of extra quotations
@@ -653,13 +663,28 @@ class SPASE(StrategyInterface):
                 givenName = givenName + ' ' + initial + '.'
             contributorStr = givenName + " " + familyName
             contributorStr = contributorStr.replace("\"", "")
-            contributor.append({"@type": "Role", 
-                                "roleName": "Contributor",
-                                "contributor": {"@type": "Person",
-                                                "name": f"{contributorStr}",
-                                                "givenName": f"{givenName}",
-                                                "familyName": f"{familyName}"}
-                                        })
+            individual = contributorFormat("Contributor", contributorStr, givenName, familyName)
+            contributor.append(individual)
+        # if no contributor found use backups (editors)
+        # TODO: finish up this logic (givenName and familyName are not initialized yet!)
+        if contributor == []:
+            found = False
+            for person, role in backups.items():
+                if not found:
+                    if role in CuratorRoles:
+                        if role == "HostContact":
+                            individual = contributorFormat("HostContact", person, givenName, familyName)
+                            contributor.append(individual)
+                            found = True
+                        elif role == "GeneralContact":
+                            # append and true
+                        elif role == "DataProducer":
+                            # append and true
+                        elif role == "MetadataContact":
+                            # append and true
+                        elif role == "TechnicalContact":
+                            # append and true
+
         return delete_null_values(contributor)
 
     def get_provider(self) -> None:
@@ -669,14 +694,26 @@ class SPASE(StrategyInterface):
     def get_publisher(self) -> Union[Dict, None]:
         # Mapping: schema:publisher = spase:ResourceHeader/spase:Contacts
         # OR spase:ResourceHeader/spase:PublicationInfo/spase:PublishedBy
+        # OR spase:AccessInformation/spase:RepositoryID
         # Each item is:
-        #   {@type: Organization, name: PublishedBy OR Contact (if Role = Publisher)}
+        #   {@type: Organization, name: PublishedBy OR Contact (if Role = Publisher) OR RepositoryID}
         # Using schema:Organization as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#publisher-and-provider
         author, authorRole, pubDate, publisher, contributor, dataset, backups = get_authors(self.metadata)
         if publisher == "":
-            publisher = None
-            #RepoID = get_repoID(self.metadata)
-            #(before, sep, publisher) = RepoID.partition("Repository/")
+            #publisher = None
+            RepoID = get_repoID(self.metadata)
+            (before, sep, publisher) = RepoID.partition("Repository/")
+        #else:
+        if ("SDAC" in publisher) or ("Solar Data Analysis Center" in publisher):
+            publisher = {"@id": "https://ror.org/04rvfc379",
+                            "@type": "Organization",
+                            "name": f"{publisher}",
+                            "url": "https://ror.org/04rvfc379"}
+        elif ("SPDF" in publisher) or ("Solar Physics Data Facility" in publisher):
+            publisher = {"@id": "https://ror.org/00ryjtt64",
+                            "@type": "Organization",
+                            "name": f"{publisher}",
+                            "url": "https://ror.org/00ryjtt64"}
         else:
             publisher = {"@type": "Organization",
                             "name": f"{publisher}"}
@@ -760,19 +797,26 @@ class SPASE(StrategyInterface):
         license_url = None
         return license_url
 
-    def get_was_revision_of(self) -> None:
+    def get_was_revision_of(self) -> Union[Dict, None]:
         was_revision_of = None
+        is_related_to = []
+        for child in self.desiredRoot.iter(tag=etree.Element):
+            if child.tag.endswith("PriorID"):
+                is_related_to.append(child.text)
+        if is_related_to:
+            was_revision_of = {"@type": "Product",
+                                "isRelatedTo": f"{is_related_to}"}
         return delete_null_values(was_revision_of)
 
-    def get_was_derived_from(self) -> None:
+    def get_was_derived_from(self) -> Union[Dict, None]:
         was_derived_from = None
+        was_derived_from = self.get_is_based_on()
         return delete_null_values(was_derived_from)
 
-    def get_is_based_on(self) -> Union[List, None]:
+    def get_is_based_on(self) -> Union[Dict, None]:
         # Mapping: schema:isBasedOn = spase:ResourceHeader/spase:Association/spase:AssociationID
         is_based_on = []
         derivations = []
-        is_related_to = []
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("Association"):
                 targetChild = child
@@ -781,17 +825,13 @@ class SPASE(StrategyInterface):
                         A_ID = child.text
                     elif child.tag.endswith("AssociationType"):
                         type = child.text
-                if type == "DerivedFrom":
+                if type == "DerivedFrom" or type == "ChildEventOf":
                     derivations.append(A_ID)
-            elif child.tag.endswith("PriorID"):
-                is_related_to.append(child.text)
         if derivations == []:
             is_based_on = None
         else:
-            is_based_on = [{"@type": "CreativeWork",
-                                "isBasedOn": f"{derivations}"},
-                            {"@type": "Product",
-                                "isRelatedTo": f"{is_related_to}"}]
+            is_based_on = {"@type": "CreativeWork",
+                                "isBasedOn": f"{derivations}"}
         return delete_null_values(is_based_on)
 
     def get_was_generated_by(self) -> None:
@@ -840,9 +880,6 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
     for elt in root.iter(tag=etree.Element):
             if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
                 desiredRoot = elt
-    # holds role values that are not considered for author var
-    UnapprovedAuthors = ["MetadataContact", "ArchiveSpecialist",
-                        "HostContact", "User"]
 
     # iterate thru to find ResourceHeader
     for child in desiredRoot.iter(tag=etree.Element):
@@ -881,7 +918,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                                     # backup publisher
                                     elif child.text == "Publisher":
                                         pub = child.text
-                                    elif child.text not in UnapprovedAuthors:
+                                    else:
                                         backups[PersonID] = child.text
                             except AttributeError as err:
                                 continue
@@ -1081,11 +1118,22 @@ def get_repoID(metadata: etree.ElementTree) -> str:
                     repoID = child.text
     return repoID
 
+def contributorFormat(roleName:str, name:str, givenName:str, familyName:str) -> Dict:
+    contact = {"@type": "Role", 
+                "roleName": f"{roleName}",
+                "contributor": {"@type": "Person",
+                                "name": f"{name}",
+                                "givenName": f"{givenName}",
+                                "familyName": f"{familyName}"}
+                }
+    return contact
+
 #TODO: add docstring
 def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", "identifier", "creator", "publisher",
                                                         "variable_measured", "temporal_coverage", "distribution",
                                                         "potential_action", "funding", "date_created", "date_modified",
-                                                        "contributor", "date_published", "is_based_on"]) -> tuple:
+                                                        "contributor", "date_published", "was_revision_of", "was_derived_from",
+                                                        "is_based_on"]) -> None:
     # list that holds SPASE records already checked
     searched = []
 
@@ -1147,6 +1195,8 @@ def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", 
                 date_created = testSpase.get_date_created()
                 date_modified, trigger, mostRecentDate = testSpase.get_date_modified()
                 date_published = testSpase.get_date_published()
+                was_revision_of = testSpase.get_was_revision_of()
+                was_derived_from = testSpase.get_was_derived_from()
                 is_based_on = testSpase.get_is_based_on()
 
                 if printFlag:
@@ -1167,7 +1217,7 @@ def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", 
                                     print(each)
                                 #print("")
                             else:
-                                print("No creators were found according to the priority rules. Exporting backups for further analysis.")
+                                print("No creators were found according to the priority rules.")
                                 # append ResourceID, ResourceName, DOI, and authors with their roles to the export list
                                 author, authorRole, pubDate, pub, contrib, dataset, backups = get_authors(testSpase.metadata)
                                 R_IDs.append(ResourceID)
@@ -1183,7 +1233,10 @@ def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", 
                                 R_Names = R_Names[:len(R_Names)-1]
                                 DOIs = DOIs[:len(DOIs)-1]
                         elif property == "date_created":
-                            print(f"Date Created: {date_created}")
+                            if date_created is not None:
+                                print(f"Date Created: {date_created}")
+                            else:
+                                print("No creation date was found.")
                         elif property == "date_modified":
                             if trigger:
                                 print("This record has incorrect dates. Exporting to spreadsheet for further analysis.")
@@ -1219,8 +1272,8 @@ def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", 
                             else:
                                 print("No contributors found.")
                         elif property == "distribution" or property == "potential_action":
-                            print("AccessURLs: ")
                             if property == "distribution":
+                                print("AccessURLs: ")
                                 for url in distribution:
                                     print(url)
                             else:
@@ -1239,12 +1292,23 @@ def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", 
                                     print(funder)
                             else:
                                 print("No funding info was found.")
+                        elif property == "was_revision_of":
+                            if was_revision_of is not None:
+                                print("PriorIDs: ")
+                                print(was_revision_of)
+                            else:
+                                print("No AssociationID was found.")
+                        elif property == "was_derived_from":
+                            if was_derived_from is not None:
+                                print("AssociationIDs: ")
+                                print(was_derived_from)
+                            else:
+                                print("No AssociationID was found.")
                         elif property == "is_based_on":
                             # only 16 in DisplayData have this, none in ACE/EPAM, 6 in NumericalData
                             if is_based_on is not None:
                                 print("AssociationIDs: ")
-                                for each in is_based_on:
-                                    print(each)
+                                print(is_based_on)
                             else:
                                 print("No AssociationID was found.")
                         elif property == "variable_measured":
@@ -1257,20 +1321,24 @@ def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", 
 
                 # add record to searched
                 searched.append(record)
-    return R_IDs, R_Names, R_IDs_Dates, R_Names_Dates, authors, roles, createdDates, modifiedDates, latestDates, DOIs, DOIs_dates, createdDates_Pub, R_IDs_Pub, RepoIDs
+    #exportItems = [R_IDs, R_Names, R_IDs_Dates, R_Names_Dates, authors, roles, createdDates, modifiedDates, latestDates,
+    #               DOIs, DOIs_dates, createdDates_Pub, R_IDs_Pub, RepoIDs]
+    #return exportItems
 
 # test directories
-#folder = "C:/Users/zboquet/NASA/DisplayData"
-folder = "C:/Users/zboquet/NASA/NumericalData"
-R_IDs, R_Names, R_IDs_Dates, R_Names_Dates, authors, roles, createdDates, modifiedDates, latestDates, DOIs, DOIs_dates, createdDates_Pub, R_IDs_Pub, RepoIDs = main(folder, True, ["publisher"])
-#export_authors(R_IDs, R_Names, authors, roles, DOIs)
+folder = "C:/Users/zboquet/NASA/DisplayData"
+#folder = "C:/Users/zboquet/NASA/NumericalData"
+#folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
+#exportItems = 
+main(folder, True, ["creator", "contributor"])
+#export_authors(exportItems[0], exportItems[1], exportItems[4], exportItems[5], exportItems[9])
 
-df_pub = pd.DataFrame({'ResourceID': R_IDs_Pub,
-                    'RepositoryID': RepoIDs,
-                    'Date of Creation': createdDates_Pub})
+#df_pub = pd.DataFrame({'ResourceID': exportItems[12],
+                    #'RepositoryID': exportItems[13],
+                    #'Date of Creation': exportItems[11]})
 #file_name_pub = "C:/Users/zboquet/Documents/noPublishersDisplayData.xlsx"
-file_name_pub = "C:/Users/zboquet/Documents/noPublishersNumericalData.xlsx"
-df_pub.to_excel(file_name_pub)
+#file_name_pub = "C:/Users/zboquet/Documents/noPublishersNumericalData.xlsx"
+#df_pub.to_excel(file_name_pub)
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
@@ -1279,19 +1347,5 @@ df_pub.to_excel(file_name_pub)
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 # start at list item 163 if want to skip ACE folder
 #folder = "C:/Users/zboquet/NASA/NumericalData"
-#R_IDs2, R_Names2, R_IDs_Dates2, R_Names_Dates2, authors2, roles2, createdDates2, modifiedDates2, latestDates2, DOIs2, DOIs_dates2, createdDates_Pub2, R_IDs_Pub2, RepoIDs2 = main(folder, False, True)
-#export_authors(R_IDs2, R_Names2, authors2, roles2, DOIs2)
-
-# for exporting the dates into one spreadsheet
-#R_IDs += R_IDs2
-#R_Names += R_Names2
-#R_IDs_Dates += R_IDs_Dates2
-#R_Names_Dates += R_Names_Dates2
-#authors += authors2
-#roles += roles2
-#createdDates += createdDates2
-#modifiedDates += modifiedDates2
-#latestDates += latestDates2
-#DOIs += DOIs2
-#DOIs_dates += DOIs_dates2
-#export_dates(R_IDs_Dates, R_Names_Dates, createdDates, modifiedDates, latestDates, DOIs_dates)
+#exportItems2 = main(folder, False, True)
+#export_authors(exportItems2[0], exportItems2[1], exportItems2[4], exportItems2[5], exportItems2[9])
