@@ -3,7 +3,7 @@
 from lxml import etree
 from soso.interface import StrategyInterface
 from soso.utilities import (
-    delete_null_values,
+    delete_null_values, generate_citation_from_doi
 )
 from typing import Union, List, Dict
 import re
@@ -229,8 +229,11 @@ class SPASE(StrategyInterface):
                     author = familyName + ", " + givenName
             # case when in PubInfo but only one author
             elif ";" not in authorStr:
+                # if formatted for citation already
+                if "et al" in authorStr:
+                    author = authorStr
                 # in case there are multiple w/o ;
-                if "., " in authorStr:
+                elif "., " in authorStr:
                     authorStr = authorStr.replace(".,", "..,")
                     authorTemp = authorStr.split("., ")
                     if "and " in authorTemp[-1]:
@@ -303,6 +306,9 @@ class SPASE(StrategyInterface):
             pubDate, trigger, date_created = self.get_date_modified()
             pubDate = pubDate[:4]
         DOI = self.get_url()
+        #if "doi" in DOI:
+            #citation = generate_citation_from_doi(DOI, style="apa", locale="en-US")
+        #else:
         if dataset:
             citation = f"{author} ({pubDate}). {dataset}. {pub}. {DOI}"
         else:
@@ -343,6 +349,11 @@ class SPASE(StrategyInterface):
                                         "unitText": f"{unit}",
                                         "minValue": f"{minVal}",
                                         "maxValue": f"{maxVal}"})
+        # preserve order of elements
+        if len(variable_measured) != 0:
+            variable_measured = {"@list": variable_measured}
+        else:
+            variable_measured = None
         return delete_null_values(variable_measured)
 
     def get_included_in_data_catalog(self) -> None:
@@ -370,6 +381,11 @@ class SPASE(StrategyInterface):
             distribution.append({"@type": "DataDownload",
                                 "contentUrl": f"{k}",
                                 "encodingFormat": f"{encoder}"})
+        # preserve order of elements
+        if len(distribution) != 0:
+            distribution = {"@list": distribution}
+        else:
+            distribution = None
         return delete_null_values(distribution)
 
     def get_potential_action(self) -> Union[List[Dict], None]:
@@ -435,6 +451,11 @@ class SPASE(StrategyInterface):
                                                         "url": f"{k}",
                                                         "description": "Download dataset data in CSV or JSON form at this URL"}
                                             })
+        # preserve order of elements
+        if len(potential_action) != 0:
+            potential_action = {"@list": potential_action}
+        else:
+            potential_action = None
         return delete_null_values(potential_action)
 
     def get_date_created(self) -> Union[str, None]:
@@ -551,6 +572,11 @@ class SPASE(StrategyInterface):
                     "alternateName": item.text,
                 }
             )
+        # preserve order of elements
+        if len(spatial_coverage) != 0:
+            spatial_coverage = {"@list": spatial_coverage}
+        else:
+            spatial_coverage = None
         return delete_null_values(spatial_coverage)
 
     def get_creator(self) -> Union[List, None]:
@@ -574,16 +600,7 @@ class SPASE(StrategyInterface):
                     index = author.index(person)
                 else:
                     index = 0
-                path, sep, authorStr = person.partition("Person/")
-                # get rid of extra quotations
-                authorStr = authorStr.replace("'","")
-                givenName, sep, familyName = authorStr.partition(".")
-                # if name has initial(s)
-                if ("." in familyName):
-                    initial, sep, familyName = familyName.partition(".")
-                    givenName = givenName + ' ' + initial + '.'
-                authorStr = givenName + " " + familyName
-                authorStr = authorStr.replace("\"", "")
+                authorStr, givenName, familyName = nameSplitter(person)
                 creator.append({"@type": "Role", 
                                 "roleName": f"{authorRole[index]}",
                                 "creator": {"@type": "Person",
@@ -639,51 +656,47 @@ class SPASE(StrategyInterface):
                                                 "givenName": f"{givenName}",
                                                 "familyName": f"{familyName}"}
                                                 })
+        # preserve order of elements
+        if len(creator) != 0:
+            creator = {"@list": creator}
+        else:
+            creator = None
         return delete_null_values(creator)
 
     def get_contributor(self) -> Union[List, None]:
         # Mapping: schema:contributor = spase:ResourceHeader/spase:Contact/spase:PersonID
         # Each item is:
-        #   {@type: Role, roleName: Contributor, contributor: {@type: Person, name: Author Name, givenName: First Name, familyName: Last Name}}
+        #   {@type: Role, roleName: Contributor or curator role, contributor: {@type: Person, name: Author Name, givenName: First Name, familyName: Last Name}}
         # Using schema:Person as defined in: https://schema.org/Person
         author, authorRole, pubDate, pub, contributors, dataset, backups = get_authors(self.metadata)
-        contributorStr = str(contributors).replace("[", "").replace("]","")
         contributor = []
         # holds role values that are not initially considered for contributor var
         CuratorRoles = ["HostContact", "GeneralContact", "DataProducer", "MetadataContact", "TechnicalContact"]
         
         for person in contributors:
-            path, sep, contributorStr = person.partition("Person/")
-            # get rid of extra quotations
-            contributorStr = contributorStr.replace("'","")
-            givenName, sep, familyName = contributorStr.partition(".")
-            # if name has initial(s)
-            if ("." in familyName):
-                initial, sep, familyName = familyName.partition(".")
-                givenName = givenName + ' ' + initial + '.'
-            contributorStr = givenName + " " + familyName
-            contributorStr = contributorStr.replace("\"", "")
+            contributorStr, givenName, familyName = nameSplitter(person)
             individual = contributorFormat("Contributor", contributorStr, givenName, familyName)
             contributor.append(individual)
         # if no contributor found use backups (editors)
-        # TODO: finish up this logic (givenName and familyName are not initialized yet!)
         if contributor == []:
             found = False
-            for person, role in backups.items():
-                if not found:
-                    if role in CuratorRoles:
-                        if role == "HostContact":
-                            individual = contributorFormat("HostContact", person, givenName, familyName)
-                            contributor.append(individual)
-                            found = True
-                        elif role == "GeneralContact":
-                            # append and true
-                        elif role == "DataProducer":
-                            # append and true
-                        elif role == "MetadataContact":
-                            # append and true
-                        elif role == "TechnicalContact":
-                            # append and true
+            i = 0
+            # while a curator is not found
+            while not found and i < len(CuratorRoles):
+                # search for roles in backups that match CuratorRoles (in order of priority)
+                keys = [key for key, val in backups.items() if CuratorRoles[i] in val]
+                if keys != []:
+                    for key in keys:
+                        editorStr, givenName, familyName = nameSplitter(key)
+                        individual = contributorFormat(CuratorRoles[i], editorStr, givenName, familyName)
+                        contributor.append(individual)
+                        found = True
+                i += 1
+        # preserve order of elements
+        if len(contributor) != 0:
+            contributor = {"@list": contributor}
+        else:
+            contributor = None
 
         return delete_null_values(contributor)
 
@@ -726,7 +739,7 @@ class SPASE(StrategyInterface):
         # Each item is:
         #   {@type: MonetaryGrant, funder: {@type: Person or Organization, name: Agency}, identifier: AwardNumber, name: Project}
         # Using schema:MonetaryGrant as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#funding
-        funding = None
+        funding = []
         agency = []
         project = []
         award = []
@@ -743,7 +756,6 @@ class SPASE(StrategyInterface):
                         award.append(child.text)
         # if funding info was found
         if agency:
-            funding = []
             i = 0
             for funder in agency:
                 # if award number was found
@@ -791,6 +803,11 @@ class SPASE(StrategyInterface):
                                         "name": f"{project[i]}"
                                     })
                 i += 1
+        # preserve order of elements
+        if len(funding) != 0:
+            funding = {"@list": funding}
+        else:
+            funding = None
         return delete_null_values(funding)
 
     def get_license(self) -> None:
@@ -899,6 +916,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                                 if child.tag.endswith("PersonID"):
                                     # store PersonID
                                     PersonID = child.text
+                                    backups[PersonID] = []
                                 # find Role
                                 elif child.tag.endswith("Role"):
                                     # backup author
@@ -919,7 +937,8 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                                     elif child.text == "Publisher":
                                         pub = child.text
                                     else:
-                                        backups[PersonID] = child.text
+                                        # use list for values in case one person has multiple roles
+                                        backups[PersonID] += [child.text]
                             except AttributeError as err:
                                 continue
                 except AttributeError as err:
@@ -1128,6 +1147,19 @@ def contributorFormat(roleName:str, name:str, givenName:str, familyName:str) -> 
                 }
     return contact
 
+def nameSplitter(person:str) -> tuple:
+    path, sep, nameStr = person.partition("Person/")
+    # get rid of extra quotations
+    nameStr = nameStr.replace("'","")
+    givenName, sep, familyName = nameStr.partition(".")
+    # if name has initial(s)
+    if ("." in familyName):
+        initial, sep, familyName = familyName.partition(".")
+        givenName = givenName + ' ' + initial + '.'
+    nameStr = givenName + " " + familyName
+    nameStr = nameStr.replace("\"", "")
+    return nameStr, givenName, familyName
+
 #TODO: add docstring
 def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", "identifier", "creator", "publisher",
                                                         "variable_measured", "temporal_coverage", "distribution",
@@ -1168,7 +1200,7 @@ def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", 
         # ReleaseDate is not most recent at this dataset (causes dateModified to be incorrect): C:/Users/zboquet/NASA/DisplayData\SDO\AIA\SSC
         #   And some here too: C:/Users/zboquet/NASA/DisplayData\STEREO-A\SECCHI\, C:/Users/zboquet/NASA/DisplayData\STEREO-B\SECCHI
         #                       C:/Users/zboquet/NASA/NumericalData\Cluster-Rumba\WBD\BM2
-        for r, record in enumerate(SPASE_paths):
+        for r, record in enumerate(SPASE_paths[:200]):
             if record not in searched:
                 # scrape metadata for each record
                 statusMessage = f"Extracting metadata from record {r+1}"
@@ -1213,7 +1245,7 @@ def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", 
                         elif property == "creator":
                             if creator is not None:
                                 print("Creator(s): ")
-                                for each in creator:
+                                for each in creator["@list"]:
                                     print(each)
                                 #print("")
                             else:
@@ -1225,7 +1257,7 @@ def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", 
                                 DOIs.append(identifier)
                                 for k,v in backups.items():
                                     authors.append(k)
-                                    roles.append(v)
+                                    roles.append(str(v))
                                     DOIs.append("")
                                     R_IDs.append("")
                                     R_Names.append("")
@@ -1267,14 +1299,14 @@ def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", 
                             # pos 1161-2 in NumericalData
                             if contributor is not None:
                                 print("Contributor(s): ")
-                                for person in contributor:
+                                for person in contributor["@list"]:
                                     print(person)
                             else:
                                 print("No contributors found.")
                         elif property == "distribution" or property == "potential_action":
                             if property == "distribution":
                                 print("AccessURLs: ")
-                                for url in distribution:
+                                for url in distribution["@list"]:
                                     print(url)
                             else:
                                 if potential_action is not None:
@@ -1288,7 +1320,7 @@ def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", 
                         elif property == "funding":
                             if funding is not None:
                                 print("Funding: ")
-                                for funder in funding:
+                                for funder in funding["@list"]:
                                     print(funder)
                             else:
                                 print("No funding info was found.")
@@ -1314,7 +1346,7 @@ def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", 
                         elif property == "variable_measured":
                             if variable_measured is not None:
                                 print("Parameters: ")
-                                for variable in variable_measured:
+                                for variable in variable_measured["@list"]:
                                     print(variable)
                 print("Metadata extraction completed")
                 print()
@@ -1328,9 +1360,10 @@ def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", 
 # test directories
 folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/NumericalData"
+#folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 #folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
 #exportItems = 
-main(folder, True, ["creator", "contributor"])
+main(folder, True, ["contributor"])
 #export_authors(exportItems[0], exportItems[1], exportItems[4], exportItems[5], exportItems[9])
 
 #df_pub = pd.DataFrame({'ResourceID': exportItems[12],
