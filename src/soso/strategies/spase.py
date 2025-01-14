@@ -9,6 +9,7 @@ from typing import Union, List, Dict
 import re
 from datetime import datetime, timedelta
 import pandas as pd
+import json
 
 # pylint: disable=duplicate-code
 
@@ -34,13 +35,16 @@ class SPASE(StrategyInterface):
         <https://github.com/ESIPFed/science-on-schema.org/blob/master/guides/Dataset.md>`_.
 
         Below are unmappable properties for this strategy:
-            - [includedInDataCatalog]
-            - [version]
-            - [subject_of]
-            - [expires]
-            - [same_as]
-            - [provider]
-            - [license]
+            - includedInDataCatalog
+            - is_accessible_for_free
+            - same_as
+            - version
+            - subject_of
+            - expires
+            - same_as
+            - provider
+            - license
+            - was_generated_by
     """
 
     def __init__(self, file: str, **kwargs: dict):
@@ -115,7 +119,7 @@ class SPASE(StrategyInterface):
         return delete_null_values(version)
 
     # commented out partial code that was put on hold due to licenses being added to SPASE soon
-    def get_is_accessible_for_free(self) -> bool:
+    def get_is_accessible_for_free(self) -> None:
         """schema:description: spase:AccessInformation/AccessRights"""
         is_accessible_for_free = None
         # local vars needed
@@ -396,7 +400,7 @@ class SPASE(StrategyInterface):
         dataDownloads, potentialActions = get_accessURLs(self.metadata)
         temp_covg = self.get_temporal_coverage()
         if temp_covg is not None:
-            start, sep, end = temp_covg["temporalCoverage"].partition("/")
+            start, sep, end = temp_covg.partition("/")
             if end == "":
                 date, sep, time = start.partition("T")
                 time = time.replace("Z", "")
@@ -528,7 +532,7 @@ class SPASE(StrategyInterface):
         expires = None
         return delete_null_values(expires)
 
-    def get_temporal_coverage(self) -> Union[Dict, None]:
+    def get_temporal_coverage(self) -> Union[str, None]:
         # Mapping: schema:temporal_coverage = spase:TemporalDescription/spase:TimeSpan/*
         # Each object is:
         #   {temporalCoverage: StartDate and StopDate|RelativeStopDate}
@@ -546,9 +550,9 @@ class SPASE(StrategyInterface):
         )
         if start:
             if stop:
-                temporal_coverage = {"temporalCoverage": f"{start}/{stop}"}
+                temporal_coverage = f"{start}/{stop}"
             else:
-                temporal_coverage = {"temporalCoverage": f"{start}/.."}
+                temporal_coverage = f"{start}/.."
         else:
             temporal_coverage = None
         return delete_null_values(temporal_coverage)
@@ -1100,28 +1104,6 @@ def get_dates(metadata: etree.ElementTree) -> tuple:
                     continue
     return ReleaseDate, RevisionHistory
 
-def export_dates(R_IDs_Dates, R_Names_Dates, createdDates, modifiedDates, latestDates, DOIs_dates) -> None:
-    # export records w incorrect dates to an excel file
-    df_dates = pd.DataFrame({'ResourceID': R_IDs_Dates,
-                            'ResourceName': R_Names_Dates,
-                            'DOI': DOIs_dates,
-                            'Date of Creation': createdDates,
-                            'Current Release Date': modifiedDates,
-                            'Most Recent Date': latestDates})
-    file_name_dates = "C:/Users/zboquet/Documents/IncorrectDates.xlsx"
-    df_dates.to_excel(file_name_dates,sheet_name='Dates')
-
-def export_authors(R_IDs, R_Names, authors, roles, DOIs) -> None:
-    # export records w/o desired authors to an excel file
-    df_authors = pd.DataFrame({'ResourceID': R_IDs,
-                    'ResourceName': R_Names,
-                    'DOI': DOIs,
-                    'Name': authors,
-                    'Role': roles})
-    #file_name_authors = "C:/Users/zboquet/Documents/noCreatorsDisplayData.xlsx"
-    file_name_authors = "C:/Users/zboquet/Documents/noCreatorsNumericalData.xlsx"
-    df_authors.to_excel(file_name_authors,sheet_name='Contacts')
-
 def get_repoID(metadata: etree.ElementTree) -> str:
     root = metadata.getroot()
     repoID = ""
@@ -1161,37 +1143,23 @@ def nameSplitter(person:str) -> tuple:
     return nameStr, givenName, familyName
 
 #TODO: add docstring
-def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", "identifier", "creator", "publisher",
-                                                        "variable_measured", "temporal_coverage", "distribution",
-                                                        "potential_action", "funding", "date_created", "date_modified",
-                                                        "contributor", "date_published", "was_revision_of", "was_derived_from",
-                                                        "is_based_on"]) -> None:
+def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "url", "name", "description", "date_published",
+                                                        "keywords", "creator", "citation", "temporal_coverage", "spatial_coverage",
+                                                        "publisher", "distribution", "potential_action", "variable_measured", 
+                                                        "funding", "was_revision_of", "was_derived_from", "is_based_on", 
+                                                        "date_created", "date_modified", "contributor"]) -> None:
     # list that holds SPASE records already checked
     searched = []
 
     SPASE_paths = []
-    authors = []
-    roles = []
-    R_IDs = []
-    R_Names = []
-    R_IDs_Dates = []
-    R_Names_Dates = []
-    createdDates = []
-    modifiedDates = []
-    latestDates = []
-    DOIs = []
-    DOIs_dates =[]
-    createdDates_Pub = []
-    R_IDs_Pub = []
-    RepoIDs = []
 
     # obtains all filepaths to all SPASE records found in given directory
     SPASE_paths = getPaths(folder, SPASE_paths)
-    print("You entered " + folder)
+    #print("You entered " + folder)
     if len(SPASE_paths) == 0:
         print("No records found. Returning.")
     else:
-        print("The number of records is " + str(len(SPASE_paths)))
+        #print("The number of records is " + str(len(SPASE_paths)))
         # iterate through all SPASE records
         # Note: starting at record 24 in ACE/EPAM folder, end of author string is formatted wrong with "and first last" instead of "and last, first" (SPASE issue)
         # Successfully passed for all 129 records in NumericalData/ACE/EPAM folder and all 187 in DisplayData
@@ -1200,19 +1168,19 @@ def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", 
         # ReleaseDate is not most recent at this dataset (causes dateModified to be incorrect): C:/Users/zboquet/NASA/DisplayData\SDO\AIA\SSC
         #   And some here too: C:/Users/zboquet/NASA/DisplayData\STEREO-A\SECCHI\, C:/Users/zboquet/NASA/DisplayData\STEREO-B\SECCHI
         #                       C:/Users/zboquet/NASA/NumericalData\Cluster-Rumba\WBD\BM2
-        for r, record in enumerate(SPASE_paths[:200]):
+        for r, record in enumerate(SPASE_paths):
             if record not in searched:
                 # scrape metadata for each record
                 statusMessage = f"Extracting metadata from record {r+1}"
                 statusMessage += f" of {len(SPASE_paths)}"
                 print(statusMessage)
-                print(record)
+                print()
                 testSpase = SPASE(record)
-                ResourceName = testSpase.get_name()
-                ResourceID = testSpase.get_id()
-                repoID = get_repoID(testSpase.metadata)
 
                 #print(testSpase.get_is_accessible_for_free())
+                id = testSpase.get_id()
+                url = testSpase.get_url()
+                name = testSpase.get_name()
                 keywords = testSpase.get_keywords()
                 citation = testSpase.get_citation()
                 identifier = testSpase.get_identifier()
@@ -1221,6 +1189,7 @@ def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", 
                 contributor = testSpase.get_contributor()
                 variable_measured = testSpase.get_variable_measured()
                 temporal_coverage = testSpase.get_temporal_coverage()
+                spatial_coverage = testSpase.get_spatial_coverage()
                 distribution = testSpase.get_distribution()
                 potential_action = testSpase.get_potential_action()
                 funding = testSpase.get_funding()
@@ -1233,152 +1202,131 @@ def main(folder, printFlag = True, desiredProperties = ["keywords", "citation", 
 
                 if printFlag:
                     for property in desiredProperties:
-                        if property == "keywords":
+                        if property == "id":
+                            print(" @id:", end=" ")
+                            print(json.dumps(id, indent=4))
+                        elif property == "url":
+                            print(" url:", end=" ")
+                            print(json.dumps(url, indent=4))
+                        elif property == "name":
+                            print(" name:", end=" ")
+                            print(json.dumps(name, indent=4))
+                        elif property == "keywords":
                             if keywords is None:
                                 print("No keywords found")
                             else:
-                                print(f"Keywords: {keywords}")
+                                print(" keywords:", end=" ")
+                                print(json.dumps(keywords, indent=4))
                         elif property == "citation":
-                            print(f"Citation: {citation}")
+                            print(" citation:", end=" ")
+                            print(json.dumps(citation, indent=4))
                         elif property == "identifier":
-                            print(f"Identifier: {identifier}")
+                            print(" identifier:", end=" ")
+                            print(json.dumps(identifier, indent=4))
                         elif property == "creator":
                             if creator is not None:
-                                print("Creator(s): ")
-                                for each in creator["@list"]:
-                                    print(each)
-                                #print("")
+                                print(" creator:", end=" ")
+                                print(json.dumps(creator, indent=4))
                             else:
                                 print("No creators were found according to the priority rules.")
-                                # append ResourceID, ResourceName, DOI, and authors with their roles to the export list
-                                author, authorRole, pubDate, pub, contrib, dataset, backups = get_authors(testSpase.metadata)
-                                R_IDs.append(ResourceID)
-                                R_Names.append(ResourceName)
-                                DOIs.append(identifier)
-                                for k,v in backups.items():
-                                    authors.append(k)
-                                    roles.append(str(v))
-                                    DOIs.append("")
-                                    R_IDs.append("")
-                                    R_Names.append("")
-                                R_IDs = R_IDs[:len(R_IDs)-1]
-                                R_Names = R_Names[:len(R_Names)-1]
-                                DOIs = DOIs[:len(DOIs)-1]
                         elif property == "date_created":
                             if date_created is not None:
-                                print(f"Date Created: {date_created}")
+                                print(" date_created:", end=" ")
+                                print(json.dumps(date_created, indent=4))
                             else:
                                 print("No creation date was found.")
                         elif property == "date_modified":
                             if trigger:
-                                print("This record has incorrect dates. Exporting to spreadsheet for further analysis.")
-                                # create a list of the records who have incorrect dates for exporting to excel
-                                R_IDs_Dates.append(ResourceID)
-                                R_Names_Dates.append(ResourceName)
-                                createdDates.append(date_created)
-                                modifiedDates.append(date_modified)
-                                latestDates.append(mostRecentDate)
-                                DOIs_dates.append(identifier)
+                                print("This record has incorrect dates.")
                             else:
-                                print(f"Date Modified: {date_modified}")
+                                print(" date_modified:", end=" ")
+                                print(json.dumps(date_modified, indent=4))
                                 #print("")
                         elif property == "date_published":
                             if date_published is not None:
-                                print(f"Date Published: {date_published}")
+                                print(" date_published:", end=" ")
+                                print(json.dumps(date_published, indent=4))
                             else:
                                 print("No publication date was found.")
                         elif property == "publisher":
                             if publisher is not None:
-                                print(f"Publisher: {publisher}") 
+                                print(" publisher:", end=" ")
+                                print(json.dumps(publisher, indent=4))
                             else:
-                                print("No publisher was found. Exporting to spreadsheet for further analysis.")
-                                R_IDs_Pub.append(ResourceID)
-                                RepoIDs.append(repoID)
-                                createdDates_Pub.append(date_created)
+                                print("No publisher was found.")
                         elif property == "contributor":
                             # pos 1161-2 in NumericalData
                             if contributor is not None:
-                                print("Contributor(s): ")
-                                for person in contributor["@list"]:
-                                    print(person)
+                                print(" contributor:", end=" ")
+                                print(json.dumps(contributor, indent=4))
                             else:
                                 print("No contributors found.")
                         elif property == "distribution" or property == "potential_action":
                             if property == "distribution":
-                                print("AccessURLs: ")
-                                for url in distribution["@list"]:
-                                    print(url)
+                                print(" distribution:", end=" ")
+                                print(json.dumps(distribution, indent=4))
                             else:
                                 if potential_action is not None:
-                                    for download_links in potential_action:
-                                        print(download_links)
+                                    print(" potential_action:", end=" ")
+                                    print(json.dumps(potential_action, indent=4))
                         elif property == "temporal_coverage":
                             if temporal_coverage is not None:
-                                print(f"Temporal Coverage: {temporal_coverage}")
+                                print(" temporal_coverage:", end=" ")
+                                print(json.dumps(temporal_coverage, indent=4))
                             else:
                                 print("No start/stop times were found.")
+                        elif property == "spatial_coverage":
+                            if spatial_coverage is not None:
+                                print(" spatial_coverage:", end=" ")
+                                print(json.dumps(spatial_coverage, indent=4))
+                            else:
+                                print("No observed regions were found.")
                         elif property == "funding":
                             if funding is not None:
-                                print("Funding: ")
-                                for funder in funding["@list"]:
-                                    print(funder)
+                                print(" funding:", end=" ")
+                                print(json.dumps(funding, indent=4))
                             else:
                                 print("No funding info was found.")
                         elif property == "was_revision_of":
                             if was_revision_of is not None:
-                                print("PriorIDs: ")
-                                print(was_revision_of)
+                                print(" was_revision_of:", end=" ")
+                                print(json.dumps(was_revision_of, indent=4))
                             else:
                                 print("No AssociationID was found.")
                         elif property == "was_derived_from":
                             if was_derived_from is not None:
-                                print("AssociationIDs: ")
-                                print(was_derived_from)
+                                print(" was_derived_from:", end=" ")
+                                print(json.dumps(was_derived_from, indent=4))
                             else:
-                                print("No AssociationID was found.")
+                                print("No was_derived_from was found.")
                         elif property == "is_based_on":
                             # only 16 in DisplayData have this, none in ACE/EPAM, 6 in NumericalData
                             if is_based_on is not None:
-                                print("AssociationIDs: ")
-                                print(is_based_on)
+                                print(" is_based_on:", end=" ")
+                                print(json.dumps(is_based_on, indent=4))
                             else:
-                                print("No AssociationID was found.")
+                                print("No is_based_on was found.")
                         elif property == "variable_measured":
                             if variable_measured is not None:
-                                print("Parameters: ")
-                                for variable in variable_measured["@list"]:
-                                    print(variable)
+                                print(" variable_measured:", end=" ")
+                                print(json.dumps(variable_measured, indent=4))
                 print("Metadata extraction completed")
                 print()
 
                 # add record to searched
                 searched.append(record)
-    #exportItems = [R_IDs, R_Names, R_IDs_Dates, R_Names_Dates, authors, roles, createdDates, modifiedDates, latestDates,
-    #               DOIs, DOIs_dates, createdDates_Pub, R_IDs_Pub, RepoIDs]
-    #return exportItems
 
 # test directories
 folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/NumericalData"
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 #folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-#exportItems = 
-main(folder, True, ["contributor"])
-#export_authors(exportItems[0], exportItems[1], exportItems[4], exportItems[5], exportItems[9])
-
-#df_pub = pd.DataFrame({'ResourceID': exportItems[12],
-                    #'RepositoryID': exportItems[13],
-                    #'Date of Creation': exportItems[11]})
-#file_name_pub = "C:/Users/zboquet/Documents/noPublishersDisplayData.xlsx"
-#file_name_pub = "C:/Users/zboquet/Documents/noPublishersNumericalData.xlsx"
-#df_pub.to_excel(file_name_pub)
+main(folder, True)
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
-#folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
 # start at list item 132 if want to skip EPAM folder
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 # start at list item 163 if want to skip ACE folder
-#folder = "C:/Users/zboquet/NASA/NumericalData"
-#exportItems2 = main(folder, False, True)
-#export_authors(exportItems2[0], exportItems2[1], exportItems2[4], exportItems2[5], exportItems2[9])
+folder = "C:/Users/zboquet/NASA/NumericalData"
+main(folder, True)
