@@ -3,13 +3,14 @@
 from lxml import etree
 from soso.interface import StrategyInterface
 from soso.utilities import (
-    delete_null_values, generate_citation_from_doi
+    delete_null_values
 )
 from typing import Union, List, Dict
 import re
 from datetime import datetime, timedelta
 import pandas as pd
 import json
+import os
 
 # pylint: disable=duplicate-code
 
@@ -37,7 +38,6 @@ class SPASE(StrategyInterface):
         Below are unmappable properties for this strategy:
             - includedInDataCatalog
             - is_accessible_for_free
-            - same_as
             - version
             - subject_of
             - expires
@@ -110,8 +110,16 @@ class SPASE(StrategyInterface):
             ).replace("spase://", "https://hpde.io/")
         return delete_null_values(url)
 
-    def get_same_as(self) -> None:
-        same_as = None
+    def get_same_as(self) -> Union[str, List, None]:
+        same_as = []
+        for child in self.desiredRoot.iter(tag=etree.Element):
+            if child.tag.endswith("PriorID"):
+                same_as.append(child.text)
+        if same_as == []:
+            same_as = None
+        same_as = str(same_as).replace("[","").replace("]","")
+        if len(same_as) == 1:
+            same_as = same_as.replace("'","")
         return delete_null_values(same_as)
 
     def get_version(self) -> None:
@@ -170,12 +178,13 @@ class SPASE(StrategyInterface):
             identifier = url
         return identifier
 
-    def get_citation(self) -> Union[str, None]:
+    def get_citation(self) -> Union[str, Dict, None]:
         # Mapping: schema:citation = spase:ResourceHeader/spase:PublicationInfo/spase:Authors
         # AND spase:ResourceHeader/spase:PublicationInfo/spase:PublicationDate
         # AND spase:ResourceHeader/spase:PublicationInfo/spase:PublishedBy
         # AND spase:ResourceHeader/spase:PublicationInfo/spase:Title
         # AND spase:ResourceHeader/spase:DOI
+        # AND spase:ResourceHeader/spase:InformationURL
 
         # local vars needed
         authorTemp = ""
@@ -310,13 +319,21 @@ class SPASE(StrategyInterface):
             pubDate, trigger, date_created = self.get_date_modified()
             pubDate = pubDate[:4]
         DOI = self.get_url()
-        #if "doi" in DOI:
-            #citation = generate_citation_from_doi(DOI, style="apa", locale="en-US")
-        #else:
-        if dataset:
-            citation = f"{author} ({pubDate}). {dataset}. {pub}. {DOI}"
+        information_url = get_information_url(self.metadata)
+        if information_url:
+            if dataset:
+                citation = {"@type": "CreativeWork",
+                            "citation": f"{author} ({pubDate}). {dataset}. {pub}. {DOI}",
+                            "about": information_url}
+            else:
+                citation = {"@type": "CreativeWork",
+                            "citation": f"{author} ({pubDate}). {pub}. {DOI}",
+                            "about": information_url}
         else:
-            citation = f"{author} ({pubDate}). {pub}. {DOI}"
+            if dataset:
+                citation = f"{author} ({pubDate}). {dataset}. {pub}. {DOI}"
+            else:
+                citation = f"{author} ({pubDate}). {pub}. {DOI}"
         return delete_null_values(citation)
 
     def get_variable_measured(self) -> Union[List[Dict], None]:
@@ -400,7 +417,10 @@ class SPASE(StrategyInterface):
         dataDownloads, potentialActions = get_accessURLs(self.metadata)
         temp_covg = self.get_temporal_coverage()
         if temp_covg is not None:
-            start, sep, end = temp_covg.partition("/")
+            if type(temp_covg) == str:
+                start, sep, end = temp_covg.partition("/")
+            else:
+                start, sep, end = temp_covg["temporalCoverage"].partition("/")
             if end == "":
                 date, sep, time = start.partition("T")
                 time = time.replace("Z", "")
@@ -532,10 +552,11 @@ class SPASE(StrategyInterface):
         expires = None
         return delete_null_values(expires)
 
-    def get_temporal_coverage(self) -> Union[str, None]:
+    def get_temporal_coverage(self) -> Union[str, Dict, None]:
         # Mapping: schema:temporal_coverage = spase:TemporalDescription/spase:TimeSpan/*
         # Each object is:
-        #   {temporalCoverage: StartDate and StopDate|RelativeStopDate}
+        #   {temporalCoverage: StartDate and StopDate|RelativeStopDate, temporal: Cadence}
+        # Result is either schema:Text or schema:DateTime
         # Using format as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#temporal-coverage
         desiredTag = self.desiredRoot.tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:TemporalDescription/spase:TimeSpan/spase:StartDate"
@@ -548,11 +569,27 @@ class SPASE(StrategyInterface):
             SPASE_Location,
             namespaces=self.namespaces,
         )
+        SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:TemporalDescription/spase:Cadence"
+        repeat_frequency = self.metadata.findtext(
+            SPASE_Location,
+            namespaces=self.namespaces,
+        )
+
         if start:
             if stop:
-                temporal_coverage = f"{start}/{stop}"
+                if repeat_frequency:
+                    temporal_coverage = {"@type": "DateTime",
+                                        "temporalCoverage": f"{start}/{stop}",
+                                        "temporal": repeat_frequency}
+                else:
+                    temporal_coverage = f"{start}/{stop}"
             else:
-                temporal_coverage = f"{start}/.."
+                if repeat_frequency:
+                    temporal_coverage = {"@type": "DateTime",
+                                        "temporalCoverage": f"{start}/..",
+                                        "temporal": repeat_frequency}
+                else:
+                    temporal_coverage = f"{start}/.."
         else:
             temporal_coverage = None
         return delete_null_values(temporal_coverage)
@@ -819,14 +856,21 @@ class SPASE(StrategyInterface):
         return license_url
 
     def get_was_revision_of(self) -> Union[Dict, None]:
-        was_revision_of = None
-        is_related_to = []
+        relations = []
         for child in self.desiredRoot.iter(tag=etree.Element):
-            if child.tag.endswith("PriorID"):
-                is_related_to.append(child.text)
-        if is_related_to:
-            was_revision_of = {"@type": "Product",
-                                "isRelatedTo": f"{is_related_to}"}
+            if child.tag.endswith("Association"):
+                targetChild = child
+                for child in targetChild:
+                    if child.tag.endswith("AssociationID"):
+                        A_ID = child.text
+                    elif child.tag.endswith("AssociationType"):
+                        type = child.text
+                if type not in ["DerivedFrom", "ChildEventOf"]:
+                    relations.append(A_ID)
+        if relations == []:
+            was_revision_of = None
+        else:
+            was_revision_of = {"@id": f"{relations}"}
         return delete_null_values(was_revision_of)
 
     def get_was_derived_from(self) -> Union[Dict, None]:
@@ -1142,12 +1186,108 @@ def nameSplitter(person:str) -> tuple:
     nameStr = nameStr.replace("\"", "")
     return nameStr, givenName, familyName
 
+def get_measurement_type(metadata: etree.ElementTree) -> Union[Dict, None]:
+    root = metadata.getroot()
+    measurement_type = None
+    measurementTypes = []
+    for elt in root.iter(tag=etree.Element):
+        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+            desiredRoot = elt
+    for child in desiredRoot.iter(tag=etree.Element):
+        if child.tag.endswith("MeasurementType"):
+            measurementTypes.append(child.text)
+    if measurementTypes:
+        measurement_type = {"@type": "DefinedTerm",
+                            "keywords": str(measurementTypes).replace("[","").replace("]","")}
+    return measurement_type
+
+def get_information_url(metadata: etree.ElementTree) -> Union[List[Dict], None]:
+    root = metadata.getroot()
+    information_url = []
+    name = ""
+    description = ""
+    for elt in root.iter(tag=etree.Element):
+        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+            desiredRoot = elt
+    for child in desiredRoot.iter(tag=etree.Element):
+        if child.tag.endswith("ResourceHeader"):
+            targetChild = child
+            # iterate thru children to locate AccessURL and Format
+            for child in targetChild:
+                if child.tag.endswith("InformationURL"):
+                    targetChild = child
+                    # iterate thru children to locate URL
+                    for child in targetChild:
+                        if child.tag.endswith("Name"):
+                            name = child.text
+                        elif child.tag.endswith("URL"):
+                            url = child.text
+                        elif child.tag.endswith("Description"):
+                            description = child.text
+                    if name:
+                        if description:
+                            information_url.append({"name": name,
+                                                    "url": url,
+                                                    "description": description})
+                        else:
+                            information_url.append({"name": name,
+                                                    "url": url})
+                    else:
+                        information_url.append({"url": url})
+    if information_url == []:
+        information_url = None
+    return information_url
+
+def get_instrument(metadata: etree.ElementTree) -> Union[Dict, None]:
+    root = metadata.getroot()
+    instrumentIDs = []
+    for elt in root.iter(tag=etree.Element):
+        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+            desiredRoot = elt
+    for child in desiredRoot.iter(tag=etree.Element):
+        if child.tag.endswith("InstrumentID"):
+            instrumentIDs.append(child.text)
+    if instrumentIDs == []:
+        instrument = None
+    else:
+        instrument = {"@type": "IndividualProduct",
+                      "identifier": str(instrumentIDs).replace("]", "").replace("[","")}
+    return instrument
+
+def get_observatory(metadata: etree.ElementTree) -> Union[Dict, None]:
+    instrument = get_instrument(metadata)
+    if instrument is not None:
+        # follow link provided by instrument to obs page, from there grab ObservatoryID
+        # then follow link provided by ObservatoryID to grab OberservatoryGroupID if there
+        # TODO: need to make this abstract for use in anyone's directory, not just my specific case
+        if "," in instrument["identifiers"]:
+            instrumentIDs = instrument["identifier"].split(",")
+        else:
+            instrumentIDs = instrument["identifier"]
+        for item in instrumentIDs:
+            record = "C:/Users/zboquet/" + item.replace("spase://","") + ".xml"
+            if os.path.isfile(record):
+                testSpase = SPASE(record)
+                root = testSpase.metadata.getroot()
+                observatoryID = ""
+                for elt in root.iter(tag=etree.Element):
+                    if elt.tag.endswith("Instrument"):
+                        desiredRoot = elt
+                for child in desiredRoot.iter(tag=etree.Element):
+                    if child.tag.endswith("ObservatoryID"):
+                        observatoryID = child.text
+                # TODO: redo with observatoryID as record to get observatoryGroupID
+    else:
+        observatory = None
+    return observatory
+
 #TODO: add docstring
-def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "url", "name", "description", "date_published",
+def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sameAs", "url", "name", "description", "date_published",
                                                         "keywords", "creator", "citation", "temporal_coverage", "spatial_coverage",
                                                         "publisher", "distribution", "potential_action", "variable_measured", 
                                                         "funding", "was_revision_of", "was_derived_from", "is_based_on", 
-                                                        "date_created", "date_modified", "contributor"]) -> None:
+                                                        "date_created", "date_modified", "contributor", "measurement_type",
+                                                        "instrument"]) -> None:
     # list that holds SPASE records already checked
     searched = []
 
@@ -1174,6 +1314,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "url
                 statusMessage = f"Extracting metadata from record {r+1}"
                 statusMessage += f" of {len(SPASE_paths)}"
                 print(statusMessage)
+                print(record)
                 print()
                 testSpase = SPASE(record)
 
@@ -1181,6 +1322,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "url
                 id = testSpase.get_id()
                 url = testSpase.get_url()
                 name = testSpase.get_name()
+                sameAs = testSpase.get_same_as()
                 keywords = testSpase.get_keywords()
                 citation = testSpase.get_citation()
                 identifier = testSpase.get_identifier()
@@ -1199,12 +1341,20 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "url
                 was_revision_of = testSpase.get_was_revision_of()
                 was_derived_from = testSpase.get_was_derived_from()
                 is_based_on = testSpase.get_is_based_on()
+                measurement_type = get_measurement_type(testSpase.metadata)
+                instrument = get_instrument(testSpase.metadata)
 
                 if printFlag:
                     for property in desiredProperties:
                         if property == "id":
                             print(" @id:", end=" ")
                             print(json.dumps(id, indent=4))
+                        elif property == "sameAs":
+                            if sameAs is not None:
+                                print(" sameAs:", end=" ")
+                                print(json.dumps(sameAs, indent=4))
+                            else:
+                                print("No PriorID(s) were found.")
                         elif property == "url":
                             print(" url:", end=" ")
                             print(json.dumps(url, indent=4))
@@ -1289,20 +1439,20 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "url
                                 print("No funding info was found.")
                         elif property == "was_revision_of":
                             if was_revision_of is not None:
-                                print(" was_revision_of:", end=" ")
+                                print(" prov:was_revision_of:", end=" ")
                                 print(json.dumps(was_revision_of, indent=4))
                             else:
-                                print("No AssociationID was found.")
+                                print("No was_revision_of was found.")
                         elif property == "was_derived_from":
                             if was_derived_from is not None:
-                                print(" was_derived_from:", end=" ")
+                                print(" prov:was_derived_from:", end=" ")
                                 print(json.dumps(was_derived_from, indent=4))
                             else:
                                 print("No was_derived_from was found.")
                         elif property == "is_based_on":
                             # only 16 in DisplayData have this, none in ACE/EPAM, 6 in NumericalData
                             if is_based_on is not None:
-                                print(" is_based_on:", end=" ")
+                                print(" schema:is_based_on:", end=" ")
                                 print(json.dumps(is_based_on, indent=4))
                             else:
                                 print("No is_based_on was found.")
@@ -1310,6 +1460,20 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "url
                             if variable_measured is not None:
                                 print(" variable_measured:", end=" ")
                                 print(json.dumps(variable_measured, indent=4))
+                            else:
+                                print("No parameters found.")
+                        elif property == "measurement_type":
+                            if measurement_type is not None:
+                                print(" measurement_type:", end=" ")
+                                print(json.dumps(measurement_type, indent=4))
+                            else:
+                                print("No measurementType found.")
+                        elif property == "instrument":
+                            if instrument is not None:
+                                print(" instrument:", end=" ")
+                                print(json.dumps(instrument, indent=4))
+                            else:
+                                print("No InstrumentIDs found.")
                 print("Metadata extraction completed")
                 print()
 
@@ -1317,11 +1481,9 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "url
                 searched.append(record)
 
 # test directories
-folder = "C:/Users/zboquet/NASA/DisplayData"
-#folder = "C:/Users/zboquet/NASA/NumericalData"
-#folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
-#folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-main(folder, True)
+#folder = "C:/Users/zboquet/NASA/DisplayData"
+folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
+main(folder, True, ["instrument"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
@@ -1329,4 +1491,4 @@ main(folder, True)
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 # start at list item 163 if want to skip ACE folder
 folder = "C:/Users/zboquet/NASA/NumericalData"
-main(folder, True)
+#main(folder, True)
