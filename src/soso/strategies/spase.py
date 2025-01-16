@@ -8,7 +8,6 @@ from soso.utilities import (
 from typing import Union, List, Dict
 import re
 from datetime import datetime, timedelta
-import pandas as pd
 import json
 import os
 
@@ -41,7 +40,6 @@ class SPASE(StrategyInterface):
             - version
             - subject_of
             - expires
-            - same_as
             - provider
             - license
             - was_generated_by
@@ -110,15 +108,15 @@ class SPASE(StrategyInterface):
             ).replace("spase://", "https://hpde.io/")
         return delete_null_values(url)
 
-    def get_same_as(self) -> Union[str, List, None]:
-        same_as = []
+    def get_same_as(self) -> Union[str, None]:
+        same_asList = []
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("PriorID"):
-                same_as.append(child.text)
-        if same_as == []:
+                same_asList.append(child.text)
+        if same_asList == []:
             same_as = None
-        same_as = str(same_as).replace("[","").replace("]","")
-        if len(same_as) == 1:
+        same_as = str(same_asList).replace("[","").replace("]","")
+        if len(same_asList) == 1:
             same_as = same_as.replace("'","")
         return delete_null_values(same_as)
 
@@ -1148,6 +1146,7 @@ def get_dates(metadata: etree.ElementTree) -> tuple:
                     continue
     return ReleaseDate, RevisionHistory
 
+# TODO: add docstrings for helper methods below this comment
 def get_repoID(metadata: etree.ElementTree) -> str:
     root = metadata.getroot()
     repoID = ""
@@ -1254,32 +1253,74 @@ def get_instrument(metadata: etree.ElementTree) -> Union[Dict, None]:
                       "identifier": str(instrumentIDs).replace("]", "").replace("[","")}
     return instrument
 
-def get_observatory(metadata: etree.ElementTree) -> Union[Dict, None]:
+def get_observatory(metadata: etree.ElementTree, path: str) -> Union[Dict, None]:
     instrument = get_instrument(metadata)
     if instrument is not None:
+        observatoryGroupID = ""
+        observatoryID = ""
+        resourceID = ""
+        subOrgStructure = []
         # follow link provided by instrument to obs page, from there grab ObservatoryID
         # then follow link provided by ObservatoryID to grab OberservatoryGroupID if there
-        # TODO: need to make this abstract for use in anyone's directory, not just my specific case
-        if "," in instrument["identifiers"]:
-            instrumentIDs = instrument["identifier"].split(",")
+        if "," in instrument["identifier"]:
+            instrumentIDs = instrument["identifier"].split(", ")
         else:
-            instrumentIDs = instrument["identifier"]
+            instrumentIDs = [instrument["identifier"]]
         for item in instrumentIDs:
-            record = "C:/Users/zboquet/" + item.replace("spase://","") + ".xml"
+            absPath, sep, after = path.partition("NASA/")
+            record = absPath + item.replace("spase://","") + ".xml"
+            record = record.replace("'","")
             if os.path.isfile(record):
                 testSpase = SPASE(record)
                 root = testSpase.metadata.getroot()
-                observatoryID = ""
                 for elt in root.iter(tag=etree.Element):
                     if elt.tag.endswith("Instrument"):
                         desiredRoot = elt
                 for child in desiredRoot.iter(tag=etree.Element):
                     if child.tag.endswith("ObservatoryID"):
                         observatoryID = child.text
+                    elif child.tag.endswith("ResourceID"):
+                        resourceID = child.text
+                subOrgStructure.append({"@type": "Organization",
+                                        "@id": resourceID,
+                                        "name": observatoryID})
                 # TODO: redo with observatoryID as record to get observatoryGroupID
+                record = "C:/Users/zboquet/" + observatoryID.replace("spase://","") + ".xml"
+                if os.path.isfile(record):
+                    testSpase = SPASE(record)
+                    root = testSpase.metadata.getroot()
+                    observatoryGroupID = ""
+                    for elt in root.iter(tag=etree.Element):
+                        if elt.tag.endswith("Observatory"):
+                            desiredRoot = elt
+                    for child in desiredRoot.iter(tag=etree.Element):
+                        if child.tag.endswith("ObservatoryGroupID"):
+                            observatoryGroupID = child.text
+                if observatoryGroupID:
+                    observatory = {"@type": "ResearchProject",
+                                    "subOrganization": {"@list": subOrgStructure},
+                                    "parentOrganization": observatoryGroupID}
+                else:
+                    observatory = {"@type": "ResearchProject",
+                                    "subOrganization": {"@list": subOrgStructure}}
     else:
         observatory = None
     return observatory
+
+def get_alternate_name(metadata: etree.ElementTree) -> Union[str, None]:
+    root = metadata.getroot()
+    alternate_name = None
+    for elt in root.iter(tag=etree.Element):
+        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+            desiredRoot = elt
+    for child in desiredRoot.iter(tag=etree.Element):
+        if child.tag.endswith("ResourceHeader"):
+            targetChild = child
+            # iterate thru children to locate AccessURL and Format
+            for child in targetChild:
+                if child.tag.endswith("AlternateName"):
+                    alternate_name = child.text
+    return alternate_name
 
 #TODO: add docstring
 def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sameAs", "url", "name", "description", "date_published",
@@ -1287,7 +1328,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                                                         "publisher", "distribution", "potential_action", "variable_measured", 
                                                         "funding", "was_revision_of", "was_derived_from", "is_based_on", 
                                                         "date_created", "date_modified", "contributor", "measurement_type",
-                                                        "instrument"]) -> None:
+                                                        "instrument", "observatory", "alternate_name", "inLanguage"]) -> None:
     # list that holds SPASE records already checked
     searched = []
 
@@ -1308,13 +1349,14 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
         # ReleaseDate is not most recent at this dataset (causes dateModified to be incorrect): C:/Users/zboquet/NASA/DisplayData\SDO\AIA\SSC
         #   And some here too: C:/Users/zboquet/NASA/DisplayData\STEREO-A\SECCHI\, C:/Users/zboquet/NASA/DisplayData\STEREO-B\SECCHI
         #                       C:/Users/zboquet/NASA/NumericalData\Cluster-Rumba\WBD\BM2
+        # DD: #134 is ex w a LOT of observatory entries thanks to multiple instruments
         for r, record in enumerate(SPASE_paths):
             if record not in searched:
                 # scrape metadata for each record
                 statusMessage = f"Extracting metadata from record {r+1}"
                 statusMessage += f" of {len(SPASE_paths)}"
                 print(statusMessage)
-                print(record)
+                #print(record)
                 print()
                 testSpase = SPASE(record)
 
@@ -1343,6 +1385,9 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 is_based_on = testSpase.get_is_based_on()
                 measurement_type = get_measurement_type(testSpase.metadata)
                 instrument = get_instrument(testSpase.metadata)
+                observatory = get_observatory(testSpase.metadata, record)
+                alternate_name = get_alternate_name(testSpase.metadata)
+                inLanguage = "en"
 
                 if printFlag:
                     for property in desiredProperties:
@@ -1474,6 +1519,21 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                                 print(json.dumps(instrument, indent=4))
                             else:
                                 print("No InstrumentIDs found.")
+                        elif property == "observatory":
+                            if observatory is not None:
+                                print(" observatory:", end=" ")
+                                print(json.dumps(observatory, indent=4))
+                            else:
+                                print("No ObservatoryIDs found.")
+                        elif property == "alternate_name":
+                            if alternate_name is not None:
+                                print(" alternate_name:", end=" ")
+                                print(json.dumps(alternate_name, indent=4))
+                            else:
+                                print("No alternateName found.")
+                        elif property == "inLanguage":
+                            print(" inLanguage:", end=" ")
+                            print(json.dumps(inLanguage, indent=4))
                 print("Metadata extraction completed")
                 print()
 
@@ -1483,7 +1543,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
 # test directories
 #folder = "C:/Users/zboquet/NASA/DisplayData"
 folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-main(folder, True, ["instrument"])
+main(folder, True)
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
