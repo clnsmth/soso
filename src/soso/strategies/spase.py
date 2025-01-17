@@ -108,16 +108,13 @@ class SPASE(StrategyInterface):
             ).replace("spase://", "https://hpde.io/")
         return delete_null_values(url)
 
-    def get_same_as(self) -> Union[str, None]:
-        same_asList = []
+    def get_same_as(self) -> Union[List, None]:
+        same_as = []
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("PriorID"):
-                same_asList.append(child.text)
-        if same_asList == []:
+                same_as.append(child.text)
+        if same_as == []:
             same_as = None
-        same_as = str(same_asList).replace("[","").replace("]","")
-        if len(same_asList) == 1:
-            same_as = same_as.replace("'","")
         return delete_null_values(same_as)
 
     def get_version(self) -> None:
@@ -337,8 +334,7 @@ class SPASE(StrategyInterface):
     def get_variable_measured(self) -> Union[List[Dict], None]:
         # Mapping: schema:variable_measured = /spase:Parameters/spase:Name, Description, Units, ValidMin, ValidMax
         # Each object is:
-        #   {"@type": schema:PropertyValue, "name": Name, "description": Description, "unitText": Units,
-        #       "minValue": ValidMin, "maxValue": ValidMax}
+        #   {"@type": schema:PropertyValue, "name": Name, "description": Description, "unitText": Units}
         # Following schema:PropertyValue found at: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#variables
         variable_measured = []
         paramDesc = ""
@@ -356,18 +352,18 @@ class SPASE(StrategyInterface):
                             paramDesc, sep, after = child.text.partition("\n")
                         elif child.tag.endswith("Units"):
                             unit = child.text
-                        elif child.tag.endswith("ValidMin"):
-                            minVal = child.text
-                        elif child.tag.endswith("ValidMax"):
-                            maxVal = child.text
+                        #elif child.tag.endswith("ValidMin"):
+                            #minVal = child.text
+                        #elif child.tag.endswith("ValidMax"):
+                            #maxVal = child.text
                     except AttributeError as err:
                         continue
                 variable_measured.append({"@type": "PropertyValue", 
                                         "name": f"{paramName}",
                                         "description": f"{paramDesc}",
-                                        "unitText": f"{unit}",
-                                        "minValue": f"{minVal}",
-                                        "maxValue": f"{maxVal}"})
+                                        "unitText": f"{unit}"})
+                                        #"minValue": f"{minVal}",
+                                        #"maxValue": f"{maxVal}"})
         # preserve order of elements
         if len(variable_measured) != 0:
             variable_measured = {"@list": variable_measured}
@@ -573,19 +569,27 @@ class SPASE(StrategyInterface):
             namespaces=self.namespaces,
         )
 
+        explanation = ""
+
         if start:
             if stop:
                 if repeat_frequency:
+                    explanation = get_cadenceContext(repeat_frequency)
                     temporal_coverage = {"@type": "DateTime",
                                         "temporalCoverage": f"{start}/{stop}",
-                                        "temporal": repeat_frequency}
+                                        "temporal": {"temporal": repeat_frequency,
+                                                    "description": explanation}
+                    }
                 else:
                     temporal_coverage = f"{start}/{stop}"
             else:
                 if repeat_frequency:
+                    explanation = get_cadenceContext(repeat_frequency)
                     temporal_coverage = {"@type": "DateTime",
                                         "temporalCoverage": f"{start}/..",
-                                        "temporal": repeat_frequency}
+                                        "temporal": {"temporal": repeat_frequency,
+                                                    "description": explanation}
+                    }
                 else:
                     temporal_coverage = f"{start}/.."
         else:
@@ -1197,7 +1201,7 @@ def get_measurement_type(metadata: etree.ElementTree) -> Union[Dict, None]:
             measurementTypes.append(child.text)
     if measurementTypes:
         measurement_type = {"@type": "DefinedTerm",
-                            "keywords": str(measurementTypes).replace("[","").replace("]","")}
+                            "keywords": measurementTypes}
     return measurement_type
 
 def get_information_url(metadata: etree.ElementTree) -> Union[List[Dict], None]:
@@ -1250,7 +1254,7 @@ def get_instrument(metadata: etree.ElementTree) -> Union[Dict, None]:
         instrument = None
     else:
         instrument = {"@type": "IndividualProduct",
-                      "identifier": str(instrumentIDs).replace("]", "").replace("[","")}
+                      "identifier": instrumentIDs}
     return instrument
 
 def get_observatory(metadata: etree.ElementTree, path: str) -> Union[Dict, None]:
@@ -1262,10 +1266,7 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[Dict, None]
         subOrgStructure = []
         # follow link provided by instrument to obs page, from there grab ObservatoryID
         # then follow link provided by ObservatoryID to grab OberservatoryGroupID if there
-        if "," in instrument["identifier"]:
-            instrumentIDs = instrument["identifier"].split(", ")
-        else:
-            instrumentIDs = [instrument["identifier"]]
+        instrumentIDs = instrument["identifier"]
         for item in instrumentIDs:
             absPath, sep, after = path.partition("NASA/")
             record = absPath + item.replace("spase://","") + ".xml"
@@ -1322,6 +1323,44 @@ def get_alternate_name(metadata: etree.ElementTree) -> Union[str, None]:
                     alternate_name = child.text
     return alternate_name
 
+def get_cadenceContext(cadence:str) -> str:
+    # takes cadence/repeatFreq and returns an explanation for what it means
+    # ISO 8601 Format = PTHH:MM:SS.sss
+    # P1D, P1M, and P1Y represent time cadences of one day, one month, and one year, respectively
+    context = "This means that the time series is periodic with a "
+    start, sep, end = cadence.partition("P")
+    # cadence is in hrs, min, or sec
+    if "T" in end:
+        start, sep, time = end.partition("T")
+        if "H" in time:
+            # hrs
+            start, sep, end = time.partition("H")
+            context += start + " hour cadence"
+        elif "M" in time:
+            # min
+            start, sep, end = time.partition("M")
+            context += start + " minute cadence"
+        elif "S" in time:
+            # sec
+            start, sep, end = time.partition("S")
+            context += start + " second cadence"
+    # one of the 3 base cadences
+    else:
+        if "D" in end:
+            # days
+            start, sep, end = end.partition("D")
+            context += start + " day cadence"
+        elif "M" in end:
+            # months
+            start, sep, end = end.partition("M")
+            context += start + " month cadence"
+        elif "Y" in end:
+            # yrs
+            start, sep, end = end.partition("Y")
+            context += start + " year cadence"
+    
+    return context
+
 #TODO: add docstring
 def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sameAs", "url", "name", "description", "date_published",
                                                         "keywords", "creator", "citation", "temporal_coverage", "spatial_coverage",
@@ -1350,13 +1389,14 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
         #   And some here too: C:/Users/zboquet/NASA/DisplayData\STEREO-A\SECCHI\, C:/Users/zboquet/NASA/DisplayData\STEREO-B\SECCHI
         #                       C:/Users/zboquet/NASA/NumericalData\Cluster-Rumba\WBD\BM2
         # DD: #134 is ex w a LOT of observatory entries thanks to multiple instruments
+        # record NASA/DisplayData\OBSPM/H-ALPHA.xml has broken instrumentID link
         for r, record in enumerate(SPASE_paths):
             if record not in searched:
                 # scrape metadata for each record
                 statusMessage = f"Extracting metadata from record {r+1}"
                 statusMessage += f" of {len(SPASE_paths)}"
                 print(statusMessage)
-                #print(record)
+                print(record)
                 print()
                 testSpase = SPASE(record)
 
@@ -1542,8 +1582,9 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
 
 # test directories
 #folder = "C:/Users/zboquet/NASA/DisplayData"
+#folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-main(folder, True)
+main(folder, True, ["variable_measured"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
