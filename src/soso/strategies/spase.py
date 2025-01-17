@@ -160,7 +160,7 @@ class SPASE(StrategyInterface):
                 {
                     "@type": "schema:Place",
                     "identifier": f"http://www.spase-group.org/data/schema/"
-                                  f"{item.text.replace('.', '_').upper()}",
+                    f"{item.text.replace('.', '_').upper()}",
                     "alternateName": item.text,
                 }
             )
