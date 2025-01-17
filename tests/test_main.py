@@ -3,7 +3,6 @@
 from json import loads
 from soso.main import convert
 from soso.utilities import get_example_metadata_file_path
-import pytest
 
 
 def test_convert_returns_str(strategy_names):

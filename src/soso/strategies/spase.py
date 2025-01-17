@@ -1,11 +1,11 @@
 """The SPASE strategy module."""
 
+from typing import Union, List, Dict
 from lxml import etree
 from soso.interface import StrategyInterface
 from soso.utilities import (
     delete_null_values,
 )
-from typing import Union, List, Dict
 
 # pylint: disable=duplicate-code
 
@@ -69,7 +69,8 @@ class SPASE(StrategyInterface):
         return delete_null_values(description)
 
     def get_url(self) -> str:
-        # Mapping: schema:url = spase:ResourceHeader/spase:DOI (or https://hpde.io landing page, if no DOI)
+        # Mapping: schema:url = spase:ResourceHeader/spase:DOI (or
+        # https://hpde.io landing page, if no DOI)
         url = self.metadata.findtext(
             ".//spase:NumericalData/spase:ResourceHeader/spase:DOI",
             namespaces=self.namespaces,
@@ -148,7 +149,8 @@ class SPASE(StrategyInterface):
         # Mapping: schema:spatial_coverage = list of spase:NumericalData/spase:ObservedRegion/*
         # Each object is:
         #   {"@type": schema:Place, "@id": URI}
-        # Using URIs, as defined in: https://github.com/polyneme/topst-spase-rdf-tools/blob/main/data/spase.owl
+        # Using URIs, as defined in: https://github.com/polyneme/
+        #   topst-spase-rdf-tools/blob/main/data/spase.owl
         spatial_coverage = []
         for item in self.metadata.findall(
             ".//spase:NumericalData/spase:ObservedRegion",
@@ -157,7 +159,8 @@ class SPASE(StrategyInterface):
             spatial_coverage.append(
                 {
                     "@type": "schema:Place",
-                    "identifier": f"http://www.spase-group.org/data/schema/{item.text.replace('.', '_').upper()}",
+                    "identifier": f"http://www.spase-group.org/data/schema/"
+                    f"{item.text.replace('.', '_').upper()}",
                     "alternateName": item.text,
                 }
             )
