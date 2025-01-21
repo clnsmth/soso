@@ -211,7 +211,7 @@ class SPASE(StrategyInterface):
                         # if name has initial(s) already
                         if ("." in familyName):
                             initial, sep, familyName = familyName.partition(".")
-                            givenName = givenName[0] + ". " + initial + "."
+                            givenName = givenName[0] + "." + initial + "."
                         else:
                             givenName = givenName[0] + "."
                         # add commas to separate each name until last name in list
@@ -221,8 +221,16 @@ class SPASE(StrategyInterface):
                             author += ["& " + familyName + ", " + givenName]
                         i += 1
                     # reformat author string
-                    author = str(author).replace("[", "").replace("]","")
-                    author = author.replace("'","")
+                    # if only 2 authors, eliminate extra comma in bw them
+                    if len(authorTemp) == 2:
+                        authorStr = ""
+                        for each in author:
+                            authorStr += str(each).replace("'", "") + " "
+                        author = authorStr[:-1]
+                    # else convert the list into a string with proper format
+                    else:
+                        author = str(author).replace("[", "").replace("]","")
+                        author = author.replace("'","")
                 # if only one Contact found
                 else:
                     path, sep, authorTemp = authorStr.partition("Person/")
@@ -231,7 +239,7 @@ class SPASE(StrategyInterface):
                     # if name has initial(s) already
                     if ("." in familyName):
                         initial, sep, familyName = familyName.partition(".")
-                        givenName = givenName[0] + ". " + initial + "."
+                        givenName = givenName[0] + "." + initial + "."
                     else:
                         givenName = givenName[0] + "."
                     author = familyName + ", " + givenName
@@ -244,24 +252,35 @@ class SPASE(StrategyInterface):
                 elif "., " in authorStr:
                     authorStr = authorStr.replace(".,", "..,")
                     authorTemp = authorStr.split("., ")
+                    if ", " not in authorTemp[-1]:
+                        givenName, sep, familyName = authorTemp[-1].partition(". ")
+                        givenName = givenName.replace("and ", "") + "."
+                        authorTemp[-1] = familyName + ", " + givenName
                     if "and " in authorTemp[-1]:
                         authorTemp[-1].replace("and ", "& ")
                     else:
                         authorTemp[-1] = "& " + authorTemp[-1]
-                    author = str(authorTemp).replace("[", "").replace("]","")
-                    author = author.replace("'","")
+                    # if only 2 authors, eliminate extra comma in bw them
+                    if len(authorTemp) == 2:
+                        authorStr = ""
+                        for each in authorTemp:
+                            authorStr += str(each).replace("'", "") + " "
+                        author = authorStr[:-1]
+                    else:
+                        author = str(authorTemp).replace("[", "").replace("]","")
+                        author = author.replace("'","")
                 else:
                     familyName, sep, givenName = authorStr.partition(", ")
                     # if name has initial(s) already
                     if ("," in givenName):
                         givenName, sep, initial = givenName.partition(", ")
-                        givenName = givenName[0] + ". " + initial
+                        givenName = givenName[0] + "." + initial
                     else:
                         # handle case when name is not formatted correctly
                         if givenName == "":
                             givenName, sep, familyName = familyName.partition(". ")
                             initial, sep, familyName = familyName.partition(" ")
-                            givenName = givenName + ". " + initial[0] + "."
+                            givenName = givenName + "." + initial[0] + "."
                         else:
                             givenName = givenName[0] + "."
                     author = familyName + ", " + givenName
@@ -284,14 +303,15 @@ class SPASE(StrategyInterface):
                     #print(givenName)
                     if familyName is not None:
                         # if name has initial(s) already
-                        if ("." in familyName):
-                            initial, sep, familyName = familyName.partition(".")
-                            givenName = givenName[0] + ". " + initial + "."                    
+                        if (". " in familyName):
+                            initial, sep, familyName = familyName.partition(". ")
+                            givenName = givenName[0] + "." + initial + "."                    
                         elif ("," in givenName):
                             givenName, sep, initial = givenName.partition(", ")
-                            givenName = givenName[0] + ". " + initial
+                            givenName = givenName[0] + "." + initial
                         else:
                             givenName = givenName[0] + "."
+                            familyName = familyName.strip()
                         if authorTemp.index(each) == (len(authorTemp)-1):
                             familyName = "& " + familyName
                         else:
@@ -391,11 +411,6 @@ class SPASE(StrategyInterface):
             distribution.append({"@type": "DataDownload",
                                 "contentUrl": f"{k}",
                                 "encodingFormat": f"{v[0]}"})
-        for k, v in potentialActions.items():
-            encoder = v[0]
-            distribution.append({"@type": "DataDownload",
-                                "contentUrl": f"{k}",
-                                "encodingFormat": f"{encoder}"})
         # preserve order of elements
         if len(distribution) != 0:
             distribution = {"@list": distribution}
@@ -666,14 +681,18 @@ class SPASE(StrategyInterface):
                     # if first name doesnt have a period, check if it is an initial
                     if (not person.endswith(".")):
                         # if first name is an initial w/o a period, add one
-                        grp = re.search(r'[\w]{1}\.$', person)
-                        if grp is None:
+                        grp = re.search(r'[\.\s]{1}[\w]{1}$', person)
+                        if grp is not None:
                             person += "."
                     # remove 'and' from name
                     if "and " in person:
                         person = person.replace("and ", "")
                     if authorRole == ["Author"]:
-                        familyName, sep, givenName = person.partition(", ")
+                        if ", " in person:
+                            familyName, sep, givenName = person.partition(", ")
+                        else:
+                            givenName, sep, familyName = person.partition(". ")
+                            givenName += "."
                         creator.append({"@type": "Role", 
                                         "roleName": f"{authorRole[0]}",
                                         "creator": {"@type": "Person",
@@ -1390,7 +1409,8 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
         #                       C:/Users/zboquet/NASA/NumericalData\Cluster-Rumba\WBD\BM2
         # DD: #134 is ex w a LOT of observatory entries thanks to multiple instruments
         # record NASA/DisplayData\OBSPM/H-ALPHA.xml has broken instrumentID link
-        for r, record in enumerate(SPASE_paths):
+        # record NASA/DisplayData/UCLA/Global-MHD-code/mS1-Vx/PT10S.xml has extra spacing in PubInfo/Authors
+        for r, record in enumerate(SPASE_paths[23:24]):
             if record not in searched:
                 # scrape metadata for each record
                 statusMessage = f"Extracting metadata from record {r+1}"
@@ -1582,9 +1602,9 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
 
 # test directories
 #folder = "C:/Users/zboquet/NASA/DisplayData"
-#folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
-folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-main(folder, True, ["variable_measured"])
+folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
+#folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
+main(folder, True, ["citation", "creator"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
