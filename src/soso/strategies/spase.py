@@ -213,6 +213,7 @@ class SPASE(StrategyInterface):
                         if ("." in familyName):
                             initial, sep, familyName = familyName.partition(".")
                             givenName = givenName[0] + "." + initial + "."
+                            givenName = givenName[0] + "." + initial + "."
                         else:
                             givenName = givenName[0] + "."
                         # add commas to separate each name until last name in list
@@ -232,6 +233,16 @@ class SPASE(StrategyInterface):
                     else:
                         author = str(author).replace("[", "").replace("]","")
                         author = author.replace("'","")
+                    # if only 2 authors, eliminate extra comma in bw them
+                    if len(authorTemp) == 2:
+                        authorStr = ""
+                        for each in author:
+                            authorStr += str(each).replace("'", "") + " "
+                        author = authorStr[:-1]
+                    # else convert the list into a string with proper format
+                    else:
+                        author = str(author).replace("[", "").replace("]","")
+                        author = author.replace("'","")
                 # if only one Contact found
                 else:
                     path, sep, authorTemp = authorStr.partition("Person/")
@@ -240,6 +251,7 @@ class SPASE(StrategyInterface):
                     # if name has initial(s) already
                     if ("." in familyName):
                         initial, sep, familyName = familyName.partition(".")
+                        givenName = givenName[0] + "." + initial + "."
                         givenName = givenName[0] + "." + initial + "."
                     else:
                         givenName = givenName[0] + "."
@@ -257,10 +269,23 @@ class SPASE(StrategyInterface):
                         givenName, sep, familyName = authorTemp[-1].partition(". ")
                         givenName = givenName.replace("and ", "") + "."
                         authorTemp[-1] = familyName + ", " + givenName
+                    if ", " not in authorTemp[-1]:
+                        givenName, sep, familyName = authorTemp[-1].partition(". ")
+                        givenName = givenName.replace("and ", "") + "."
+                        authorTemp[-1] = familyName + ", " + givenName
                     if "and " in authorTemp[-1]:
                         authorTemp[-1].replace("and ", "& ")
                     else:
                         authorTemp[-1] = "& " + authorTemp[-1]
+                    # if only 2 authors, eliminate extra comma in bw them
+                    if len(authorTemp) == 2:
+                        authorStr = ""
+                        for each in authorTemp:
+                            authorStr += str(each).replace("'", "") + " "
+                        author = authorStr[:-1]
+                    else:
+                        author = str(authorTemp).replace("[", "").replace("]","")
+                        author = author.replace("'","")
                     # if only 2 authors, eliminate extra comma in bw them
                     if len(authorTemp) == 2:
                         authorStr = ""
@@ -276,11 +301,13 @@ class SPASE(StrategyInterface):
                     if ("," in givenName):
                         givenName, sep, initial = givenName.partition(", ")
                         givenName = givenName[0] + "." + initial
+                        givenName = givenName[0] + "." + initial
                     else:
                         # handle case when name is not formatted correctly
                         if givenName == "":
                             givenName, sep, familyName = familyName.partition(". ")
                             initial, sep, familyName = familyName.partition(" ")
+                            givenName = givenName + "." + initial[0] + "."
                             givenName = givenName + "." + initial[0] + "."
                         else:
                             givenName = givenName[0] + "."
@@ -307,11 +334,16 @@ class SPASE(StrategyInterface):
                         if (". " in familyName):
                             initial, sep, familyName = familyName.partition(". ")
                             givenName = givenName[0] + "." + initial + "."                    
+                        if (". " in familyName):
+                            initial, sep, familyName = familyName.partition(". ")
+                            givenName = givenName[0] + "." + initial + "."                    
                         elif ("," in givenName):
                             givenName, sep, initial = givenName.partition(", ")
                             givenName = givenName[0] + "." + initial
+                            givenName = givenName[0] + "." + initial
                         else:
                             givenName = givenName[0] + "."
+                            familyName = familyName.strip()
                             familyName = familyName.strip()
                         if authorTemp.index(each) == (len(authorTemp)-1):
                             familyName = "& " + familyName
@@ -684,11 +716,18 @@ class SPASE(StrategyInterface):
                         # if first name is an initial w/o a period, add one
                         grp = re.search(r'[\.\s]{1}[\w]{1}$', person)
                         if grp is not None:
+                        grp = re.search(r'[\.\s]{1}[\w]{1}$', person)
+                        if grp is not None:
                             person += "."
                     # remove 'and' from name
                     if "and " in person:
                         person = person.replace("and ", "")
                     if authorRole == ["Author"]:
+                        if ", " in person:
+                            familyName, sep, givenName = person.partition(", ")
+                        else:
+                            givenName, sep, familyName = person.partition(". ")
+                            givenName += "."
                         if ", " in person:
                             familyName, sep, givenName = person.partition(", ")
                         else:
