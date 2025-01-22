@@ -58,7 +58,8 @@ class SPASE(StrategyInterface):
         self.root = self.metadata.getroot()
         # find element in tree to iterate over
         for elt in self.root.iter(tag=etree.Element):
-            if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+            if (elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData")
+                or elt.tag.endswith("Observatory") or elt.tag.endswith("Instrument")):
                 self.desiredRoot = elt
         # if want to see entire xml file as a string
         #print(etree.tostring(self.desiredRoot, pretty_print = True).decode(), end=' ')
@@ -211,7 +212,7 @@ class SPASE(StrategyInterface):
                         # if name has initial(s) already
                         if ("." in familyName):
                             initial, sep, familyName = familyName.partition(".")
-                            givenName = givenName[0] + ". " + initial + "."
+                            givenName = givenName[0] + "." + initial + "."
                         else:
                             givenName = givenName[0] + "."
                         # add commas to separate each name until last name in list
@@ -221,8 +222,16 @@ class SPASE(StrategyInterface):
                             author += ["& " + familyName + ", " + givenName]
                         i += 1
                     # reformat author string
-                    author = str(author).replace("[", "").replace("]","")
-                    author = author.replace("'","")
+                    # if only 2 authors, eliminate extra comma in bw them
+                    if len(authorTemp) == 2:
+                        authorStr = ""
+                        for each in author:
+                            authorStr += str(each).replace("'", "") + " "
+                        author = authorStr[:-1]
+                    # else convert the list into a string with proper format
+                    else:
+                        author = str(author).replace("[", "").replace("]","")
+                        author = author.replace("'","")
                 # if only one Contact found
                 else:
                     path, sep, authorTemp = authorStr.partition("Person/")
@@ -231,7 +240,7 @@ class SPASE(StrategyInterface):
                     # if name has initial(s) already
                     if ("." in familyName):
                         initial, sep, familyName = familyName.partition(".")
-                        givenName = givenName[0] + ". " + initial + "."
+                        givenName = givenName[0] + "." + initial + "."
                     else:
                         givenName = givenName[0] + "."
                     author = familyName + ", " + givenName
@@ -244,24 +253,35 @@ class SPASE(StrategyInterface):
                 elif "., " in authorStr:
                     authorStr = authorStr.replace(".,", "..,")
                     authorTemp = authorStr.split("., ")
+                    if ", " not in authorTemp[-1]:
+                        givenName, sep, familyName = authorTemp[-1].partition(". ")
+                        givenName = givenName.replace("and ", "") + "."
+                        authorTemp[-1] = familyName + ", " + givenName
                     if "and " in authorTemp[-1]:
                         authorTemp[-1].replace("and ", "& ")
                     else:
                         authorTemp[-1] = "& " + authorTemp[-1]
-                    author = str(authorTemp).replace("[", "").replace("]","")
-                    author = author.replace("'","")
+                    # if only 2 authors, eliminate extra comma in bw them
+                    if len(authorTemp) == 2:
+                        authorStr = ""
+                        for each in authorTemp:
+                            authorStr += str(each).replace("'", "") + " "
+                        author = authorStr[:-1]
+                    else:
+                        author = str(authorTemp).replace("[", "").replace("]","")
+                        author = author.replace("'","")
                 else:
                     familyName, sep, givenName = authorStr.partition(", ")
                     # if name has initial(s) already
                     if ("," in givenName):
                         givenName, sep, initial = givenName.partition(", ")
-                        givenName = givenName[0] + ". " + initial
+                        givenName = givenName[0] + "." + initial
                     else:
                         # handle case when name is not formatted correctly
                         if givenName == "":
                             givenName, sep, familyName = familyName.partition(". ")
                             initial, sep, familyName = familyName.partition(" ")
-                            givenName = givenName + ". " + initial[0] + "."
+                            givenName = givenName + "." + initial[0] + "."
                         else:
                             givenName = givenName[0] + "."
                     author = familyName + ", " + givenName
@@ -284,14 +304,15 @@ class SPASE(StrategyInterface):
                     #print(givenName)
                     if familyName is not None:
                         # if name has initial(s) already
-                        if ("." in familyName):
-                            initial, sep, familyName = familyName.partition(".")
-                            givenName = givenName[0] + ". " + initial + "."                    
+                        if (". " in familyName):
+                            initial, sep, familyName = familyName.partition(". ")
+                            givenName = givenName[0] + "." + initial + "."                    
                         elif ("," in givenName):
                             givenName, sep, initial = givenName.partition(", ")
-                            givenName = givenName[0] + ". " + initial
+                            givenName = givenName[0] + "." + initial
                         else:
                             givenName = givenName[0] + "."
+                            familyName = familyName.strip()
                         if authorTemp.index(each) == (len(authorTemp)-1):
                             familyName = "& " + familyName
                         else:
@@ -391,11 +412,6 @@ class SPASE(StrategyInterface):
             distribution.append({"@type": "DataDownload",
                                 "contentUrl": f"{k}",
                                 "encodingFormat": f"{v[0]}"})
-        for k, v in potentialActions.items():
-            encoder = v[0]
-            distribution.append({"@type": "DataDownload",
-                                "contentUrl": f"{k}",
-                                "encodingFormat": f"{encoder}"})
         # preserve order of elements
         if len(distribution) != 0:
             distribution = {"@list": distribution}
@@ -666,14 +682,18 @@ class SPASE(StrategyInterface):
                     # if first name doesnt have a period, check if it is an initial
                     if (not person.endswith(".")):
                         # if first name is an initial w/o a period, add one
-                        grp = re.search(r'[\w]{1}\.$', person)
-                        if grp is None:
+                        grp = re.search(r'[\.\s]{1}[\w]{1}$', person)
+                        if grp is not None:
                             person += "."
                     # remove 'and' from name
                     if "and " in person:
                         person = person.replace("and ", "")
                     if authorRole == ["Author"]:
-                        familyName, sep, givenName = person.partition(", ")
+                        if ", " in person:
+                            familyName, sep, givenName = person.partition(", ")
+                        else:
+                            givenName, sep, familyName = person.partition(". ")
+                            givenName += "."
                         creator.append({"@type": "Role", 
                                         "roleName": f"{authorRole[0]}",
                                         "creator": {"@type": "Person",
@@ -945,8 +965,8 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
     priority = False
     root = metadata.getroot()
     for elt in root.iter(tag=etree.Element):
-            if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
-                desiredRoot = elt
+        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+            desiredRoot = elt
 
     # iterate thru to find ResourceHeader
     for child in desiredRoot.iter(tag=etree.Element):
@@ -1112,8 +1132,8 @@ def get_dates(metadata: etree.ElementTree) -> tuple:
     """
     root = metadata.getroot()
     for elt in root.iter(tag=etree.Element):
-            if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
-                desiredRoot = elt
+        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+            desiredRoot = elt
     RevisionHistory = []
 
     for child in desiredRoot.iter(tag=etree.Element):
@@ -1210,7 +1230,8 @@ def get_information_url(metadata: etree.ElementTree) -> Union[List[Dict], None]:
     name = ""
     description = ""
     for elt in root.iter(tag=etree.Element):
-        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+        if (elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData")
+            or elt.tag.endswith("Observatory") or elt.tag.endswith("Instrument")):
             desiredRoot = elt
     for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("ResourceHeader"):
@@ -1241,32 +1262,53 @@ def get_information_url(metadata: etree.ElementTree) -> Union[List[Dict], None]:
         information_url = None
     return information_url
 
-def get_instrument(metadata: etree.ElementTree) -> Union[Dict, None]:
+def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], None]:
     root = metadata.getroot()
-    instrumentIDs = []
+    instrument = []
+    instrumentIDs = {}
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desiredRoot = elt
     for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("InstrumentID"):
-            instrumentIDs.append(child.text)
-    if instrumentIDs == []:
+            instrumentIDs[child.text] = {}
+    if instrumentIDs == {}:
         instrument = None
     else:
-        instrument = {"@type": "IndividualProduct",
-                      "identifier": instrumentIDs}
+        # follow link provided by instrumentID to instrument page
+        # from there grab name and infoURLs
+        for item in instrumentIDs:
+            instrumentIDs[item]["name"] = ""
+            instrumentIDs[item]["URL"] = []
+            absPath, sep, after = path.partition("NASA/")
+            record = absPath + item.replace("spase://","") + ".xml"
+            record = record.replace("'","")
+            if os.path.isfile(record):
+                testSpase = SPASE(record)
+                root = testSpase.metadata.getroot()
+                instrumentIDs[item]["name"] = testSpase.get_name()
+                allURL_Info = get_information_url(testSpase.metadata)
+                for each in allURL_Info:
+                    instrumentIDs[item]["URL"].append(each["url"])
+        for k in instrumentIDs.keys():
+            instrument.append({"@type": "IndividualProduct",
+                                "identifier": k,
+                                "name": instrumentIDs[k]["name"],
+                                "url": instrumentIDs[k]["URL"]})
     return instrument
 
-def get_observatory(metadata: etree.ElementTree, path: str) -> Union[Dict, None]:
-    instrument = get_instrument(metadata)
+def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict], None]:
+    instrument = get_instrument(metadata, path)
     if instrument is not None:
+        observatory = []
         observatoryGroupID = ""
         observatoryID = ""
-        resourceID = ""
-        subOrgStructure = []
-        # follow link provided by instrument to obs page, from there grab ObservatoryID
-        # then follow link provided by ObservatoryID to grab OberservatoryGroupID if there
-        instrumentIDs = instrument["identifier"]
+        instrumentIDs = []
+        # follow link provided by instrument to instrument page, from there grab ObservatoryID
+        # then follow link provided by ObservatoryID to grab name, infoURL, and ObservatoryGrpID
+        # finally, follow that link to grab name and infoURL from there
+        for each in instrument:
+            instrumentIDs.append(each["identifier"])
         for item in instrumentIDs:
             absPath, sep, after = path.partition("NASA/")
             record = absPath + item.replace("spase://","") + ".xml"
@@ -1280,30 +1322,43 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[Dict, None]
                 for child in desiredRoot.iter(tag=etree.Element):
                     if child.tag.endswith("ObservatoryID"):
                         observatoryID = child.text
-                    elif child.tag.endswith("ResourceID"):
-                        resourceID = child.text
-                subOrgStructure.append({"@type": "Organization",
-                                        "@id": resourceID,
-                                        "name": observatoryID})
-                # TODO: redo with observatoryID as record to get observatoryGroupID
-                record = "C:/Users/zboquet/" + observatoryID.replace("spase://","") + ".xml"
+                # use observatoryID as record to get observatoryGroupID and other info              
+                record = absPath + observatoryID.replace("spase://","") + ".xml"
+                record = record.replace("'","")                
                 if os.path.isfile(record):
+                    url = []
                     testSpase = SPASE(record)
                     root = testSpase.metadata.getroot()
-                    observatoryGroupID = ""
                     for elt in root.iter(tag=etree.Element):
                         if elt.tag.endswith("Observatory"):
                             desiredRoot = elt
                     for child in desiredRoot.iter(tag=etree.Element):
                         if child.tag.endswith("ObservatoryGroupID"):
                             observatoryGroupID = child.text
-                if observatoryGroupID:
-                    observatory = {"@type": "ResearchProject",
-                                    "subOrganization": {"@list": subOrgStructure},
-                                    "parentOrganization": observatoryGroupID}
-                else:
-                    observatory = {"@type": "ResearchProject",
-                                    "subOrganization": {"@list": subOrgStructure}}
+                    name = testSpase.get_name()
+                    infoURL = get_information_url(testSpase.metadata)
+                    for each in infoURL:
+                        url.append(each["url"])
+                    # if there is a groupID, use that link to provide info on it as well
+                    if observatoryGroupID:
+                        record = absPath + observatoryGroupID.replace("spase://","") + ".xml"
+                        record = record.replace("'","")                
+                        if os.path.isfile(record):
+                            groupURL = []
+                            testSpase = SPASE(record)
+                            groupName = testSpase.get_name()
+                            groupInfoURL = get_information_url(testSpase.metadata)
+                            for each in groupInfoURL:
+                                groupURL.append(each["url"])
+                    # TODO: add filtering to only add unique entries of obsID and obsGrpID
+                            observatory.append({"@type": "ResearchProject",
+                                                "@id": observatoryGroupID,
+                                                "name": groupName,
+                                                "url": groupURL})
+                    observatory.append({"@type": "ResearchProject",
+                                        "@id": observatoryID,
+                                        "name": name,
+                                        "url": url})
     else:
         observatory = None
     return observatory
@@ -1390,6 +1445,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
         #                       C:/Users/zboquet/NASA/NumericalData\Cluster-Rumba\WBD\BM2
         # DD: #134 is ex w a LOT of observatory entries thanks to multiple instruments
         # record NASA/DisplayData\OBSPM/H-ALPHA.xml has broken instrumentID link
+        # record NASA/DisplayData/UCLA/Global-MHD-code/mS1-Vx/PT10S.xml has extra spacing in PubInfo/Authors
         for r, record in enumerate(SPASE_paths):
             if record not in searched:
                 # scrape metadata for each record
@@ -1424,7 +1480,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 was_derived_from = testSpase.get_was_derived_from()
                 is_based_on = testSpase.get_is_based_on()
                 measurement_type = get_measurement_type(testSpase.metadata)
-                instrument = get_instrument(testSpase.metadata)
+                instrument = get_instrument(testSpase.metadata, record)
                 observatory = get_observatory(testSpase.metadata, record)
                 alternate_name = get_alternate_name(testSpase.metadata)
                 inLanguage = "en"
@@ -1584,7 +1640,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
 #folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-main(folder, True, ["variable_measured"])
+main(folder, True, ["identifier", "instrument", "observatory"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
