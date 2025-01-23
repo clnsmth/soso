@@ -364,7 +364,8 @@ class SPASE(StrategyInterface):
             RepoID = get_repoID(self.metadata)
             (before, sep, pub) = RepoID.partition("Repository/")
         if pubDate == "":
-            pubDate, trigger, date_created = self.get_date_modified()
+            #pubDate, trigger, date_created = self.get_date_modified()
+            pubDate = self.get_date_modified()
             pubDate = pubDate[:4]
         DOI = self.get_url()
         information_url = get_information_url(self.metadata)
@@ -547,25 +548,25 @@ class SPASE(StrategyInterface):
     def get_date_modified(self) -> Union[str, None]:
         # Mapping: schema:dateModified = spase:ResourceHeader/spase:ReleaseDate
         # Using schema:DateTime as defined in: https://schema.org/DateTime
-        trigger = False
+        #trigger = False
         release, revisions = get_dates(self.metadata)
         date_modified = str(release).replace(" ", "T")
-        date_created = date_modified
+        #date_created = date_modified
         # confirm that ReleaseDate is the latest date in the record
-        if revisions != []:
+        #if revisions != []:
             #print("RevisionHistory found!")
             # find latest date in revision history
-            date_created = str(revisions[0])
-            if len(revisions) > 1:
-                for i in range(1, len(revisions)):
-                    if (revisions[i] > revisions[i-1]):
-                        date_created = str(revisions[i])
+            #date_created = str(revisions[0])
+            #if len(revisions) > 1:
+                #for i in range(1, len(revisions)):
+                    #if (revisions[i] > revisions[i-1]):
+                        #date_created = str(revisions[i])
             #print(date_created)
             #print(date_modified)
-            if datetime.strptime(date_created, "%Y-%m-%d %H:%M:%S") != release:
+            #if datetime.strptime(date_created, "%Y-%m-%d %H:%M:%S") != release:
                 #raise ValueError("ReleaseDate is not the latest date in the record!")
-                trigger = True
-        return delete_null_values(date_modified), trigger, date_created
+                #trigger = True
+        return delete_null_values(date_modified)
 
     def get_date_published(self) -> Union[str, None]:
         # Mapping: schema:datePublished = spase:ResourceHeader/spase:PublicationInfo/spase:PublicationDate
@@ -714,8 +715,6 @@ class SPASE(StrategyInterface):
                     # if first name doesnt have a period, check if it is an initial
                     if (not person.endswith(".")):
                         # if first name is an initial w/o a period, add one
-                        grp = re.search(r'[\.\s]{1}[\w]{1}$', person)
-                        if grp is not None:
                         grp = re.search(r'[\.\s]{1}[\w]{1}$', person)
                         if grp is not None:
                             person += "."
@@ -982,14 +981,17 @@ def get_schema_version(metadata: etree.ElementTree) -> str:
 def get_authors(metadata: etree.ElementTree) -> tuple:
     """
     Takes an XML tree and scrapes the desired authors (with their roles), publication date,
-        publisher, and publication title. It then returns these items, with the author and
-        author roles as lists and the rest as strings.
+        publisher, contributors, and publication title. Also scraped are the names and roles of
+        the backups, which are any Contacts found that are not considered authors. It then returns 
+        these items, with the author, author roles, and contributors as lists and the rest as strings,
+        except for the backups which is a dictionary.
 
     :param metadata:    The SPASE metadata object as an XML tree.
     :type entry: etree.ElementTree object
     :returns: The highest priority authors found within the SPASE record as a list
                 as well as a list of their roles, the publication date, publisher,
-                and the title of the publication.
+                contributors, and the title of the publication. It also returns any contacts found,
+                along with their role(s), that were not considered for the author role.
     :rtype: tuple
     """
     # local vars needed
@@ -1100,7 +1102,9 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
     
     :returns: The AccessURLs found in the SPASE record, separated into two dictionaries,
                 dataDownloads and potentialActions, depending on if they have a product key
-                associated with them or not.
+                associated with them or not. These dictionaries are setup to have the keys as
+                the url and the values to be a list containing their data format(s)
+                (and product key if applicable).
     """
     # needed local vars
     dataDownloads = {}
@@ -1174,6 +1178,7 @@ def get_dates(metadata: etree.ElementTree) -> tuple:
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desiredRoot = elt
     RevisionHistory = []
+    ReleaseDate = ""
 
     for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("ResourceHeader"):
@@ -1209,10 +1214,14 @@ def get_dates(metadata: etree.ElementTree) -> tuple:
                     continue
     return ReleaseDate, RevisionHistory
 
-# TODO: add docstrings for helper methods below this comment
 def get_repoID(metadata: etree.ElementTree) -> str:
+    """
+    :param metadata:    The SPASE metadata object as an XML tree.
+
+    :returns:   The RepositoryID found in the last AccessInformation section
+    """
     root = metadata.getroot()
-    repoID = ""
+    repoID = None
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desiredRoot = elt
@@ -1226,6 +1235,15 @@ def get_repoID(metadata: etree.ElementTree) -> str:
     return repoID
 
 def contributorFormat(roleName:str, name:str, givenName:str, familyName:str) -> Dict:
+    """
+    :param roleName:    The value found in the Role field associated with this Contact
+    :param name:    The full name of the Contact, as formatted in the SPASE record
+    :param givenName:    The first name/initial and middle name/initial of the Contact
+    :param familyName:    The last name of the Contact
+
+    :returns:   The entry in the correct format to append to the contributor dictionary
+    """
+    
     contact = {"@type": "Role", 
                 "roleName": f"{roleName}",
                 "contributor": {"@type": "Person",
@@ -1236,19 +1254,33 @@ def contributorFormat(roleName:str, name:str, givenName:str, familyName:str) -> 
     return contact
 
 def nameSplitter(person:str) -> tuple:
-    path, sep, nameStr = person.partition("Person/")
-    # get rid of extra quotations
-    nameStr = nameStr.replace("'","")
-    givenName, sep, familyName = nameStr.partition(".")
-    # if name has initial(s)
-    if ("." in familyName):
-        initial, sep, familyName = familyName.partition(".")
-        givenName = givenName + ' ' + initial + '.'
-    nameStr = givenName + " " + familyName
-    nameStr = nameStr.replace("\"", "")
+    """
+    :param person:    The string found in the Contacts field as is formatted in the SPASE record.
+
+    :returns:   The string containing only the full name of the Contact, the string containing the first name/initial of the Contact,
+                and the string containing the last name of the Contact
+    """
+    if person:
+        path, sep, nameStr = person.partition("Person/")
+        # get rid of extra quotations
+        nameStr = nameStr.replace("'","")
+        givenName, sep, familyName = nameStr.partition(".")
+        # if name has initial(s)
+        if ("." in familyName):
+            initial, sep, familyName = familyName.partition(".")
+            givenName = givenName + ' ' + initial + '.'
+        nameStr = givenName + " " + familyName
+        nameStr = nameStr.replace("\"", "")
+    else:
+        raise ValueError("This function only takes a nonempty string as an argument. Try again.")
     return nameStr, givenName, familyName
 
 def get_measurement_type(metadata: etree.ElementTree) -> Union[Dict, None]:
+    """
+    :param metadata:    The SPASE metadata object as an XML tree.
+
+    :returns:   The values found in the MeasurementType field(s) formatted as a dictionary
+    """
     root = metadata.getroot()
     measurement_type = None
     measurementTypes = []
@@ -1264,6 +1296,12 @@ def get_measurement_type(metadata: etree.ElementTree) -> Union[Dict, None]:
     return measurement_type
 
 def get_information_url(metadata: etree.ElementTree) -> Union[List[Dict], None]:
+    """
+    :param metadata:    The SPASE metadata object as an XML tree.
+
+    :returns:   The name, description, and url(s) for all InformationURL sections found in the ResourceHeader,
+                formatted as a list of dictionaries.
+    """
     root = metadata.getroot()
     information_url = []
     name = ""
@@ -1277,31 +1315,41 @@ def get_information_url(metadata: etree.ElementTree) -> Union[List[Dict], None]:
             targetChild = child
             # iterate thru children to locate AccessURL and Format
             for child in targetChild:
-                if child.tag.endswith("InformationURL"):
-                    targetChild = child
-                    # iterate thru children to locate URL
-                    for child in targetChild:
-                        if child.tag.endswith("Name"):
-                            name = child.text
-                        elif child.tag.endswith("URL"):
-                            url = child.text
-                        elif child.tag.endswith("Description"):
-                            description = child.text
-                    if name:
-                        if description:
-                            information_url.append({"name": name,
-                                                    "url": url,
-                                                    "description": description})
+                try:
+                    if child.tag.endswith("InformationURL"):
+                        targetChild = child
+                        # iterate thru children to locate URL
+                        for child in targetChild:
+                            if child.tag.endswith("Name"):
+                                name = child.text
+                            elif child.tag.endswith("URL"):
+                                url = child.text
+                            elif child.tag.endswith("Description"):
+                                description = child.text
+                        if name:
+                            if description:
+                                information_url.append({"name": name,
+                                                        "url": url,
+                                                        "description": description})
+                            else:
+                                information_url.append({"name": name,
+                                                        "url": url})
                         else:
-                            information_url.append({"name": name,
-                                                    "url": url})
-                    else:
-                        information_url.append({"url": url})
+                            information_url.append({"url": url})
+                except AttributeError:
+                    continue
     if information_url == []:
         information_url = None
     return information_url
 
 def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], None]:
+    """
+    :param metadata:    The SPASE metadata object as an XML tree.
+    :param path:    The absolute file path of the XML file the user wishes to pull info from.
+
+    :returns:   The name, url(s), and ResourceID for each instrument found in the InstrumentID section,
+                formatted as a list of dictionaries.
+    """
     root = metadata.getroot()
     instrument = []
     instrumentIDs = {}
@@ -1327,16 +1375,29 @@ def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], 
                 root = testSpase.metadata.getroot()
                 instrumentIDs[item]["name"] = testSpase.get_name()
                 allURL_Info = get_information_url(testSpase.metadata)
-                for each in allURL_Info:
-                    instrumentIDs[item]["URL"].append(each["url"])
+                if allURL_Info:
+                    for each in allURL_Info:
+                        instrumentIDs[item]["URL"].append(each["url"])
         for k in instrumentIDs.keys():
-            instrument.append({"@type": "IndividualProduct",
+            if instrumentIDs[k]["URL"]:
+                instrument.append({"@type": "IndividualProduct",
+                                    "identifier": k,
+                                    "name": instrumentIDs[k]["name"],
+                                    "url": instrumentIDs[k]["URL"]})
+            else:
+                instrument.append({"@type": "IndividualProduct",
                                 "identifier": k,
-                                "name": instrumentIDs[k]["name"],
-                                "url": instrumentIDs[k]["URL"]})
+                                "name": instrumentIDs[k]["name"]})
     return instrument
 
 def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict], None]:
+    """
+    :param metadata:    The SPASE metadata object as an XML tree.
+    :param path:    The absolute file path of the XML file the user wishes to pull info from.
+
+    :returns:   The name, url(s), and ResourceID for each observatory related to this dataset,
+                formatted as a list of dictionaries.
+    """
     instrument = get_instrument(metadata, path)
     if instrument is not None:
         observatory = []
@@ -1376,8 +1437,9 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                             observatoryGroupID = child.text
                     name = testSpase.get_name()
                     infoURL = get_information_url(testSpase.metadata)
-                    for each in infoURL:
-                        url.append(each["url"])
+                    if infoURL:
+                        for each in infoURL:
+                            url.append(each["url"])
                     # if there is a groupID, use that link to provide info on it as well
                     if observatoryGroupID:
                         record = absPath + observatoryGroupID.replace("spase://","") + ".xml"
@@ -1387,22 +1449,37 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                             testSpase = SPASE(record)
                             groupName = testSpase.get_name()
                             groupInfoURL = get_information_url(testSpase.metadata)
-                            for each in groupInfoURL:
-                                groupURL.append(each["url"])
+                            if groupInfoURL:
+                                for each in groupInfoURL:
+                                    groupURL.append(each["url"])
                     # TODO: add filtering to only add unique entries of obsID and obsGrpID
-                            observatory.append({"@type": "ResearchProject",
-                                                "@id": observatoryGroupID,
-                                                "name": groupName,
-                                                "url": groupURL})
-                    observatory.append({"@type": "ResearchProject",
+                                observatory.append({"@type": "ResearchProject",
+                                                    "@id": observatoryGroupID,
+                                                    "name": groupName,
+                                                    "url": groupURL})
+                            else:
+                                observatory.append({"@type": "ResearchProject",
+                                                    "@id": observatoryGroupID,
+                                                    "name": groupName})
+                    if url:
+                        observatory.append({"@type": "ResearchProject",
+                                            "@id": observatoryID,
+                                            "name": name,
+                                            "url": url})
+                    else:
+                        observatory.append({"@type": "ResearchProject",
                                         "@id": observatoryID,
-                                        "name": name,
-                                        "url": url})
+                                        "name": name})
     else:
         observatory = None
     return observatory
 
 def get_alternate_name(metadata: etree.ElementTree) -> Union[str, None]:
+    """
+    :param metadata:    The SPASE metadata object as an XML tree.
+
+    :returns:   The alternate name of the dataset as a string.
+    """
     root = metadata.getroot()
     alternate_name = None
     for elt in root.iter(tag=etree.Element):
@@ -1418,6 +1495,11 @@ def get_alternate_name(metadata: etree.ElementTree) -> Union[str, None]:
     return alternate_name
 
 def get_cadenceContext(cadence:str) -> str:
+    """
+    :param cadence:    The value found in the Cadence field of the TemporalDescription section
+
+    :returns:   A string description of what this value represents/means.
+    """
     # takes cadence/repeatFreq and returns an explanation for what it means
     # ISO 8601 Format = PTHH:MM:SS.sss
     # P1D, P1M, and P1Y represent time cadences of one day, one month, and one year, respectively
@@ -1452,7 +1534,8 @@ def get_cadenceContext(cadence:str) -> str:
             # yrs
             start, sep, end = end.partition("Y")
             context += start + " year cadence"
-    
+    if context == "This means that the time series is periodic with a ":
+        context = None
     return context
 
 #TODO: add docstring
@@ -1485,7 +1568,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
         # DD: #134 is ex w a LOT of observatory entries thanks to multiple instruments
         # record NASA/DisplayData\OBSPM/H-ALPHA.xml has broken instrumentID link
         # record NASA/DisplayData/UCLA/Global-MHD-code/mS1-Vx/PT10S.xml has extra spacing in PubInfo/Authors
-        for r, record in enumerate(SPASE_paths):
+        for r, record in enumerate(SPASE_paths[:200]):
             if record not in searched:
                 # scrape metadata for each record
                 statusMessage = f"Extracting metadata from record {r+1}"
@@ -1513,7 +1596,8 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 potential_action = testSpase.get_potential_action()
                 funding = testSpase.get_funding()
                 date_created = testSpase.get_date_created()
-                date_modified, trigger, mostRecentDate = testSpase.get_date_modified()
+                #date_modified, trigger, mostRecentDate = testSpase.get_date_modified()
+                date_modified = testSpase.get_date_modified()
                 date_published = testSpase.get_date_published()
                 was_revision_of = testSpase.get_was_revision_of()
                 was_derived_from = testSpase.get_was_derived_from()
@@ -1566,11 +1650,11 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                             else:
                                 print("No creation date was found.")
                         elif property == "date_modified":
-                            if trigger:
-                                print("This record has incorrect dates.")
-                            else:
-                                print(" date_modified:", end=" ")
-                                print(json.dumps(date_modified, indent=4))
+                            #if trigger:
+                                #print("This record has incorrect dates.")
+                            #else:
+                            print(" date_modified:", end=" ")
+                            print(json.dumps(date_modified, indent=4))
                                 #print("")
                         elif property == "date_published":
                             if date_published is not None:
@@ -1619,6 +1703,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                                 print("No funding info was found.")
                         elif property == "was_revision_of":
                             if was_revision_of is not None:
+                                print("Yay")
                                 print(" prov:was_revision_of:", end=" ")
                                 print(json.dumps(was_revision_of, indent=4))
                             else:
@@ -1679,7 +1764,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
 #folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-main(folder, True, ["identifier", "instrument", "observatory"])
+main(folder, False, ["identifier"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"

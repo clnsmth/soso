@@ -29,6 +29,11 @@
             <PublicationDate>2022-01-01T00:00:00</PublicationDate>
             <PublishedBy>NASA Space Physics Data Facility</PublishedBy>
          </PublicationInfo>
+         <Funding>
+         <Agency>National Aeronautics and Space Administration; Dr. Richard Eastes</Agency>
+         <Project>Explorer Program</Project>
+         <AwardNumber>NNG19PQ28C</AwardNumber>
+         </Funding>
          <Contact>
             <PersonID>spase://SMWG/Person/Stephen.A.Fuselier</PersonID>
             <Role>InstrumentLead</Role>
@@ -70,6 +75,26 @@
             <URL>https://lasp.colorado.edu/mms/sdc/public/datasets/hpca/</URL>
             <Description>The Magnetospheric Multiscale (MMS) Mission home page hosted by the Laboratory of Atmospheric and Space Physics, Science Data Center (LASP, SDC) at the University of Colorado, Boulder.</Description>
          </InformationURL>
+         <Association>
+         <AssociationID>spase://NASA/NumericalData/DE1/PWI/SFC/PT0.25S</AssociationID>
+         <AssociationType>DerivedFrom</AssociationType>
+         </Association>
+         <Association>
+         <AssociationID>spase://NASA/NumericalData/DE1/PWI/LFC/PT0.25S</AssociationID>
+         <AssociationType>DerivedFrom</AssociationType>
+         </Association>
+         <Association>
+         <AssociationID>spase://NASA/NumericalData/DE1/Ephemeris/PT8S</AssociationID>
+         <AssociationType>DerivedFrom</AssociationType>
+         </Association>
+         <Association>
+         <AssociationID>spase://NASA/NumericalData/ACE/EPAM/LEFS150/MFSA/SolarWindFrame/Sectored/Proton/Fluxes/PT17M</AssociationID>
+         <AssociationType>Other</AssociationType>
+         </Association>
+         <Association>
+         <AssociationID>spase://NASA/NumericalData/ACE/EPAM/LEFS150/MFSA/SolarWindFrame/Sectored/Proton/Fluxes/P1D</AssociationID>
+         <AssociationType>Other</AssociationType>
+         </Association>
          <PriorID>spase://VSPO/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S</PriorID>
       </ResourceHeader>
       <AccessInformation>
@@ -148,6 +173,8 @@
       <ObservedRegion>Earth.NearSurface.EquatorialRegion</ObservedRegion>
       <ObservedRegion>Earth.NearSurface.Plasmasphere</ObservedRegion>
       <ObservedRegion>Heliosphere.NearEarth</ObservedRegion>
+      <Keyword>GOLD</Keyword>
+      <Keyword>SES-14</Keyword>
       <Parameter>
          <Name>UTC converted from TAI time</Name>
          <ParameterKey>Epoch</ParameterKey>
