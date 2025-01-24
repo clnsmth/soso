@@ -30,7 +30,7 @@
             <PublishedBy>NASA Space Physics Data Facility</PublishedBy>
          </PublicationInfo>
          <Funding>
-         <Agency>National Aeronautics and Space Administration; Dr. Richard Eastes</Agency>
+         <Agency>National Aeronautics and Space Administration</Agency>
          <Project>Explorer Program</Project>
          <AwardNumber>NNG19PQ28C</AwardNumber>
          </Funding>
@@ -173,8 +173,8 @@
       <ObservedRegion>Earth.NearSurface.EquatorialRegion</ObservedRegion>
       <ObservedRegion>Earth.NearSurface.Plasmasphere</ObservedRegion>
       <ObservedRegion>Heliosphere.NearEarth</ObservedRegion>
-      <Keyword>GOLD</Keyword>
-      <Keyword>SES-14</Keyword>
+      <Keyword>MMS</Keyword>
+      <Keyword>Magnetic Reconnection</Keyword>
       <Parameter>
          <Name>UTC converted from TAI time</Name>
          <ParameterKey>Epoch</ParameterKey>

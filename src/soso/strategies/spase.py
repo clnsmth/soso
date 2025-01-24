@@ -10,6 +10,7 @@ import re
 from datetime import datetime, timedelta
 import json
 import os
+import pandas as pd
 
 # pylint: disable=duplicate-code
 
@@ -909,7 +910,7 @@ class SPASE(StrategyInterface):
             funding = {"@list": funding}
         else:
             funding = None
-        return delete_null_values(funding)
+        return delete_null_values(funding), agency, project, award
 
     def get_license(self) -> None:
         license_url = None
@@ -925,7 +926,7 @@ class SPASE(StrategyInterface):
                         A_ID = child.text
                     elif child.tag.endswith("AssociationType"):
                         type = child.text
-                if type not in ["DerivedFrom", "ChildEventOf"]:
+                if type not in ["DerivedFrom", "ChildEventOf", "ObservedBy"]:
                     relations.append(A_ID)
         if relations == []:
             was_revision_of = None
@@ -1503,7 +1504,7 @@ def get_cadenceContext(cadence:str) -> str:
     # takes cadence/repeatFreq and returns an explanation for what it means
     # ISO 8601 Format = PTHH:MM:SS.sss
     # P1D, P1M, and P1Y represent time cadences of one day, one month, and one year, respectively
-    context = "This means that the time series is periodic with a "
+    context = "The time series is periodic with a "
     start, sep, end = cadence.partition("P")
     # cadence is in hrs, min, or sec
     if "T" in end:
@@ -1549,6 +1550,11 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
     searched = []
 
     SPASE_paths = []
+    R_IDs = []
+    R_Names = []
+    agencyList = []
+    projectList = []
+    awardList = []
 
     # obtains all filepaths to all SPASE records found in given directory
     SPASE_paths = getPaths(folder, SPASE_paths)
@@ -1568,7 +1574,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
         # DD: #134 is ex w a LOT of observatory entries thanks to multiple instruments
         # record NASA/DisplayData\OBSPM/H-ALPHA.xml has broken instrumentID link
         # record NASA/DisplayData/UCLA/Global-MHD-code/mS1-Vx/PT10S.xml has extra spacing in PubInfo/Authors
-        for r, record in enumerate(SPASE_paths[:200]):
+        for r, record in enumerate(SPASE_paths[:50]):
             if record not in searched:
                 # scrape metadata for each record
                 statusMessage = f"Extracting metadata from record {r+1}"
@@ -1577,6 +1583,8 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 print(record)
                 print()
                 testSpase = SPASE(record)
+                ResourceName = testSpase.get_name()
+                ResourceID = testSpase.get_id()
 
                 #print(testSpase.get_is_accessible_for_free())
                 id = testSpase.get_id()
@@ -1594,7 +1602,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 spatial_coverage = testSpase.get_spatial_coverage()
                 distribution = testSpase.get_distribution()
                 potential_action = testSpase.get_potential_action()
-                funding = testSpase.get_funding()
+                funding, agency, project, award = testSpase.get_funding()
                 date_created = testSpase.get_date_created()
                 #date_modified, trigger, mostRecentDate = testSpase.get_date_modified()
                 date_modified = testSpase.get_date_modified()
@@ -1697,6 +1705,12 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                                 print("No observed regions were found.")
                         elif property == "funding":
                             if funding is not None:
+                                #TODO: add collection of funding info for exporting
+                                R_IDs.append(ResourceID)
+                                R_Names.append(ResourceName)
+                                agencyList.append(agency)
+                                projectList.append(project)
+                                awardList.append(award)
                                 print(" funding:", end=" ")
                                 print(json.dumps(funding, indent=4))
                             else:
@@ -1759,12 +1773,13 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
 
                 # add record to searched
                 searched.append(record)
+    return R_IDs, R_Names, agencyList, projectList, awardList
 
 # test directories
-#folder = "C:/Users/zboquet/NASA/DisplayData"
+folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
-folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-main(folder, False, ["identifier"])
+#folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
+R_IDs, R_Names, agencyList, projectList, awardList = main(folder, True, ["identifier", "funding"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
@@ -1773,3 +1788,12 @@ main(folder, False, ["identifier"])
 # start at list item 163 if want to skip ACE folder
 folder = "C:/Users/zboquet/NASA/NumericalData"
 #main(folder, True)
+
+df_fund = pd.DataFrame({'ResourceID': R_IDs,
+                    'ResourceName': R_Names,
+                    'Funding Agency': agencyList,
+                    'Funding Project': projectList,
+                    'Funding Award Number': awardList})
+file_name_pub = "C:/Users/zboquet/Documents/noPublishersDisplayData.xlsx"
+file_name_pub = "C:/Users/zboquet/Documents/noPublishersNumericalData.xlsx"
+df_pub.to_excel(file_name_pub)
