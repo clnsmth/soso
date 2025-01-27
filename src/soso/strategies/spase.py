@@ -392,14 +392,16 @@ class SPASE(StrategyInterface):
         #   {"@type": schema:PropertyValue, "name": Name, "description": Description, "unitText": Units}
         # Following schema:PropertyValue found at: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#variables
         variable_measured = []
-        paramDesc = ""
-        unit = ""
         minVal = ""
         maxVal = ""
+        paramDesc = ""
+        unitsFound = []
+        i = 0
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("Parameter"):
                 targetChild = child
                 for child in targetChild:
+                    unitsFound.append("")
                     try:
                         if child.tag.endswith("Name"):
                             paramName = child.text
@@ -407,18 +409,32 @@ class SPASE(StrategyInterface):
                             paramDesc, sep, after = child.text.partition("\n")
                         elif child.tag.endswith("Units"):
                             unit = child.text
+                            unitsFound[i] = unit
                         #elif child.tag.endswith("ValidMin"):
                             #minVal = child.text
                         #elif child.tag.endswith("ValidMax"):
                             #maxVal = child.text
                     except AttributeError as err:
                         continue
-                variable_measured.append({"@type": "PropertyValue", 
+                if paramDesc and unitsFound[i]:
+                    variable_measured.append({"@type": "PropertyValue", 
+                                            "name": f"{paramName}",
+                                            "description": f"{paramDesc}",
+                                            "unitText": f"{unitsFound[i]}"})
+                elif paramDesc:
+                    variable_measured.append({"@type": "PropertyValue", 
                                         "name": f"{paramName}",
-                                        "description": f"{paramDesc}",
-                                        "unitText": f"{unit}"})
+                                        "description": f"{paramDesc}"})
+                elif unitsFound[i]:
+                    variable_measured.append({"@type": "PropertyValue", 
+                                        "name": f"{paramName}",
+                                        "unitText": f"{unitsFound[i]}"})
+                else:
+                    variable_measured.append({"@type": "PropertyValue", 
+                                        "name": f"{paramName}"})
                                         #"minValue": f"{minVal}",
                                         #"maxValue": f"{maxVal}"})
+                i += 1
         # preserve order of elements
         if len(variable_measured) != 0:
             variable_measured = {"@list": variable_measured}
@@ -465,7 +481,7 @@ class SPASE(StrategyInterface):
                 start, sep, end = temp_covg.partition("/")
             else:
                 start, sep, end = temp_covg["temporalCoverage"].partition("/")
-            if end == "":
+            if end == "" or end == "..":
                 date, sep, time = start.partition("T")
                 time = time.replace("Z", "")
                 if "." in time:
@@ -862,26 +878,12 @@ class SPASE(StrategyInterface):
             for funder in agency:
                 # if award number was found
                 if award:
-                    # funded by an agency
-                    if ";" not in funder:
-                        funding.append({"@type": "MonetaryGrant",
-                                        "funder": {"@type": "Organization",
-                                                    "name": f"{funder}"
-                                        },
-                                        "identifier": f"{award[i]}",
-                                        "name": f"{project[i]}"
-                                    })
-                    # funded by a person and/thru an agency
-                    else:
-                        org, sep, person = funder.partition("; ")
-                        funding.append({"@type": "MonetaryGrant",
-                                        "funder": [{"@type": "Organization",
-                                                    "name": f"{org}"},
-                                                    {"@type": "Person",
-                                                    "name": f"{person}"}
-                                        ],
-                                        "identifier": f"{award[i]}",
-                                        "name": f"{project[i]}"
+                    funding.append({"@type": "MonetaryGrant",
+                                    "funder": {"@type": "Organization",
+                                                "name": f"{funder}"
+                                    },
+                                    "identifier": f"{award[i]}",
+                                    "name": f"{project[i]}"
                                     })
                 # if award number was not found
                 else:
@@ -910,7 +912,7 @@ class SPASE(StrategyInterface):
             funding = {"@list": funding}
         else:
             funding = None
-        return delete_null_values(funding), agency, project, award
+        return delete_null_values(funding)
 
     def get_license(self) -> None:
         license_url = None
@@ -1404,6 +1406,7 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
         observatory = []
         observatoryGroupID = ""
         observatoryID = ""
+        recordedIDs = []
         instrumentIDs = []
         # follow link provided by instrument to instrument page, from there grab ObservatoryID
         # then follow link provided by ObservatoryID to grab name, infoURL, and ObservatoryGrpID
@@ -1454,23 +1457,28 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                                 for each in groupInfoURL:
                                     groupURL.append(each["url"])
                     # TODO: add filtering to only add unique entries of obsID and obsGrpID
-                                observatory.append({"@type": "ResearchProject",
-                                                    "@id": observatoryGroupID,
-                                                    "name": groupName,
-                                                    "url": groupURL})
-                            else:
+                                if observatoryGroupID not in recordedIDs:
+                                    observatory.append({"@type": "ResearchProject",
+                                                        "@id": observatoryGroupID,
+                                                        "name": groupName,
+                                                        "url": groupURL})
+                                    recordedIDs.append(observatoryGroupID)
+                            elif observatoryGroupID not in recordedIDs:
                                 observatory.append({"@type": "ResearchProject",
                                                     "@id": observatoryGroupID,
                                                     "name": groupName})
-                    if url:
+                                recordedIDs.append(observatoryGroupID)
+                    if url and (observatoryID not in recordedIDs):
                         observatory.append({"@type": "ResearchProject",
                                             "@id": observatoryID,
                                             "name": name,
                                             "url": url})
-                    else:
+                        recordedIDs.append(observatoryID)
+                    elif observatoryID not in recordedIDs:
                         observatory.append({"@type": "ResearchProject",
                                         "@id": observatoryID,
                                         "name": name})
+                        recordedIDs.append(observatoryGroupID)
     else:
         observatory = None
     return observatory
@@ -1491,8 +1499,11 @@ def get_alternate_name(metadata: etree.ElementTree) -> Union[str, None]:
             targetChild = child
             # iterate thru children to locate AccessURL and Format
             for child in targetChild:
-                if child.tag.endswith("AlternateName"):
-                    alternate_name = child.text
+                try:
+                    if child.tag.endswith("AlternateName"):
+                        alternate_name = child.text
+                except AttributeError:
+                    continue
     return alternate_name
 
 def get_cadenceContext(cadence:str) -> str:
@@ -1550,11 +1561,6 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
     searched = []
 
     SPASE_paths = []
-    R_IDs = []
-    R_Names = []
-    agencyList = []
-    projectList = []
-    awardList = []
 
     # obtains all filepaths to all SPASE records found in given directory
     SPASE_paths = getPaths(folder, SPASE_paths)
@@ -1574,7 +1580,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
         # DD: #134 is ex w a LOT of observatory entries thanks to multiple instruments
         # record NASA/DisplayData\OBSPM/H-ALPHA.xml has broken instrumentID link
         # record NASA/DisplayData/UCLA/Global-MHD-code/mS1-Vx/PT10S.xml has extra spacing in PubInfo/Authors
-        for r, record in enumerate(SPASE_paths[:50]):
+        for r, record in enumerate(SPASE_paths):
             if record not in searched:
                 # scrape metadata for each record
                 statusMessage = f"Extracting metadata from record {r+1}"
@@ -1602,7 +1608,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 spatial_coverage = testSpase.get_spatial_coverage()
                 distribution = testSpase.get_distribution()
                 potential_action = testSpase.get_potential_action()
-                funding, agency, project, award = testSpase.get_funding()
+                funding = testSpase.get_funding()
                 date_created = testSpase.get_date_created()
                 #date_modified, trigger, mostRecentDate = testSpase.get_date_modified()
                 date_modified = testSpase.get_date_modified()
@@ -1705,12 +1711,6 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                                 print("No observed regions were found.")
                         elif property == "funding":
                             if funding is not None:
-                                #TODO: add collection of funding info for exporting
-                                R_IDs.append(ResourceID)
-                                R_Names.append(ResourceName)
-                                agencyList.append(agency)
-                                projectList.append(project)
-                                awardList.append(award)
                                 print(" funding:", end=" ")
                                 print(json.dumps(funding, indent=4))
                             else:
@@ -1773,13 +1773,12 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
 
                 # add record to searched
                 searched.append(record)
-    return R_IDs, R_Names, agencyList, projectList, awardList
 
 # test directories
-folder = "C:/Users/zboquet/NASA/DisplayData"
+#folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
-#folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-R_IDs, R_Names, agencyList, projectList, awardList = main(folder, True, ["identifier", "funding"])
+folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
+#main(folder, True, ["identifier", "variable_measured"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
@@ -1787,13 +1786,4 @@ R_IDs, R_Names, agencyList, projectList, awardList = main(folder, True, ["identi
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 # start at list item 163 if want to skip ACE folder
 folder = "C:/Users/zboquet/NASA/NumericalData"
-#main(folder, True)
-
-df_fund = pd.DataFrame({'ResourceID': R_IDs,
-                    'ResourceName': R_Names,
-                    'Funding Agency': agencyList,
-                    'Funding Project': projectList,
-                    'Funding Award Number': awardList})
-file_name_pub = "C:/Users/zboquet/Documents/noPublishersDisplayData.xlsx"
-file_name_pub = "C:/Users/zboquet/Documents/noPublishersNumericalData.xlsx"
-df_pub.to_excel(file_name_pub)
+#main(folder, True, ["identifier", "funding"])
