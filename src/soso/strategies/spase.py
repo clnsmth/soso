@@ -915,7 +915,40 @@ class SPASE(StrategyInterface):
         return delete_null_values(funding)
 
     def get_license(self) -> None:
-        license_url = None
+        # child of access info
+        license_url = []
+        #rightsChild = []
+        """<rightsList>
+            <rights xml:lang="en"
+            schemeURI="https://spdx.org/licenses/"
+            rightsIdentifierScheme="SPDX"
+            rightsIdentifier="CC-BY-4.0"
+            rightsURI="https://creativecommons.org/licenses/by/4.0/">
+            Creative Commons Attribution 4.0 International</rights>
+        </rightsList>"""
+        #for child in self.desiredRoot.iter(tag=etree.Element):
+            #if child.tag.endswith("AccessInformation"):
+                #targetChild = child
+                # iterate thru children to locate rightsList
+                #for child in targetChild:
+                    #if child.tag.endswith("rightsList"):
+                        #rightsChild.append(child)
+
+        desiredTag = self.desiredRoot.tag.split("}")
+        SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:AccessInformation/spase:rightsList/spase:rights"
+        for item in self.metadata.findall(
+            SPASE_Location,
+            namespaces=self.namespaces,
+        ):
+            #attributes = item.attrib
+            #print(item)
+            spdxURI = item.get("schemeURI") + '/' + item.get("rightsIdentifier")
+            license_url.append([spdxURI, item.get("rightsURI")])
+        #if rightsChild:
+        if license_url == []:
+            license_url = None
+        elif len(license_url) == 1:
+            license_url = license_url[0]
         return license_url
 
     def get_was_revision_of(self) -> Union[Dict, None]:
@@ -1554,7 +1587,7 @@ def get_cadenceContext(cadence:str) -> str:
 def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sameAs", "url", "name", "description", "date_published",
                                                         "keywords", "creator", "citation", "temporal_coverage", "spatial_coverage",
                                                         "publisher", "distribution", "potential_action", "variable_measured", 
-                                                        "funding", "was_revision_of", "was_derived_from", "is_based_on", 
+                                                        "funding", "license", "was_revision_of", "was_derived_from", "is_based_on", 
                                                         "date_created", "date_modified", "contributor", "measurement_type",
                                                         "instrument", "observatory", "alternate_name", "inLanguage"]) -> None:
     # list that holds SPASE records already checked
@@ -1609,6 +1642,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 distribution = testSpase.get_distribution()
                 potential_action = testSpase.get_potential_action()
                 funding = testSpase.get_funding()
+                license = testSpase.get_license()
                 date_created = testSpase.get_date_created()
                 #date_modified, trigger, mostRecentDate = testSpase.get_date_modified()
                 date_modified = testSpase.get_date_modified()
@@ -1715,6 +1749,12 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                                 print(json.dumps(funding, indent=4))
                             else:
                                 print("No funding info was found.")
+                        elif property == "license":
+                            if license is not None:
+                                print(" license:", end=" ")
+                                print(json.dumps(license, indent=4))
+                            else:
+                                print("No license for the dataset was found.")
                         elif property == "was_revision_of":
                             if was_revision_of is not None:
                                 print("Yay")

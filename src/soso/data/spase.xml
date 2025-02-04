@@ -143,6 +143,14 @@
          <RepositoryID>spase://SMWG/Repository/NASA/GSFC/SPDF/CDAWeb</RepositoryID>
          <Availability>Online</Availability>
          <AccessRights>Open</AccessRights>
+         <rightsList>
+            <rights xml:lang="en"
+            schemeURI="https://spdx.org/licenses/"
+            rightsIdentifierScheme="SPDX"
+            rightsIdentifier="CC-BY-4.0"
+            rightsURI="https://creativecommons.org/licenses/by/4.0/">
+            Creative Commons Attribution 4.0 International</rights>
+        </rightsList>
          <AccessURL>
             <Name>CDAWeb HAPI Server</Name>
             <URL>https://cdaweb.gsfc.nasa.gov/hapi</URL>
