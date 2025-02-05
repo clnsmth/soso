@@ -159,7 +159,8 @@ class SPASE(StrategyInterface):
     def get_identifier(self) -> Union[str, Dict, None]:
         # Mapping: schema:identifier = spase:ResourceHeader/spase:DOI (or https://hpde.io landing page, if no DOI)
         # Each item is: {@id: URL, @type: schema:PropertyValue, propertyID: URI for identifier scheme, value: identifier value, url: URL}
-        # Uses identifier scheme URI, provided at: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#identifier
+        # Uses identifier scheme URI, provided at: https://schema.org/identifier
+        #  OR schema:PropertyValue, provided at: https://schema.org/PropertyValue
         url = self.get_url()
         # if SPASE record has a DOI
         if "doi" in url:
@@ -390,7 +391,7 @@ class SPASE(StrategyInterface):
         # Mapping: schema:variable_measured = /spase:Parameters/spase:Name, Description, Units, ValidMin, ValidMax
         # Each object is:
         #   {"@type": schema:PropertyValue, "name": Name, "description": Description, "unitText": Units}
-        # Following schema:PropertyValue found at: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#variables
+        # Following schema:PropertyValue found at: https://schema.org/PropertyValue
         variable_measured = []
         minVal = ""
         maxVal = ""
@@ -455,7 +456,7 @@ class SPASE(StrategyInterface):
         # AND /spase:AccessInformation/spase:Format
         # Each object is:
         #   {"@type": schema:DataDownload, "contentURL": URL, "encodingFormat": Format}
-        # Following schema:DataDownload found at: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#accessing-data-through-a-service-endpoint
+        # Following schema:DataDownload found at: https://schema.org/DataDownload
         distribution = []
         dataDownloads, potentialActions = get_accessURLs(self.metadata)
         for k, v in dataDownloads.items():
@@ -472,8 +473,8 @@ class SPASE(StrategyInterface):
     def get_potential_action(self) -> Union[List[Dict], None]:
         # Mapping: schema:potentialAction = /spase:AccessInformation/spase:AccessURL/spase:URL
         # AND /spase:AccessInformation/spase:Format
-        # Following schema:potentialAction found at: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#accessing-data-through-a-service-endpoint
-        potential_action = []
+        # Following schema:potentialAction found at: https://schema.org/potentialAction
+        potential_actionList = []
         dataDownloads, potentialActions = get_accessURLs(self.metadata)
         temp_covg = self.get_temporal_coverage()
         if temp_covg is not None:
@@ -508,7 +509,7 @@ class SPASE(StrategyInterface):
                 prodKey = prodKey.replace("\"", "")
                 # if link is a hapi link, provide the hapi interface web service to download data
                 if "/hapi" in k:
-                    potential_action.append({"@type": "SearchAction",
+                    potential_actionList.append({"@type": "SearchAction",
                                         "target": {"@type": "EntryPoint",
                                                     "contentType": f"{encoding}",
                                                     "urlTemplate": f"{k}/data?id={prodKey}&time.min=(start)&time.max=(end)",
@@ -529,15 +530,15 @@ class SPASE(StrategyInterface):
                     })
                 # use GSFC CDAWeb portal to download CDF
                 else:
-                    potential_action.append({"@type": "SearchAction",
+                    potential_actionList.append({"@type": "SearchAction",
                                             "target": {"@type": "URL",
                                                         "encodingFormat": f"{encoding}",
                                                         "url": f"{k}",
                                                         "description": "Download dataset data in CSV or JSON form at this URL"}
                                             })
         # preserve order of elements
-        if len(potential_action) != 0:
-            potential_action = {"@list": potential_action}
+        if len(potential_actionList) != 0:
+            potential_action = {"@list": potential_actionList}
         else:
             potential_action = None
         return delete_null_values(potential_action)
@@ -616,7 +617,7 @@ class SPASE(StrategyInterface):
         # Mapping: schema:temporal_coverage = spase:TemporalDescription/spase:TimeSpan/*
         # Each object is:
         #   {temporalCoverage: StartDate and StopDate|RelativeStopDate, temporal: Cadence}
-        # Result is either schema:Text or schema:DateTime
+        # Result is either schema:Text or schema:DateTime, found at https://schema.org/Text and https://schema.org/DateTime
         # Using format as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#temporal-coverage
         desiredTag = self.desiredRoot.tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:TemporalDescription/spase:TimeSpan/spase:StartDate"
@@ -693,7 +694,7 @@ class SPASE(StrategyInterface):
         # OR schema:creator = spase:ResourceHeader/spase:Contact/spase:PersonID
         # Each item is:
         #   {@type: Role, roleName: Contact Role, creator: {@type: Person, name: Author Name, givenName: First Name, familyName: Last Name}}
-        # Using schema:Creator as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#roles-of-people
+        # Using schema:Creator as defined in: https://schema.org/creator
         author, authorRole, pubDate, pub, contributor, dataset, backups = get_authors(self.metadata)
         authorStr = str(author).replace("[", "").replace("]","")
         creator = []
@@ -828,7 +829,7 @@ class SPASE(StrategyInterface):
         # OR spase:AccessInformation/spase:RepositoryID
         # Each item is:
         #   {@type: Organization, name: PublishedBy OR Contact (if Role = Publisher) OR RepositoryID}
-        # Using schema:Organization as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#publisher-and-provider
+        # Using schema:Organization as defined in: https://schema.org/Organization
         author, authorRole, pubDate, publisher, contributor, dataset, backups = get_authors(self.metadata)
         if publisher == "":
             #publisher = None
@@ -856,7 +857,7 @@ class SPASE(StrategyInterface):
         # AND spase:ResourceHeader/spase:Funding/spase:AwardNumber
         # Each item is:
         #   {@type: MonetaryGrant, funder: {@type: Person or Organization, name: Agency}, identifier: AwardNumber, name: Project}
-        # Using schema:MonetaryGrant as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#funding
+        # Using schema:MonetaryGrant as defined in: https://schema.org/MonetaryGrant
         funding = []
         agency = []
         project = []
@@ -917,7 +918,7 @@ class SPASE(StrategyInterface):
     def get_license(self) -> None:
         # child of access info
         license_url = []
-        #rightsChild = []
+        # format in xml file is below
         """<rightsList>
             <rights xml:lang="en"
             schemeURI="https://spdx.org/licenses/"
@@ -926,13 +927,6 @@ class SPASE(StrategyInterface):
             rightsURI="https://creativecommons.org/licenses/by/4.0/">
             Creative Commons Attribution 4.0 International</rights>
         </rightsList>"""
-        #for child in self.desiredRoot.iter(tag=etree.Element):
-            #if child.tag.endswith("AccessInformation"):
-                #targetChild = child
-                # iterate thru children to locate rightsList
-                #for child in targetChild:
-                    #if child.tag.endswith("rightsList"):
-                        #rightsChild.append(child)
 
         desiredTag = self.desiredRoot.tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:AccessInformation/spase:rightsList/spase:rights"
@@ -940,11 +934,9 @@ class SPASE(StrategyInterface):
             SPASE_Location,
             namespaces=self.namespaces,
         ):
-            #attributes = item.attrib
-            #print(item)
             spdxURI = item.get("schemeURI") + '/' + item.get("rightsIdentifier")
-            license_url.append([spdxURI, item.get("rightsURI")])
-        #if rightsChild:
+            if [spdxURI, item.get("rightsURI")] not in license_url:
+                license_url.append([spdxURI, item.get("rightsURI")])
         if license_url == []:
             license_url = None
         elif len(license_url) == 1:
@@ -952,6 +944,7 @@ class SPASE(StrategyInterface):
         return license_url
 
     def get_was_revision_of(self) -> Union[Dict, None]:
+        #schema:wasRevisionOf found at https://www.w3.org/TR/prov-o/#wasRevisionOf
         relations = []
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("Association"):
@@ -961,7 +954,7 @@ class SPASE(StrategyInterface):
                         A_ID = child.text
                     elif child.tag.endswith("AssociationType"):
                         type = child.text
-                if type not in ["DerivedFrom", "ChildEventOf", "ObservedBy"]:
+                if type == "RevisionOf":
                     relations.append(A_ID)
         if relations == []:
             was_revision_of = None
@@ -976,6 +969,7 @@ class SPASE(StrategyInterface):
 
     def get_is_based_on(self) -> Union[Dict, None]:
         # Mapping: schema:isBasedOn = spase:ResourceHeader/spase:Association/spase:AssociationID
+        # schema:isBasedOn found at https://schema.org/isBasedOn
         is_based_on = []
         derivations = []
         for child in self.desiredRoot.iter(tag=etree.Element):
@@ -991,8 +985,7 @@ class SPASE(StrategyInterface):
         if derivations == []:
             is_based_on = None
         else:
-            is_based_on = {"@type": "CreativeWork",
-                                "isBasedOn": f"{derivations}"}
+            is_based_on = {"@id": f"{derivations}"}
         return delete_null_values(is_based_on)
 
     def get_was_generated_by(self) -> None:
@@ -1583,12 +1576,36 @@ def get_cadenceContext(cadence:str) -> str:
         context = None
     return context
 
+def get_is_related_to(metadata: etree.ElementTree) -> Union[Dict, None]:
+    # schema:isRelatedTo found at https://schema.org/isRelatedTo
+    root = metadata.getroot()
+    for elt in root.iter(tag=etree.Element):
+        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+            desiredRoot = elt
+    relations = []
+    for child in desiredRoot.iter(tag=etree.Element):
+        if child.tag.endswith("Association"):
+            targetChild = child
+            for child in targetChild:
+                if child.tag.endswith("AssociationID"):
+                    A_ID = child.text
+                elif child.tag.endswith("AssociationType"):
+                    type = child.text
+            #if type == "Other":
+            if type in ["ObservedBy", "PartOf"]:
+                relations.append(A_ID)
+    if relations == []:
+        is_related_to = None
+    else:
+        is_related_to = {"@id": f"{relations}"}
+    return is_related_to
+
 #TODO: add docstring
 def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sameAs", "url", "name", "description", "date_published",
                                                         "keywords", "creator", "citation", "temporal_coverage", "spatial_coverage",
                                                         "publisher", "distribution", "potential_action", "variable_measured", 
                                                         "funding", "license", "was_revision_of", "was_derived_from", "is_based_on", 
-                                                        "date_created", "date_modified", "contributor", "measurement_type",
+                                                        "is_related_to", "date_created", "date_modified", "contributor", "measurement_type",
                                                         "instrument", "observatory", "alternate_name", "inLanguage"]) -> None:
     # list that holds SPASE records already checked
     searched = []
@@ -1613,7 +1630,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
         # DD: #134 is ex w a LOT of observatory entries thanks to multiple instruments
         # record NASA/DisplayData\OBSPM/H-ALPHA.xml has broken instrumentID link
         # record NASA/DisplayData/UCLA/Global-MHD-code/mS1-Vx/PT10S.xml has extra spacing in PubInfo/Authors
-        for r, record in enumerate(SPASE_paths):
+        for r, record in enumerate(SPASE_paths[:150]):
             if record not in searched:
                 # scrape metadata for each record
                 statusMessage = f"Extracting metadata from record {r+1}"
@@ -1650,6 +1667,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 was_revision_of = testSpase.get_was_revision_of()
                 was_derived_from = testSpase.get_was_derived_from()
                 is_based_on = testSpase.get_is_based_on()
+                is_related_to = get_is_related_to(testSpase.metadata)
                 measurement_type = get_measurement_type(testSpase.metadata)
                 instrument = get_instrument(testSpase.metadata, record)
                 observatory = get_observatory(testSpase.metadata, record)
@@ -1775,6 +1793,13 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                                 print(json.dumps(is_based_on, indent=4))
                             else:
                                 print("No is_based_on was found.")
+                        elif property == "is_related_to":
+                            if is_related_to is not None:
+                                print("Yay")
+                                print(" schema:is_related_to:", end=" ")
+                                print(json.dumps(is_related_to, indent=4))
+                            else:
+                                print("No is_related_to was found.")
                         elif property == "variable_measured":
                             if variable_measured is not None:
                                 print(" variable_measured:", end=" ")
@@ -1815,10 +1840,10 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 searched.append(record)
 
 # test directories
-#folder = "C:/Users/zboquet/NASA/DisplayData"
+folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
-folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-#main(folder, True, ["identifier", "variable_measured"])
+#folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
+#main(folder, True, ["is_related_to"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
@@ -1826,4 +1851,4 @@ folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 # start at list item 163 if want to skip ACE folder
 folder = "C:/Users/zboquet/NASA/NumericalData"
-#main(folder, True, ["identifier", "funding"])
+main(folder, True, ["is_related_to"])
