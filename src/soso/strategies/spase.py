@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 import json
 import os
 import pandas as pd
+from pprint import pprint
 
 # pylint: disable=duplicate-code
 
@@ -42,7 +43,6 @@ class SPASE(StrategyInterface):
             - subject_of
             - expires
             - provider
-            - license
             - was_generated_by
     """
 
@@ -915,7 +915,7 @@ class SPASE(StrategyInterface):
             funding = None
         return delete_null_values(funding)
 
-    def get_license(self) -> None:
+    def get_license(self) -> Union[List, None]:
         # child of access info
         license_url = []
         # format in xml file is below
@@ -1060,7 +1060,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                                 # find Role
                                 elif child.tag.endswith("Role"):
                                     # backup author
-                                    if ("PrincipalInvestigator" or "PI") in child.text:
+                                    if ("PrincipalInvestigator" or "PI" or "CoInvestigator") in child.text:
                                         # if a lesser priority author found
                                         #     first, overwrite author lists
                                         if not priority and author:
@@ -1578,6 +1578,8 @@ def get_cadenceContext(cadence:str) -> str:
 
 def get_is_related_to(metadata: etree.ElementTree) -> Union[Dict, None]:
     # schema:isRelatedTo found at https://schema.org/isRelatedTo
+    #ObsBy = False
+    #PartOf = False
     root = metadata.getroot()
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
@@ -1591,8 +1593,12 @@ def get_is_related_to(metadata: etree.ElementTree) -> Union[Dict, None]:
                     A_ID = child.text
                 elif child.tag.endswith("AssociationType"):
                     type = child.text
-            #if type == "Other":
-            if type in ["ObservedBy", "PartOf"]:
+            if type == "Other":
+            #if type in ["ObservedBy", "PartOf"]:
+                #if type == "ObservedBy":
+                    #ObsBy = True
+                #else:
+                    #PartOf = True
                 relations.append(A_ID)
     if relations == []:
         is_related_to = None
@@ -1609,7 +1615,10 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                                                         "instrument", "observatory", "alternate_name", "inLanguage"]) -> None:
     # list that holds SPASE records already checked
     searched = []
-
+    Observed = []
+    PartOf = []
+    Other = []
+    AssocIDs = []
     SPASE_paths = []
 
     # obtains all filepaths to all SPASE records found in given directory
@@ -1630,7 +1639,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
         # DD: #134 is ex w a LOT of observatory entries thanks to multiple instruments
         # record NASA/DisplayData\OBSPM/H-ALPHA.xml has broken instrumentID link
         # record NASA/DisplayData/UCLA/Global-MHD-code/mS1-Vx/PT10S.xml has extra spacing in PubInfo/Authors
-        for r, record in enumerate(SPASE_paths[:150]):
+        for r, record in enumerate(SPASE_paths):
             if record not in searched:
                 # scrape metadata for each record
                 statusMessage = f"Extracting metadata from record {r+1}"
@@ -1667,6 +1676,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 was_revision_of = testSpase.get_was_revision_of()
                 was_derived_from = testSpase.get_was_derived_from()
                 is_based_on = testSpase.get_is_based_on()
+                #is_related_to, ObsBy, Part = get_is_related_to(testSpase.metadata)
                 is_related_to = get_is_related_to(testSpase.metadata)
                 measurement_type = get_measurement_type(testSpase.metadata)
                 instrument = get_instrument(testSpase.metadata, record)
@@ -1793,9 +1803,18 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                                 print(json.dumps(is_based_on, indent=4))
                             else:
                                 print("No is_based_on was found.")
+                        # only 25 in NumericalData have "ObservedBy" or "PartOf" associationIDs
                         elif property == "is_related_to":
                             if is_related_to is not None:
-                                print("Yay")
+                                #if ObsBy and Part:
+                                    #Observed.append(ResourceID)
+                                    #PartOf.append(ResourceID)
+                                #elif Part:
+                                    #PartOf.append(ResourceID)
+                                #else:
+                                    #Observed.append(ResourceID)
+                                #AssocIDs.append(is_related_to["@id"])
+                                #Other.append(ResourceID)
                                 print(" schema:is_related_to:", end=" ")
                                 print(json.dumps(is_related_to, indent=4))
                             else:
@@ -1838,12 +1857,13 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
 
                 # add record to searched
                 searched.append(record)
+    #return Other, AssocIDs
 
 # test directories
 folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-#main(folder, True, ["is_related_to"])
+Other1, AssocIDs1 = main(folder, True, ["is_related_to"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
@@ -1851,4 +1871,18 @@ folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 # start at list item 163 if want to skip ACE folder
 folder = "C:/Users/zboquet/NASA/NumericalData"
-main(folder, True, ["is_related_to"])
+#Other, AssocIDs = main(folder, True, ["is_related_to"])
+
+#Other += Other1
+#AssocIDs += AssocIDs1
+#Type = []
+#for record in Other:
+    #Type.append("Other")
+#df_pub = pd.DataFrame({'ResourceID': Other,
+                    #'AssociationType': Type,
+                    #'AssociationID': AssocIDs})
+#file_name_pub = "C:/Users/zboquet/Documents/noPublishersDisplayData.xlsx"
+#file_name_pub = "C:/Users/zboquet/Documents/SPASE_Records_with_Other.xlsx"
+#df_pub.to_excel(file_name_pub)
+
+
