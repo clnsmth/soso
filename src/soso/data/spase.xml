@@ -147,9 +147,9 @@
             <rights xml:lang="en"
             schemeURI="https://spdx.org/licenses/"
             rightsIdentifierScheme="SPDX"
-            rightsIdentifier="CC-BY-4.0"
-            rightsURI="https://creativecommons.org/licenses/by/4.0/">
-            Creative Commons Attribution 4.0 International</rights>
+            rightsIdentifier="CC0-1.0"
+            rightsURI="https://spdx.org/licenses/CC0-1.0.html">
+            Creative Commons Zero v1.0 Universal</rights>
         </rightsList>
          <AccessURL>
             <Name>CDAWeb HAPI Server</Name>
