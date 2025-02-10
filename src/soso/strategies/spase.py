@@ -10,6 +10,11 @@ import re
 from datetime import datetime, timedelta
 import json
 import os
+import requests
+import ftplib
+
+import subprocess
+import wget
 import pandas as pd
 from pprint import pprint
 
@@ -125,6 +130,7 @@ class SPASE(StrategyInterface):
 
     # commented out partial code that was put on hold due to licenses being added to SPASE soon
     def get_is_accessible_for_free(self) -> None:
+        free = None
         """schema:description: spase:AccessInformation/AccessRights"""
         is_accessible_for_free = None
         # local vars needed
@@ -506,36 +512,46 @@ class SPASE(StrategyInterface):
 
             # loop thru all product keys if there are multiple
             for prodKey in prodKeys:
-                prodKey = prodKey.replace("\"", "")
-                # if link is a hapi link, provide the hapi interface web service to download data
-                if "/hapi" in k:
+                # if link has no prodKey
+                #TODO: find out what should go here!!!
+                if prodKey == "None":
                     potential_actionList.append({"@type": "SearchAction",
-                                        "target": {"@type": "EntryPoint",
-                                                    "contentType": f"{encoding}",
-                                                    "urlTemplate": f"{k}/data?id={prodKey}&time.min=(start)&time.max=(end)",
-                                                    "description": "Download dataset labeled by id based on the requested start and end dates",
-                                                    "httpMethod": "GET"},
-                                        "query-input": [
-                                            {"@type": "PropertyValueSpecification",
-                                            "valueName": "start",
-                                            "description": f"A UTC ISO DateTime. {startSent}",
-                                            "valueRequired": True,
-                                            "valuePattern": f"{pattern}"},
-                                            {"@type": "PropertyValueSpecification",
-                                            "valueName": "end",
-                                            "description": f"A UTC ISO DateTime. {endSent}",
-                                            "valueRequired": True,
-                                            "valuePattern": f"{pattern}"}
-                                        ]
-                    })
-                # use GSFC CDAWeb portal to download CDF
+                                                "target": {"@type": "URL",
+                                                            "encodingFormat": f"{encoding}",
+                                                            "url": f"{k}",
+                                                            "description": f"Download dataset data as {encoding} file at this URL"}
+                                                })
                 else:
-                    potential_actionList.append({"@type": "SearchAction",
-                                            "target": {"@type": "URL",
-                                                        "encodingFormat": f"{encoding}",
-                                                        "url": f"{k}",
-                                                        "description": "Download dataset data in CSV or JSON form at this URL"}
-                                            })
+                    prodKey = prodKey.replace("\"", "")
+                    # if link is a hapi link, provide the hapi interface web service to download data
+                    if "/hapi" in k:
+                        potential_actionList.append({"@type": "SearchAction",
+                                            "target": {"@type": "EntryPoint",
+                                                        "contentType": f"{encoding}",
+                                                        "urlTemplate": f"{k}/data?id={prodKey}&time.min=(start)&time.max=(end)",
+                                                        "description": "Download dataset labeled by id in CSV format based on the requested start and end dates",
+                                                        "httpMethod": "GET"},
+                                            "query-input": [
+                                                {"@type": "PropertyValueSpecification",
+                                                "valueName": "start",
+                                                "description": f"A UTC ISO DateTime. {startSent}",
+                                                "valueRequired": False,
+                                                "valuePattern": f"{pattern}"},
+                                                {"@type": "PropertyValueSpecification",
+                                                "valueName": "end",
+                                                "description": f"A UTC ISO DateTime. {endSent}",
+                                                "valueRequired": False,
+                                                "valuePattern": f"{pattern}"}
+                                            ]
+                        })
+                    # use GSFC CDAWeb portal to download CDF
+                    else:
+                        potential_actionList.append({"@type": "SearchAction",
+                                                "target": {"@type": "URL",
+                                                            "encodingFormat": f"{encoding}",
+                                                            "url": f"{k}",
+                                                            "description": "Download dataset data as CDF or CSV file at this URL"}
+                                                })
         # preserve order of elements
         if len(potential_actionList) != 0:
             potential_action = {"@list": potential_actionList}
@@ -934,9 +950,8 @@ class SPASE(StrategyInterface):
             SPASE_Location,
             namespaces=self.namespaces,
         ):
-            spdxURI = item.get("schemeURI") + '/' + item.get("rightsIdentifier")
-            if [spdxURI, item.get("rightsURI")] not in license_url:
-                license_url.append([spdxURI, item.get("rightsURI")])
+            if [item.get("rightsURI")] not in license_url:
+                license_url.append(item.get("rightsURI"))
         if license_url == []:
             license_url = None
         elif len(license_url) == 1:
@@ -1143,6 +1158,7 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
     encoder = []
     i = 0
     j = 0
+    downloadable = True
     root = metadata.getroot()
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
@@ -1186,11 +1202,50 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
             #print(f"exiting AccessInfo #{j}")
             j += 1
     for k, v in AccessURLs.items():
-        # if URL has no prodKeys at all, add to the dataDownloads dictionary
+        # if URL is direct link to download data, add to the dataDownloads dictionary
         if not v:
             #print(i)
-            dataDownloads[k] = [encoder[i]]
-        # if URL has prodKeys, add to the potentialActions dictionary
+            #TODO: figure out why cannot connect to ftp server with below code
+            # if ftp protocol, use wget or ftplib
+            if 'ftp' in k:
+                #res = wget_download(k)
+                #res = wget.download(k)
+                """files = []
+                before, protocol, host = k.partition("ftps://")
+                host, sep, path = host.partition("/")
+                filename = './example.txt'
+
+                ftp = ftplib.FTP(f"{host}") 
+                ftp.login() 
+                ftp.cwd(path)
+                #ftp.retrbinary("RETR " + filename, open(filename, 'wb').write)
+                try:
+                    files = ftp.nlst()
+                except ftplib.error_perm as resp:
+                    if str(resp) == "550 No files found":
+                        print("No files in this directory")
+                    else:
+                        raise
+                for res in files:
+                    print(res)
+                ftp.quit()"""
+            else:
+            # add call to requests.get()
+                print(k)
+                res = requests.get(k, stream=True)
+                res.raise_for_status()
+                headers = res.headers
+                content_type = headers.get("content-type")
+                if 'html' in content_type.lower():
+                    downloadable = False
+                #print(res.text)
+            # if request returns html (not data), add to potentialActions instead
+            if downloadable:
+                #print(f"YAY for {k}")
+                dataDownloads[k] = [encoder[i]]
+            else:
+                potentialActions[k] = [encoder[i], "None"]
+        # if URL requires more clicks to download data, add to the potentialActions dictionary
         else:
             potentialActions[k] = [encoder[i], v]
         i += 1
@@ -1606,6 +1661,15 @@ def get_is_related_to(metadata: etree.ElementTree) -> Union[Dict, None]:
         is_related_to = {"@id": f"{relations}"}
     return is_related_to
 
+def wget_download(url) -> Dict:
+    cmd = ["wget", url]
+    try:
+        # Run the wget command
+        subprocess.run(cmd, check=True)
+        return {"success": True, "message": "Download completed successfully."}
+    except subprocess.CalledProcessError as e:
+        return {"success": False, "message": f"Download failed: {e}"}
+
 #TODO: add docstring
 def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sameAs", "url", "name", "description", "date_published",
                                                         "keywords", "creator", "citation", "temporal_coverage", "spatial_coverage",
@@ -1860,10 +1924,11 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
     #return Other, AssocIDs
 
 # test directories
-folder = "C:/Users/zboquet/NASA/DisplayData"
+#folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
-#folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-Other1, AssocIDs1 = main(folder, True, ["is_related_to"])
+folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
+#Other1, AssocIDs1 = 
+main(folder, True, ["distribution"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
