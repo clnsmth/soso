@@ -10,13 +10,6 @@ import re
 from datetime import datetime, timedelta
 import json
 import os
-import requests
-import ftplib
-
-import subprocess
-import wget
-import pandas as pd
-from pprint import pprint
 
 # pylint: disable=duplicate-code
 
@@ -471,7 +464,10 @@ class SPASE(StrategyInterface):
                                 "encodingFormat": f"{v[0]}"})
         # preserve order of elements
         if len(distribution) != 0:
-            distribution = {"@list": distribution}
+            if len(distribution) > 1:
+                distribution = {"@list": distribution}
+            else:
+                distribution = distribution[0]
         else:
             distribution = None
         return delete_null_values(distribution)
@@ -510,18 +506,18 @@ class SPASE(StrategyInterface):
             encoding = v[0]
             pattern = "(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?"
 
-            # loop thru all product keys if there are multiple
-            for prodKey in prodKeys:
-                # if link has no prodKey
-                #TODO: find out what should go here!!!
-                if prodKey == "None":
-                    potential_actionList.append({"@type": "SearchAction",
-                                                "target": {"@type": "URL",
-                                                            "encodingFormat": f"{encoding}",
-                                                            "url": f"{k}",
-                                                            "description": f"Download dataset data as {encoding} file at this URL"}
-                                                })
-                else:
+            # if link has no prodKey
+            #TODO: find out what should go here!!!
+            if prodKeys == "None":
+                potential_actionList.append({"@type": "SearchAction",
+                                            "target": {"@type": "URL",
+                                                        "encodingFormat": f"{encoding}",
+                                                        "url": f"{k}",
+                                                        "description": f"Download dataset data as {encoding} file at this URL"}
+                                            })
+            else:
+                # loop thru all product keys if there are multiple
+                for prodKey in prodKeys:
                     prodKey = prodKey.replace("\"", "")
                     # if link is a hapi link, provide the hapi interface web service to download data
                     if "/hapi" in k:
@@ -932,7 +928,8 @@ class SPASE(StrategyInterface):
         return delete_null_values(funding)
 
     def get_license(self) -> Union[List, None]:
-        # child of access info
+        # Mapping: schema:license = spase:AccessInformation/spase:rightsList/spase:rights
+        # Using schema:license as defined in: https://schema.org/license
         license_url = []
         # format in xml file is below
         """<rightsList>
@@ -959,6 +956,8 @@ class SPASE(StrategyInterface):
         return license_url
 
     def get_was_revision_of(self) -> Union[Dict, None]:
+        # Mapping: schema:wasRevisionOf = spase:Association/spase:AssociationID
+        #   (if spase:AssociationType is "RevisionOf")
         #schema:wasRevisionOf found at https://www.w3.org/TR/prov-o/#wasRevisionOf
         relations = []
         for child in self.desiredRoot.iter(tag=etree.Element):
@@ -978,12 +977,16 @@ class SPASE(StrategyInterface):
         return delete_null_values(was_revision_of)
 
     def get_was_derived_from(self) -> Union[Dict, None]:
+        # Mapping: schema:wasDerivedFrom = spase:Association/spase:AssociationID
+        #   (if spase:AssociationType is "DerivedFrom" or "ChildEventOf")
+        # schema:wasDerivedFrom found at https://www.w3.org/TR/prov-o/#wasDerivedFrom
         was_derived_from = None
         was_derived_from = self.get_is_based_on()
         return delete_null_values(was_derived_from)
 
     def get_is_based_on(self) -> Union[Dict, None]:
-        # Mapping: schema:isBasedOn = spase:ResourceHeader/spase:Association/spase:AssociationID
+        # Mapping: schema:isBasedOn = spase:Association/spase:AssociationID
+        #   (if spase:AssociationType is "DerivedFrom" or "ChildEventOf")
         # schema:isBasedOn found at https://schema.org/isBasedOn
         is_based_on = []
         derivations = []
@@ -1145,8 +1148,8 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
     :param metadata:    The SPASE metadata object as an XML tree.
     
     :returns: The AccessURLs found in the SPASE record, separated into two dictionaries,
-                dataDownloads and potentialActions, depending on if they have a product key
-                associated with them or not. These dictionaries are setup to have the keys as
+                dataDownloads and potentialActions, depending on if they are a direct 
+                link to data or not. These dictionaries are setup to have the keys as
                 the url and the values to be a list containing their data format(s)
                 (and product key if applicable).
     """
@@ -1158,7 +1161,6 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
     encoder = []
     i = 0
     j = 0
-    downloadable = True
     root = metadata.getroot()
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
@@ -1202,50 +1204,28 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
             #print(f"exiting AccessInfo #{j}")
             j += 1
     for k, v in AccessURLs.items():
-        # if URL is direct link to download data, add to the dataDownloads dictionary
+        # if URL has no access key
         if not v:
             #print(i)
-            #TODO: figure out why cannot connect to ftp server with below code
-            # if ftp protocol, use wget or ftplib
-            if 'ftp' in k:
-                #res = wget_download(k)
-                #res = wget.download(k)
-                """files = []
-                before, protocol, host = k.partition("ftps://")
-                host, sep, path = host.partition("/")
-                filename = './example.txt'
-
-                ftp = ftplib.FTP(f"{host}") 
-                ftp.login() 
-                ftp.cwd(path)
-                #ftp.retrbinary("RETR " + filename, open(filename, 'wb').write)
-                try:
-                    files = ftp.nlst()
-                except ftplib.error_perm as resp:
-                    if str(resp) == "550 No files found":
-                        print("No files in this directory")
-                    else:
-                        raise
-                for res in files:
-                    print(res)
-                ftp.quit()"""
+            NonDataFileExt = ['html', 'com', 'gov', 'edu', 'org', 'eu', 'int']
+            DataFileExt = ['csv', 'cdf', 'fits', 'txt', 'nc', 'json', 'jpeg',
+                           'png', 'gif', 'tar', 'netcdf3', 'netcdf4', 'hdf5',
+                           'zarr', 'asdf', 'zip']
+            protocol, sep, domain = k.partition("://")
+            domain, sep, path = domain.partition("/")
+            domain, sep, ext = domain.rpartition(".")
+            # see if file extension is one associated w data files
+            #print(ext)
+            if ext not in DataFileExt:
+                downloadable = False
             else:
-            # add call to requests.get()
-                print(k)
-                res = requests.get(k, stream=True)
-                res.raise_for_status()
-                headers = res.headers
-                content_type = headers.get("content-type")
-                if 'html' in content_type.lower():
-                    downloadable = False
-                #print(res.text)
-            # if request returns html (not data), add to potentialActions instead
+                downloadable = True
+            # if URL is direct link to download data, add to the dataDownloads dictionary
             if downloadable:
-                #print(f"YAY for {k}")
                 dataDownloads[k] = [encoder[i]]
             else:
                 potentialActions[k] = [encoder[i], "None"]
-        # if URL requires more clicks to download data, add to the potentialActions dictionary
+        # if URL has access key, add to the potentialActions dictionary
         else:
             potentialActions[k] = [encoder[i], v]
         i += 1
@@ -1537,7 +1517,6 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                             if groupInfoURL:
                                 for each in groupInfoURL:
                                     groupURL.append(each["url"])
-                    # TODO: add filtering to only add unique entries of obsID and obsGrpID
                                 if observatoryGroupID not in recordedIDs:
                                     observatory.append({"@type": "ResearchProject",
                                                         "@id": observatoryGroupID,
@@ -1632,9 +1611,12 @@ def get_cadenceContext(cadence:str) -> str:
     return context
 
 def get_is_related_to(metadata: etree.ElementTree) -> Union[Dict, None]:
+    """
+    :param metadata:    The SPASE metadata object as an XML tree.
+
+    :returns:   The ID's of other SPASE records related to this one in some way, as a dictionary.
+    """
     # schema:isRelatedTo found at https://schema.org/isRelatedTo
-    #ObsBy = False
-    #PartOf = False
     root = metadata.getroot()
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
@@ -1649,11 +1631,6 @@ def get_is_related_to(metadata: etree.ElementTree) -> Union[Dict, None]:
                 elif child.tag.endswith("AssociationType"):
                     type = child.text
             if type == "Other":
-            #if type in ["ObservedBy", "PartOf"]:
-                #if type == "ObservedBy":
-                    #ObsBy = True
-                #else:
-                    #PartOf = True
                 relations.append(A_ID)
     if relations == []:
         is_related_to = None
@@ -1661,28 +1638,43 @@ def get_is_related_to(metadata: etree.ElementTree) -> Union[Dict, None]:
         is_related_to = {"@id": f"{relations}"}
     return is_related_to
 
-def wget_download(url) -> Dict:
-    cmd = ["wget", url]
-    try:
-        # Run the wget command
-        subprocess.run(cmd, check=True)
-        return {"success": True, "message": "Download completed successfully."}
-    except subprocess.CalledProcessError as e:
-        return {"success": False, "message": f"Download failed: {e}"}
+def get_is_part_of(metadata: etree.ElementTree) -> Union[Dict, None]:
+    """
+    :param metadata:    The SPASE metadata object as an XML tree.
 
-#TODO: add docstring
+    :returns:   The ID(s) of the larger resource this SPASE record is a portion of, as a dictionary.
+    """
+    # schema:isPartOf found at https://schema.org/isPartOf
+    root = metadata.getroot()
+    for elt in root.iter(tag=etree.Element):
+        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+            desiredRoot = elt
+    relations = []
+    for child in desiredRoot.iter(tag=etree.Element):
+        if child.tag.endswith("Association"):
+            targetChild = child
+            for child in targetChild:
+                if child.tag.endswith("AssociationID"):
+                    A_ID = child.text
+                elif child.tag.endswith("AssociationType"):
+                    type = child.text
+            if type == "PartOf":
+                relations.append(A_ID)
+    if relations == []:
+        is_part_of = None
+    else:
+        is_part_of = {"@id": f"{relations}"}
+    return is_part_of
+
+
 def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sameAs", "url", "name", "description", "date_published",
                                                         "keywords", "creator", "citation", "temporal_coverage", "spatial_coverage",
                                                         "publisher", "distribution", "potential_action", "variable_measured", 
                                                         "funding", "license", "was_revision_of", "was_derived_from", "is_based_on", 
-                                                        "is_related_to", "date_created", "date_modified", "contributor", "measurement_type",
-                                                        "instrument", "observatory", "alternate_name", "inLanguage"]) -> None:
+                                                        "is_related_to", "is_part_of", "date_created", "date_modified", "contributor",
+                                                        "measurement_type", "instrument", "observatory", "alternate_name", "inLanguage"]) -> None:
     # list that holds SPASE records already checked
     searched = []
-    Observed = []
-    PartOf = []
-    Other = []
-    AssocIDs = []
     SPASE_paths = []
 
     # obtains all filepaths to all SPASE records found in given directory
@@ -1712,8 +1704,6 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 print(record)
                 print()
                 testSpase = SPASE(record)
-                ResourceName = testSpase.get_name()
-                ResourceID = testSpase.get_id()
 
                 #print(testSpase.get_is_accessible_for_free())
                 id = testSpase.get_id()
@@ -1742,11 +1732,12 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 is_based_on = testSpase.get_is_based_on()
                 #is_related_to, ObsBy, Part = get_is_related_to(testSpase.metadata)
                 is_related_to = get_is_related_to(testSpase.metadata)
+                is_part_of = get_is_part_of(testSpase.metadata)
                 measurement_type = get_measurement_type(testSpase.metadata)
                 instrument = get_instrument(testSpase.metadata, record)
                 observatory = get_observatory(testSpase.metadata, record)
                 alternate_name = get_alternate_name(testSpase.metadata)
-                inLanguage = "en"
+                inLanguage = 'en'
 
                 if printFlag:
                     for property in desiredProperties:
@@ -1817,8 +1808,12 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                                 print("No contributors found.")
                         elif property == "distribution" or property == "potential_action":
                             if property == "distribution":
-                                print(" distribution:", end=" ")
-                                print(json.dumps(distribution, indent=4))
+                                if distribution is not None:
+                                    print(" distribution:", end=" ")
+                                    print(json.dumps(distribution, indent=4))
+                                    #raise ValueError("A dataDownload was found!")
+                                else:
+                                    print("No dataDownloads were found")
                             else:
                                 if potential_action is not None:
                                     print(" potential_action:", end=" ")
@@ -1849,7 +1844,6 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                                 print("No license for the dataset was found.")
                         elif property == "was_revision_of":
                             if was_revision_of is not None:
-                                print("Yay")
                                 print(" prov:was_revision_of:", end=" ")
                                 print(json.dumps(was_revision_of, indent=4))
                             else:
@@ -1870,19 +1864,16 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                         # only 25 in NumericalData have "ObservedBy" or "PartOf" associationIDs
                         elif property == "is_related_to":
                             if is_related_to is not None:
-                                #if ObsBy and Part:
-                                    #Observed.append(ResourceID)
-                                    #PartOf.append(ResourceID)
-                                #elif Part:
-                                    #PartOf.append(ResourceID)
-                                #else:
-                                    #Observed.append(ResourceID)
-                                #AssocIDs.append(is_related_to["@id"])
-                                #Other.append(ResourceID)
                                 print(" schema:is_related_to:", end=" ")
                                 print(json.dumps(is_related_to, indent=4))
                             else:
                                 print("No is_related_to was found.")
+                        elif property == "is_part_of":
+                            if is_part_of is not None:
+                                print(" schema:isPartOf:", end=" ")
+                                print(json.dumps(is_part_of, indent=4))
+                            else:
+                                print("No is_part_of was found.")
                         elif property == "variable_measured":
                             if variable_measured is not None:
                                 print(" variable_measured:", end=" ")
@@ -1921,10 +1912,10 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
 
                 # add record to searched
                 searched.append(record)
-    #return Other, AssocIDs
 
 # test directories
-#folder = "C:/Users/zboquet/NASA/DisplayData"
+folder = "C:/Users/zboquet/NASA/DisplayData"
+#folder = "C:/Users/zboquet/NASA/DisplayData/ACE/MAG"
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
 #Other1, AssocIDs1 = 
@@ -1936,18 +1927,6 @@ main(folder, True, ["distribution"])
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 # start at list item 163 if want to skip ACE folder
 folder = "C:/Users/zboquet/NASA/NumericalData"
-#Other, AssocIDs = main(folder, True, ["is_related_to"])
-
-#Other += Other1
-#AssocIDs += AssocIDs1
-#Type = []
-#for record in Other:
-    #Type.append("Other")
-#df_pub = pd.DataFrame({'ResourceID': Other,
-                    #'AssociationType': Type,
-                    #'AssociationID': AssocIDs})
-#file_name_pub = "C:/Users/zboquet/Documents/noPublishersDisplayData.xlsx"
-#file_name_pub = "C:/Users/zboquet/Documents/SPASE_Records_with_Other.xlsx"
-#df_pub.to_excel(file_name_pub)
+#main(folder, True, ["distribution"])
 
 
