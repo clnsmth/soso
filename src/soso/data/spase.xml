@@ -84,8 +84,8 @@
          <AssociationType>DerivedFrom</AssociationType>
          </Association>
          <Association>
-         <AssociationID>spase://NASA/NumericalData/DE1/Ephemeris/PT8S</AssociationID>
-         <AssociationType>DerivedFrom</AssociationType>
+         <AssociationID>spase://NASA/NumericalData/Ulysses/COSPIN/HET/Rates/SpinAveraged/PT10M</AssociationID>
+         <AssociationType>PartOf</AssociationType>
          </Association>
          <Association>
          <AssociationID>spase://NASA/NumericalData/ACE/EPAM/LEFS150/MFSA/SolarWindFrame/Sectored/Proton/Fluxes/PT17M</AssociationID>
