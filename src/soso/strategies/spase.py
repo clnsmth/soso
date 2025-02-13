@@ -192,7 +192,7 @@ class SPASE(StrategyInterface):
         dataset = ""
         i = 0
 
-        authorTemp, authorRole, pubDate, pub, contributor, dataset, backups = get_authors(self.metadata)
+        authorTemp, authorRole, pubDate, pub, contributor, dataset, backups, contactsList = get_authors(self.metadata)
         pubDate = pubDate[:4]
         authorStr = str(authorTemp)
         authorStr = authorStr.replace("[", "").replace("]","")
@@ -602,7 +602,7 @@ class SPASE(StrategyInterface):
         # Mapping: schema:datePublished = spase:ResourceHeader/spase:PublicationInfo/spase:PublicationDate
         # OR spase:ResourceHeader/spase:RevisionHistory/spase:ReleaseDate
         # Using schema:DateTime as defined in: https://schema.org/DateTime        
-        author, authorRole, pubDate, publisher, contributor, dataset, backups = get_authors(self.metadata)
+        author, authorRole, pubDate, publisher, contributor, dataset, backups, contactsList = get_authors(self.metadata)
         date_published = None
         release, revisions = get_dates(self.metadata)
         if pubDate == "":
@@ -707,7 +707,7 @@ class SPASE(StrategyInterface):
         # Each item is:
         #   {@type: Role, roleName: Contact Role, creator: {@type: Person, name: Author Name, givenName: First Name, familyName: Last Name}}
         # Using schema:Creator as defined in: https://schema.org/creator
-        author, authorRole, pubDate, pub, contributor, dataset, backups = get_authors(self.metadata)
+        author, authorRole, pubDate, pub, contributor, dataset, backups, contactsList = get_authors(self.metadata)
         authorStr = str(author).replace("[", "").replace("]","")
         creator = []
         multiple = False
@@ -722,14 +722,11 @@ class SPASE(StrategyInterface):
                     index = author.index(person)
                 else:
                     index = 0
+                # add call to get ORCiD and affiliation here
                 authorStr, givenName, familyName = nameSplitter(person)
-                creator.append({"@type": "Role", 
-                                "roleName": f"{authorRole[index]}",
-                                "creator": {"@type": "Person",
-                                            "name": f"{authorStr}",
-                                            "givenName": f"{givenName}",
-                                            "familyName": f"{familyName}"}
-                                            })
+                orcidID, affiliation = get_ORCiD_and_Affiliation(person, self.file)
+                creatorEntry = creatorFormat(authorRole[index], authorStr, givenName, familyName, affiliation, orcidID)
+                creator.append(creatorEntry)
         # if all creators were found in PublicationInfo/Authors
         else:
             # if there are multiple authors
@@ -757,18 +754,18 @@ class SPASE(StrategyInterface):
                         else:
                             givenName, sep, familyName = person.partition(". ")
                             givenName += "."
-                        if ", " in person:
-                            familyName, sep, givenName = person.partition(", ")
-                        else:
-                            givenName, sep, familyName = person.partition(". ")
-                            givenName += "."
-                        creator.append({"@type": "Role", 
-                                        "roleName": f"{authorRole[0]}",
-                                        "creator": {"@type": "Person",
-                                                    "name": f"{person}",
-                                                    "givenName": f"{givenName}",
-                                                    "familyName": f"{familyName}"}
-                                                    })
+                        # add call to ORCiD and affiliation
+                        # iterate thru contacts to find one that matches the current person
+                        for contact in contactsList:
+                            firstName, sep, lastName = contact.rpartition(".")
+                            firstName, sep, initial = firstName.partition(".")
+                            path, sep, firstName = firstName.rpartition("/")
+                            #print("First: " + firstName + "\nInitial: " + initial + "\nLast: " + lastName)
+                            if (firstName in person) and (initial in person) and (lastName in person):
+                                matchingContact = contact
+                        orcidID, affiliation = get_ORCiD_and_Affiliation(matchingContact, self.file)
+                        creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName, affiliation, orcidID)
+                        creator.append(creatorEntry)
             # if there is only one author listed
             else:
                 # get rid of extra quotations
@@ -780,13 +777,16 @@ class SPASE(StrategyInterface):
                         givenName, sep, familyName = familyName.partition(". ")
                         initial, sep, familyName = familyName.partition(" ")
                         givenName = givenName + ". " + initial[0] + "."
-                    creator.append({"@type": "Role", 
-                                    "roleName": f"{authorRole[0]}",
-                                    "creator": {"@type": "Person",
-                                                "name": f"{person}",
-                                                "givenName": f"{givenName}",
-                                                "familyName": f"{familyName}"}
-                                                })
+                    # add call to get ORCiD and affiliation
+                    # iterate thru contacts to find one that matches the current person
+                    for contact in contactsList:
+                        firstName, sep, lastName = contact.rpartition(".")
+                        firstName, sep, initial = firstName.partition(".")
+                        if (firstName in person) and (initial in person) and (lastName in person):
+                            matchingContact = contact
+                    orcidID, affiliation = get_ORCiD_and_Affiliation(matchingContact, self.file)
+                    creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName, affiliation, orcidID)
+                    creator.append(creatorEntry)
         # preserve order of elements
         if len(creator) != 0:
             creator = {"@list": creator}
@@ -799,14 +799,16 @@ class SPASE(StrategyInterface):
         # Each item is:
         #   {@type: Role, roleName: Contributor or curator role, contributor: {@type: Person, name: Author Name, givenName: First Name, familyName: Last Name}}
         # Using schema:Person as defined in: https://schema.org/Person
-        author, authorRole, pubDate, pub, contributors, dataset, backups = get_authors(self.metadata)
+        author, authorRole, pubDate, pub, contributors, dataset, backups, contactsList = get_authors(self.metadata)
         contributor = []
         # holds role values that are not initially considered for contributor var
         CuratorRoles = ["HostContact", "GeneralContact", "DataProducer", "MetadataContact", "TechnicalContact"]
         
         for person in contributors:
+            # add call to get ORCiD and affiliation
             contributorStr, givenName, familyName = nameSplitter(person)
-            individual = contributorFormat("Contributor", contributorStr, givenName, familyName)
+            orcidID, affiliation = get_ORCiD_and_Affiliation(person, self.file)
+            individual = contributorFormat("Contributor", contributorStr, givenName, familyName, affiliation, orcidID)
             contributor.append(individual)
         # if no contributor found use backups (editors)
         if contributor == []:
@@ -818,14 +820,17 @@ class SPASE(StrategyInterface):
                 keys = [key for key, val in backups.items() if CuratorRoles[i] in val]
                 if keys != []:
                     for key in keys:
+                        # add call to get ORCiD and affiliation
                         editorStr, givenName, familyName = nameSplitter(key)
-                        individual = contributorFormat(CuratorRoles[i], editorStr, givenName, familyName)
+                        orcidID, affiliation = get_ORCiD_and_Affiliation(key, self.file)
+                        individual = contributorFormat(CuratorRoles[i], editorStr, givenName, familyName, affiliation, orcidID)
                         contributor.append(individual)
                         found = True
                 i += 1
         # preserve order of elements
         if len(contributor) != 0:
-            contributor = {"@list": contributor}
+            if len(contributor) > 1:
+                contributor = {"@list": contributor}
         else:
             contributor = None
 
@@ -842,7 +847,7 @@ class SPASE(StrategyInterface):
         # Each item is:
         #   {@type: Organization, name: PublishedBy OR Contact (if Role = Publisher) OR RepositoryID}
         # Using schema:Organization as defined in: https://schema.org/Organization
-        author, authorRole, pubDate, publisher, contributor, dataset, backups = get_authors(self.metadata)
+        author, authorRole, pubDate, publisher, contributor, dataset, backups, contactsList = get_authors(self.metadata)
         if publisher == "":
             #publisher = None
             RepoID = get_repoID(self.metadata)
@@ -1043,6 +1048,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
     """
     # local vars needed
     author = []
+    contactsList = []
     authorRole = []
     pubDate = ""
     pub = ""
@@ -1075,6 +1081,8 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                                     # store PersonID
                                     PersonID = child.text
                                     backups[PersonID] = []
+                                    # add to ContactsList
+                                    contactsList.append(PersonID)
                                 # find Role
                                 elif child.tag.endswith("Role"):
                                     # backup author
@@ -1115,7 +1123,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
             # collect preferred dataset
             elif child.tag.endswith("Title"):
                 dataset = child.text
-    return author, authorRole, pubDate, pub, contributor, dataset, backups
+    return author, authorRole, pubDate, pub, contributor, dataset, backups, contactsList
 
 def getPaths(entry, paths) -> list:
     """Takes the absolute path of a SPASE record directory to be walked
@@ -1298,24 +1306,87 @@ def get_repoID(metadata: etree.ElementTree) -> str:
                     repoID = child.text
     return repoID
 
-def contributorFormat(roleName:str, name:str, givenName:str, familyName:str) -> Dict:
+def contributorFormat(roleName:str, name:str, givenName:str, familyName:str, affiliation:str, orcidID:str) -> Dict:
     """
-    :param roleName:    The value found in the Role field associated with this Contact
-    :param name:    The full name of the Contact, as formatted in the SPASE record
-    :param givenName:    The first name/initial and middle name/initial of the Contact
-    :param familyName:    The last name of the Contact
+    :param roleName: The value found in the Role field associated with this Contact
+    :param name: The full name of the Contact, as formatted in the SPASE record
+    :param givenName: The first name/initial and middle name/initial of the Contact
+    :param familyName: The last name of the Contact
+    :param affiliation: The organization this Contact is affiliated with.
+    :param orcidID: The ORCiD identifier for this Contact
 
     :returns:   The entry in the correct format to append to the contributor dictionary
     """
     
-    contact = {"@type": "Role", 
+    domain, sep, orcidVal = orcidID.rpartition("/")
+
+    if orcidID:
+        contact = {"@type": "Role", 
+                    "roleName": f"{roleName}",
+                    "contributor": {"@type": "Person",
+                                    "name": f"{name}",
+                                    "givenName": f"{givenName}",
+                                    "familyName": f"{familyName}",
+                                    "affiliation": {"@type": "Organization",
+                                                    "name": f"{affiliation}"},
+                                    "identifier": {"@id": f"https://orcid.org/{orcidID}",
+                                                    "@type": "PropertyValue",
+                                                    "propertyID": "https://registry.identifiers.org/registry/orcid",
+                                                    "url": f"https://orcid.org/{orcidID}",
+                                                    "value": f"orcid:{orcidVal}"}}
+                    }
+    else:
+        contact = {"@type": "Role", 
                 "roleName": f"{roleName}",
                 "contributor": {"@type": "Person",
                                 "name": f"{name}",
                                 "givenName": f"{givenName}",
-                                "familyName": f"{familyName}"}
+                                "familyName": f"{familyName}",
+                                "affiliation": {"@type": "Organization",
+                                                "name": f"{affiliation}"}}
                 }
+
     return contact
+
+def creatorFormat(roleName:str, name:str, givenName:str, familyName:str, affiliation:str, orcidID:str) -> Dict:
+    """
+    :param roleName: The value found in the Role field associated with this Contact
+    :param name: The full name of the Contact, as formatted in the SPASE record
+    :param givenName: The first name/initial and middle name/initial of the Contact
+    :param familyName: The last name of the Contact
+    :param affiliation: The organization this Contact is affiliated with.
+    :param orcidID: The ORCiD identifier for this Contact
+
+    :returns:   The entry in the correct format to append to the creator dictionary
+    """
+
+    domain, sep, orcidVal = orcidID.rpartition("/")
+    if orcidID:
+        creator = {"@type": "Role", 
+                    "roleName": f"{roleName}",
+                    "creator": {"@type": "Person",
+                                "name": f"{name}",
+                                "givenName": f"{givenName}",
+                                "familyName": f"{familyName}",
+                                "affiliation": {"@type": "Organization",
+                                                "name": f"{affiliation}"},
+                                "identifier": {"@id": orcidID,
+                                                "@type": "PropertyValue",
+                                                "propertyID": "https://registry.identifiers.org/registry/orcid",
+                                                "url": f"{orcidID}",
+                                                "value": f"orcid:{orcidVal}"}}
+                        }
+    else:
+        creator = {"@type": "Role", 
+                    "roleName": f"{roleName}",
+                    "creator": {"@type": "Person",
+                                "name": f"{name}",
+                                "givenName": f"{givenName}",
+                                "familyName": f"{familyName}",
+                                "affiliation": {"@type": "Organization",
+                                                "name": f"{affiliation}"}}
+                    }
+    return creator
 
 def nameSplitter(person:str) -> tuple:
     """
@@ -1666,6 +1737,25 @@ def get_is_part_of(metadata: etree.ElementTree) -> Union[Dict, None]:
         is_part_of = {"@id": f"{relations}"}
     return is_part_of
 
+def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple:
+    # takes PersonID and follows its link to get ORCIdentifier and OrganizationName
+    orcidID = ""
+    affiliation = ""
+    absPath, sep, after = file.partition("NASA/")
+    record = absPath + PersonID.replace("spase://","") + ".xml"
+    record = record.replace("'","")
+    if os.path.isfile(record):
+        testSpase = SPASE(record)
+        root = testSpase.metadata.getroot()
+        for elt in root.iter(tag=etree.Element):
+            if elt.tag.endswith("Person"):
+                desiredRoot = elt
+        for child in desiredRoot.iter(tag=etree.Element):
+            if child.tag.endswith("ORCIdentifier"):
+                orcidID = child.text
+            elif child.tag.endswith("OrganizationName"):
+                affiliation = child.text
+    return orcidID, affiliation
 
 def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sameAs", "url", "name", "description", "date_published",
                                                         "keywords", "creator", "citation", "temporal_coverage", "spatial_coverage",
@@ -1919,7 +2009,7 @@ folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
 #Other1, AssocIDs1 = 
-main(folder, True, ["distribution"])
+main(folder, True, ["creator", "contributor"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
