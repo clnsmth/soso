@@ -711,6 +711,7 @@ class SPASE(StrategyInterface):
         authorStr = str(author).replace("[", "").replace("]","")
         creator = []
         multiple = False
+        matchingContact = None
         # if creators were found in Contact/PersonID
         if "Person/" in authorStr:
             # if multiple found, split them and iterate thru one by one
@@ -763,8 +764,11 @@ class SPASE(StrategyInterface):
                             #print("First: " + firstName + "\nInitial: " + initial + "\nLast: " + lastName)
                             if (firstName in person) and (initial in person) and (lastName in person):
                                 matchingContact = contact
-                        orcidID, affiliation = get_ORCiD_and_Affiliation(matchingContact, self.file)
-                        creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName, affiliation, orcidID)
+                        if matchingContact is not None:
+                            orcidID, affiliation = get_ORCiD_and_Affiliation(matchingContact, self.file)
+                            creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName, affiliation, orcidID)
+                        else:
+                            creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName)
                         creator.append(creatorEntry)
             # if there is only one author listed
             else:
@@ -782,10 +786,15 @@ class SPASE(StrategyInterface):
                     for contact in contactsList:
                         firstName, sep, lastName = contact.rpartition(".")
                         firstName, sep, initial = firstName.partition(".")
+                        path, sep, firstName = firstName.rpartition("/")
+                        #print("First: " + firstName + "\nInitial: " + initial + "\nLast: " + lastName)
                         if (firstName in person) and (initial in person) and (lastName in person):
                             matchingContact = contact
-                    orcidID, affiliation = get_ORCiD_and_Affiliation(matchingContact, self.file)
-                    creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName, affiliation, orcidID)
+                    if matchingContact is not None:
+                        orcidID, affiliation = get_ORCiD_and_Affiliation(matchingContact, self.file)
+                        creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName, affiliation, orcidID)
+                    else:
+                        creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName)
                     creator.append(creatorEntry)
         # preserve order of elements
         if len(creator) != 0:
@@ -856,16 +865,16 @@ class SPASE(StrategyInterface):
         if ("SDAC" in publisher) or ("Solar Data Analysis Center" in publisher):
             publisher = {"@id": "https://ror.org/04rvfc379",
                             "@type": "Organization",
-                            "name": f"{publisher}",
+                            "name": publisher,
                             "url": "https://ror.org/04rvfc379"}
         elif ("SPDF" in publisher) or ("Solar Physics Data Facility" in publisher):
             publisher = {"@id": "https://ror.org/00ryjtt64",
                             "@type": "Organization",
-                            "name": f"{publisher}",
+                            "name": publisher,
                             "url": "https://ror.org/00ryjtt64"}
         else:
             publisher = {"@type": "Organization",
-                            "name": f"{publisher}"}
+                            "name": publisher}
         return delete_null_values(publisher)
 
     def get_funding(self) -> Union[List[Dict], None]:
@@ -884,6 +893,7 @@ class SPASE(StrategyInterface):
             if child.tag.endswith("Funding"):
                 targetChild = child
                 for child in targetChild:
+                    # TODO: add call to get ROR for agency
                     if child.tag.endswith("Agency"):
                         agency.append(child.text)
                     elif child.tag.endswith("Project"):
@@ -978,7 +988,17 @@ class SPASE(StrategyInterface):
         if relations == []:
             was_revision_of = None
         else:
-            was_revision_of = {"@id": f"{relations}"}
+            i = 0
+            # try and get DOI instead of SPASE ID
+            for record in relations:
+                absPath, sep, after = self.file.partition("NASA/")
+                record = absPath + record.replace("spase://","") + ".xml"
+                record = record.replace("'","")
+                if os.path.isfile(record):
+                    testSpase = SPASE(record)
+                    relations[i] = testSpase.get_url()
+                i += 1
+            was_revision_of = {"@id": relations}
         return delete_null_values(was_revision_of)
 
     def get_was_derived_from(self) -> Union[Dict, None]:
@@ -1008,7 +1028,19 @@ class SPASE(StrategyInterface):
         if derivations == []:
             is_based_on = None
         else:
-            is_based_on = {"@id": f"{derivations}"}
+            i = 0
+            # try and get DOI instead of SPASE ID
+            for record in derivations:
+                absPath, sep, after = self.file.partition("NASA/")
+                record = absPath + record.replace("spase://","") + ".xml"
+                record = record.replace("'","")
+                if os.path.isfile(record):
+                    testSpase = SPASE(record)
+                    derivations[i] = testSpase.get_url()
+                else:
+                    raise ValueError("Could not access associated SPASE record.")
+                i += 1
+            is_based_on = {"@id": derivations}
         return delete_null_values(is_based_on)
 
     def get_was_generated_by(self) -> None:
@@ -1216,7 +1248,7 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
         if not v:
             #print(i)
             NonDataFileExt = ['html', 'com', 'gov', 'edu', 'org', 'eu', 'int']
-            DataFileExt = ['csv', 'cdf', 'fits', 'txt', 'nc', 'json', 'jpeg',
+            DataFileExt = ['csv', 'cdf', 'fits', 'txt', 'nc', 'jpeg',
                            'png', 'gif', 'tar', 'netcdf3', 'netcdf4', 'hdf5',
                            'zarr', 'asdf', 'zip']
             protocol, sep, domain = k.partition("://")
@@ -1306,7 +1338,7 @@ def get_repoID(metadata: etree.ElementTree) -> str:
                     repoID = child.text
     return repoID
 
-def contributorFormat(roleName:str, name:str, givenName:str, familyName:str, affiliation:str, orcidID:str) -> Dict:
+def contributorFormat(roleName:str, name:str, givenName:str, familyName:str, affiliation="", orcidID="") -> Dict:
     """
     :param roleName: The value found in the Role field associated with this Contact
     :param name: The full name of the Contact, as formatted in the SPASE record
@@ -1320,35 +1352,43 @@ def contributorFormat(roleName:str, name:str, givenName:str, familyName:str, aff
     
     domain, sep, orcidVal = orcidID.rpartition("/")
 
-    if orcidID:
+    if orcidID and affiliation:
         contact = {"@type": "Role", 
-                    "roleName": f"{roleName}",
+                    "roleName": roleName,
                     "contributor": {"@type": "Person",
-                                    "name": f"{name}",
-                                    "givenName": f"{givenName}",
-                                    "familyName": f"{familyName}",
+                                    "name": name,
+                                    "givenName": givenName,
+                                    "familyName": familyName,
                                     "affiliation": {"@type": "Organization",
-                                                    "name": f"{affiliation}"},
+                                                    "name": affiliation},
                                     "identifier": {"@id": f"https://orcid.org/{orcidID}",
                                                     "@type": "PropertyValue",
                                                     "propertyID": "https://registry.identifiers.org/registry/orcid",
                                                     "url": f"https://orcid.org/{orcidID}",
                                                     "value": f"orcid:{orcidVal}"}}
                     }
+    elif affiliation:
+        contact = {"@type": "Role", 
+                "roleName": roleName,
+                "contributor": {"@type": "Person",
+                                "name": name,
+                                "givenName": givenName,
+                                "familyName": familyName,
+                                "affiliation": {"@type": "Organization",
+                                                "name": affiliation}}
+                }
     else:
         contact = {"@type": "Role", 
-                "roleName": f"{roleName}",
+                "roleName": roleName,
                 "contributor": {"@type": "Person",
-                                "name": f"{name}",
-                                "givenName": f"{givenName}",
-                                "familyName": f"{familyName}",
-                                "affiliation": {"@type": "Organization",
-                                                "name": f"{affiliation}"}}
-                }
+                                "name": name,
+                                "givenName": givenName,
+                                "familyName": familyName}
+                }        
 
     return contact
 
-def creatorFormat(roleName:str, name:str, givenName:str, familyName:str, affiliation:str, orcidID:str) -> Dict:
+def creatorFormat(roleName:str, name:str, givenName:str, familyName:str, affiliation="", orcidID="") -> Dict:
     """
     :param roleName: The value found in the Role field associated with this Contact
     :param name: The full name of the Contact, as formatted in the SPASE record
@@ -1361,30 +1401,38 @@ def creatorFormat(roleName:str, name:str, givenName:str, familyName:str, affilia
     """
 
     domain, sep, orcidVal = orcidID.rpartition("/")
-    if orcidID:
+    if orcidID and affiliation:
         creator = {"@type": "Role", 
-                    "roleName": f"{roleName}",
+                    "roleName": roleName,
                     "creator": {"@type": "Person",
-                                "name": f"{name}",
-                                "givenName": f"{givenName}",
-                                "familyName": f"{familyName}",
+                                "name": name,
+                                "givenName": givenName,
+                                "familyName": familyName,
                                 "affiliation": {"@type": "Organization",
-                                                "name": f"{affiliation}"},
-                                "identifier": {"@id": orcidID,
+                                                "name": affiliation},
+                                "identifier": {"@id": f"https://orcid.org/{orcidID}",
                                                 "@type": "PropertyValue",
                                                 "propertyID": "https://registry.identifiers.org/registry/orcid",
-                                                "url": f"{orcidID}",
+                                                "url": f"https://orcid.org/{orcidID}",
                                                 "value": f"orcid:{orcidVal}"}}
                         }
+    elif affiliation:
+        creator = {"@type": "Role", 
+                    "roleName": roleName,
+                    "creator": {"@type": "Person",
+                                "name": name,
+                                "givenName": givenName,
+                                "familyName": familyName,
+                                "affiliation": {"@type": "Organization",
+                                                "name": affiliation}}
+                    }
     else:
         creator = {"@type": "Role", 
-                    "roleName": f"{roleName}",
+                    "roleName": roleName,
                     "creator": {"@type": "Person",
-                                "name": f"{name}",
-                                "givenName": f"{givenName}",
-                                "familyName": f"{familyName}",
-                                "affiliation": {"@type": "Organization",
-                                                "name": f"{affiliation}"}}
+                                "name": name,
+                                "givenName": givenName,
+                                "familyName": familyName}
                     }
     return creator
 
@@ -1681,7 +1729,7 @@ def get_cadenceContext(cadence:str) -> str:
         context = None
     return context
 
-def get_is_related_to(metadata: etree.ElementTree) -> Union[Dict, None]:
+def get_is_related_to(metadata: etree.ElementTree, path:str) -> Union[Dict, None]:
     """
     :param metadata:    The SPASE metadata object as an XML tree.
 
@@ -1706,10 +1754,22 @@ def get_is_related_to(metadata: etree.ElementTree) -> Union[Dict, None]:
     if relations == []:
         is_related_to = None
     else:
-        is_related_to = {"@id": f"{relations}"}
+        i = 0
+        # try and get DOI instead of SPASE ID
+        for record in relations:
+            absPath, sep, after = path.partition("NASA/")
+            record = absPath + record.replace("spase://","") + ".xml"
+            record = record.replace("'","")
+            if os.path.isfile(record):
+                testSpase = SPASE(record)
+                relations[i] = testSpase.get_url()
+            else:
+                raise ValueError("Could not access associated SPASE record.")
+            i += 1
+        is_related_to = {"@id": relations}
     return is_related_to
 
-def get_is_part_of(metadata: etree.ElementTree) -> Union[Dict, None]:
+def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[Dict, None]:
     """
     :param metadata:    The SPASE metadata object as an XML tree.
 
@@ -1734,7 +1794,19 @@ def get_is_part_of(metadata: etree.ElementTree) -> Union[Dict, None]:
     if relations == []:
         is_part_of = None
     else:
-        is_part_of = {"@id": f"{relations}"}
+        i = 0
+        # try and get DOI instead of SPASE ID
+        for record in relations:
+            absPath, sep, after = path.partition("NASA/")
+            record = absPath + record.replace("spase://","") + ".xml"
+            record = record.replace("'","")
+            if os.path.isfile(record):
+                testSpase = SPASE(record)
+                relations[i] = testSpase.get_url()
+            else:
+                raise ValueError("Could not access associated SPASE record.")
+            i += 1
+        is_part_of = {"@id": relations}
     return is_part_of
 
 def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple:
@@ -1821,8 +1893,8 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 was_derived_from = testSpase.get_was_derived_from()
                 is_based_on = testSpase.get_is_based_on()
                 #is_related_to, ObsBy, Part = get_is_related_to(testSpase.metadata)
-                is_related_to = get_is_related_to(testSpase.metadata)
-                is_part_of = get_is_part_of(testSpase.metadata)
+                is_related_to = get_is_related_to(testSpase.metadata, record)
+                is_part_of = get_is_part_of(testSpase.metadata, record)
                 measurement_type = get_measurement_type(testSpase.metadata)
                 instrument = get_instrument(testSpase.metadata, record)
                 observatory = get_observatory(testSpase.metadata, record)
@@ -2006,10 +2078,8 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
 # test directories
 folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/DisplayData/ACE/MAG"
-#folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
-folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-#Other1, AssocIDs1 = 
-main(folder, True, ["creator", "contributor"])
+#folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
+main(folder, False, ["creator", "contributor"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
@@ -2017,6 +2087,6 @@ main(folder, True, ["creator", "contributor"])
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 # start at list item 163 if want to skip ACE folder
 folder = "C:/Users/zboquet/NASA/NumericalData"
-#main(folder, True, ["distribution"])
+#main(folder, False, ["is_part_of"])
 
 
