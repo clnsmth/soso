@@ -27,7 +27,7 @@
          <PublicationInfo>
             <Authors>Fuselier, Stephen, A.; Young, David, T.; Gomez, Roman, G.; Burch, James, L.</Authors>
             <PublicationDate>2022-01-01T00:00:00</PublicationDate>
-            <PublishedBy>NASA Space Physics Data Facility</PublishedBy>
+            <PublishedBy>Space Physics Data Facility</PublishedBy>
          </PublicationInfo>
          <Funding>
          <Agency>National Aeronautics and Space Administration</Agency>
@@ -81,7 +81,7 @@
          </Association>
          <Association>
          <AssociationID>spase://NASA/NumericalData/DE1/PWI/LFC/PT0.25S</AssociationID>
-         <AssociationType>DerivedFrom</AssociationType>
+         <AssociationType>RevisionOf</AssociationType>
          </Association>
          <Association>
          <AssociationID>spase://NASA/NumericalData/Ulysses/COSPIN/HET/Rates/SpinAveraged/PT10M</AssociationID>
@@ -126,8 +126,8 @@
          </AccessURL>
          <AccessURL>
             <Name>HTTPS from SPDF</Name>
-            <URL>https://spdf.gsfc.nasa.gov/pub/data/mms/mms4/hpca/brst/l2/ion/</URL>
-            <Description>In CDF via http from SPDF</Description>
+            <URL>https://spdf.gsfc.nasa.gov/pub/data/cassini/helio1day/cassini_helio1day_position_19971016_v01.cdf</URL>
+            <Description>Access to Data in CDF Format via http from SPDF</Description>
          </AccessURL>
          <AccessURL>
             <Name>CDAWeb</Name>
