@@ -10,6 +10,8 @@ import re
 from datetime import datetime, timedelta
 import json
 import os
+import requests
+from pprint import pprint
 
 # pylint: disable=duplicate-code
 
@@ -115,6 +117,8 @@ class SPASE(StrategyInterface):
                 same_as.append(child.text)
         if same_as == []:
             same_as = None
+        elif len(same_as) == 1:
+            same_as = same_as[0]
         return delete_null_values(same_as)
 
     def get_version(self) -> None:
@@ -726,7 +730,8 @@ class SPASE(StrategyInterface):
                 # add call to get ORCiD and affiliation here
                 authorStr, givenName, familyName = nameSplitter(person)
                 orcidID, affiliation = get_ORCiD_and_Affiliation(person, self.file)
-                creatorEntry = creatorFormat(authorRole[index], authorStr, givenName, familyName, affiliation, orcidID)
+                ror = get_ROR(affiliation)
+                creatorEntry = creatorFormat(authorRole[index], authorStr, givenName, familyName, affiliation, orcidID, ror)
                 creator.append(creatorEntry)
         # if all creators were found in PublicationInfo/Authors
         else:
@@ -766,7 +771,8 @@ class SPASE(StrategyInterface):
                                 matchingContact = contact
                         if matchingContact is not None:
                             orcidID, affiliation = get_ORCiD_and_Affiliation(matchingContact, self.file)
-                            creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName, affiliation, orcidID)
+                            ror = get_ROR(affiliation)
+                            creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName, affiliation, orcidID, ror)
                         else:
                             creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName)
                         creator.append(creatorEntry)
@@ -792,7 +798,8 @@ class SPASE(StrategyInterface):
                             matchingContact = contact
                     if matchingContact is not None:
                         orcidID, affiliation = get_ORCiD_and_Affiliation(matchingContact, self.file)
-                        creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName, affiliation, orcidID)
+                        ror = get_ROR(affiliation)
+                        creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName, affiliation, orcidID, ror)
                     else:
                         creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName)
                     creator.append(creatorEntry)
@@ -817,7 +824,8 @@ class SPASE(StrategyInterface):
             # add call to get ORCiD and affiliation
             contributorStr, givenName, familyName = nameSplitter(person)
             orcidID, affiliation = get_ORCiD_and_Affiliation(person, self.file)
-            individual = contributorFormat("Contributor", contributorStr, givenName, familyName, affiliation, orcidID)
+            ror = get_ROR(affiliation)
+            individual = contributorFormat("Contributor", contributorStr, givenName, familyName, affiliation, orcidID, ror)
             contributor.append(individual)
         # if no contributor found use backups (editors)
         if contributor == []:
@@ -832,7 +840,8 @@ class SPASE(StrategyInterface):
                         # add call to get ORCiD and affiliation
                         editorStr, givenName, familyName = nameSplitter(key)
                         orcidID, affiliation = get_ORCiD_and_Affiliation(key, self.file)
-                        individual = contributorFormat(CuratorRoles[i], editorStr, givenName, familyName, affiliation, orcidID)
+                        ror = get_ROR(affiliation)
+                        individual = contributorFormat(CuratorRoles[i], editorStr, givenName, familyName, affiliation, orcidID, ror)
                         contributor.append(individual)
                         found = True
                 i += 1
@@ -861,19 +870,22 @@ class SPASE(StrategyInterface):
             #publisher = None
             RepoID = get_repoID(self.metadata)
             (before, sep, publisher) = RepoID.partition("Repository/")
-        #else:
         if ("SDAC" in publisher) or ("Solar Data Analysis Center" in publisher):
             publisher = {"@id": "https://ror.org/04rvfc379",
-                            "@type": "Organization",
-                            "name": publisher,
-                            "url": "https://ror.org/04rvfc379"}
-        elif ("SPDF" in publisher) or ("Solar Physics Data Facility" in publisher):
+                        "@type": "Organization",
+                        "name": publisher}
+        elif ("SPDF" in publisher) or ("Space Physics Data Facility" in publisher):
             publisher = {"@id": "https://ror.org/00ryjtt64",
-                            "@type": "Organization",
-                            "name": publisher,
-                            "url": "https://ror.org/00ryjtt64"}
+                        "@type": "Organization",
+                        "name": publisher}
         else:
-            publisher = {"@type": "Organization",
+            ror = get_ROR(publisher)
+            if ror:
+                publisher = {"@id": ror,
+                            "@type": "Organization",
+                            "name": publisher}
+            else:
+                publisher = {"@type": "Organization",
                             "name": publisher}
         return delete_null_values(publisher)
 
@@ -903,41 +915,44 @@ class SPASE(StrategyInterface):
         # if funding info was found
         if agency:
             i = 0
+            ror = get_ROR(agency)
             for funder in agency:
-                # if award number was found
-                if award:
+                if award and ror:
                     funding.append({"@type": "MonetaryGrant",
-                                    "funder": {"@type": "Organization",
-                                                "name": f"{funder}"
-                                    },
+                                    "funder": {"@id": ror,
+                                               "@type": "Organization",
+                                                "name": f"{funder}"},
                                     "identifier": f"{award[i]}",
                                     "name": f"{project[i]}"
                                     })
-                # if award number was not found
+                elif award:
+                    funding.append({"@type": "MonetaryGrant",
+                                    "funder": {"@type": "Organization",
+                                                "name": f"{funder}"},
+                                    "identifier": f"{award[i]}",
+                                    "name": f"{project[i]}"
+                                    })
+                elif ror:
+                    funding.append({"@type": "MonetaryGrant",
+                                    "funder": {"@id": ror,
+                                               "@type": "Organization",
+                                                "name": f"{funder}"},
+                                    "name": f"{project[i]}"
+                                })
+                # if ror and award number were not found
                 else:
-                    # funded by an agency
-                    if ";" not in funder:
-                        funding.append({"@type": "MonetaryGrant",
-                                        "funder": {"@type": "Organization",
-                                                    "name": f"{funder}"
-                                        },
-                                        "name": f"{project[i]}"
-                                    })
-                    # funded by a person and/thru an agency
-                    else:
-                        org, sep, person = funder.partition("; ")
-                        funding.append({"@type": "MonetaryGrant",
-                                        "funder": [{"@type": "Organization",
-                                                    "name": f"{org}"},
-                                                    {"@type": "Person",
-                                                    "name": f"{person}"}
-                                        ],
-                                        "name": f"{project[i]}"
-                                    })
+                    funding.append({"@type": "MonetaryGrant",
+                                    "funder": {"@type": "Organization",
+                                                "name": f"{funder}"},
+                                    "name": f"{project[i]}"
+                                })
                 i += 1
         # preserve order of elements
         if len(funding) != 0:
-            funding = {"@list": funding}
+            if len(funding) > 1:
+                funding = {"@list": funding}
+            else:
+                funding = funding[0]
         else:
             funding = None
         return delete_null_values(funding)
@@ -991,14 +1006,20 @@ class SPASE(StrategyInterface):
             i = 0
             # try and get DOI instead of SPASE ID
             for record in relations:
-                absPath, sep, after = self.file.partition("NASA/")
+                if "soso-spase" in self.file:
+                    absPath, sep, after = self.file.partition("soso-spase")
+                else:
+                    absPath, sep, after = self.file.partition("NASA/")
                 record = absPath + record.replace("spase://","") + ".xml"
                 record = record.replace("'","")
                 if os.path.isfile(record):
                     testSpase = SPASE(record)
                     relations[i] = testSpase.get_url()
                 i += 1
-            was_revision_of = {"@id": relations}
+            if len(relations) > 1:
+                was_revision_of = {"@id": relations}
+            else:
+                was_revision_of = {"@id": relations[0]}
         return delete_null_values(was_revision_of)
 
     def get_was_derived_from(self) -> Union[Dict, None]:
@@ -1031,7 +1052,10 @@ class SPASE(StrategyInterface):
             i = 0
             # try and get DOI instead of SPASE ID
             for record in derivations:
-                absPath, sep, after = self.file.partition("NASA/")
+                if "soso-spase" in self.file:
+                    absPath, sep, after = self.file.partition("soso-spase")
+                else:
+                    absPath, sep, after = self.file.partition("NASA/")
                 record = absPath + record.replace("spase://","") + ".xml"
                 record = record.replace("'","")
                 if os.path.isfile(record):
@@ -1040,7 +1064,10 @@ class SPASE(StrategyInterface):
                 else:
                     raise ValueError("Could not access associated SPASE record.")
                 i += 1
-            is_based_on = {"@id": derivations}
+            if len(derivations) > 1:
+                is_based_on = {"@id": derivations}
+            else:
+                is_based_on = {"@id": derivations[0]}
         return delete_null_values(is_based_on)
 
     def get_was_generated_by(self) -> None:
@@ -1338,7 +1365,7 @@ def get_repoID(metadata: etree.ElementTree) -> str:
                     repoID = child.text
     return repoID
 
-def contributorFormat(roleName:str, name:str, givenName:str, familyName:str, affiliation="", orcidID="") -> Dict:
+def contributorFormat(roleName:str, name:str, givenName:str, familyName:str, affiliation="", orcidID="", ror="") -> Dict:
     """
     :param roleName: The value found in the Role field associated with this Contact
     :param name: The full name of the Contact, as formatted in the SPASE record
@@ -1346,13 +1373,30 @@ def contributorFormat(roleName:str, name:str, givenName:str, familyName:str, aff
     :param familyName: The last name of the Contact
     :param affiliation: The organization this Contact is affiliated with.
     :param orcidID: The ORCiD identifier for this Contact
+    :param ror: The ROR ID for the associated affiliation
 
     :returns:   The entry in the correct format to append to the contributor dictionary
     """
     
     domain, sep, orcidVal = orcidID.rpartition("/")
 
-    if orcidID and affiliation:
+    if orcidID and affiliation and ror:
+        contact = {"@type": "Role", 
+                    "roleName": roleName,
+                    "contributor": {"@type": "Person",
+                                    "name": name,
+                                    "givenName": givenName,
+                                    "familyName": familyName,
+                                    "affiliation": {"@id": ror,
+                                                    "@type": "Organization",
+                                                    "name": affiliation},
+                                    "identifier": {"@id": f"https://orcid.org/{orcidID}",
+                                                    "@type": "PropertyValue",
+                                                    "propertyID": "https://registry.identifiers.org/registry/orcid",
+                                                    "url": f"https://orcid.org/{orcidID}",
+                                                    "value": f"orcid:{orcidVal}"}}
+                    }
+    elif orcidID and affiliation:
         contact = {"@type": "Role", 
                     "roleName": roleName,
                     "contributor": {"@type": "Person",
@@ -1367,6 +1411,17 @@ def contributorFormat(roleName:str, name:str, givenName:str, familyName:str, aff
                                                     "url": f"https://orcid.org/{orcidID}",
                                                     "value": f"orcid:{orcidVal}"}}
                     }
+    elif affiliation and ror:
+        contact = {"@type": "Role", 
+                "roleName": roleName,
+                "contributor": {"@type": "Person",
+                                "name": name,
+                                "givenName": givenName,
+                                "familyName": familyName,
+                                "affiliation": {"@id": ror,
+                                                "@type": "Organization",
+                                                "name": affiliation}}
+                }
     elif affiliation:
         contact = {"@type": "Role", 
                 "roleName": roleName,
@@ -1388,7 +1443,7 @@ def contributorFormat(roleName:str, name:str, givenName:str, familyName:str, aff
 
     return contact
 
-def creatorFormat(roleName:str, name:str, givenName:str, familyName:str, affiliation="", orcidID="") -> Dict:
+def creatorFormat(roleName:str, name:str, givenName:str, familyName:str, affiliation="", orcidID="", ror="") -> Dict:
     """
     :param roleName: The value found in the Role field associated with this Contact
     :param name: The full name of the Contact, as formatted in the SPASE record
@@ -1396,12 +1451,30 @@ def creatorFormat(roleName:str, name:str, givenName:str, familyName:str, affilia
     :param familyName: The last name of the Contact
     :param affiliation: The organization this Contact is affiliated with.
     :param orcidID: The ORCiD identifier for this Contact
+    :param ror: The ROR ID for the associated affiliation
 
     :returns:   The entry in the correct format to append to the creator dictionary
     """
 
     domain, sep, orcidVal = orcidID.rpartition("/")
-    if orcidID and affiliation:
+
+    if orcidID and affiliation and ror:
+        creator = {"@type": "Role", 
+                    "roleName": roleName,
+                    "creator": {"@type": "Person",
+                                "name": name,
+                                "givenName": givenName,
+                                "familyName": familyName,
+                                "affiliation": {"@id": ror,
+                                                "@type": "Organization",
+                                                "name": affiliation},
+                                "identifier": {"@id": f"https://orcid.org/{orcidID}",
+                                                "@type": "PropertyValue",
+                                                "propertyID": "https://registry.identifiers.org/registry/orcid",
+                                                "url": f"https://orcid.org/{orcidID}",
+                                                "value": f"orcid:{orcidVal}"}}
+                        }
+    elif orcidID and affiliation:
         creator = {"@type": "Role", 
                     "roleName": roleName,
                     "creator": {"@type": "Person",
@@ -1416,6 +1489,17 @@ def creatorFormat(roleName:str, name:str, givenName:str, familyName:str, affilia
                                                 "url": f"https://orcid.org/{orcidID}",
                                                 "value": f"orcid:{orcidVal}"}}
                         }
+    elif affiliation and ror:
+        creator = {"@type": "Role", 
+                    "roleName": roleName,
+                    "creator": {"@type": "Person",
+                                "name": name,
+                                "givenName": givenName,
+                                "familyName": familyName,
+                                "affiliation": {"@id": ror,
+                                                "@type": "Organization",
+                                                "name": affiliation}}
+                    }
     elif affiliation:
         creator = {"@type": "Role", 
                     "roleName": roleName,
@@ -1550,7 +1634,10 @@ def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], 
         for item in instrumentIDs:
             instrumentIDs[item]["name"] = ""
             instrumentIDs[item]["URL"] = []
-            absPath, sep, after = path.partition("NASA/")
+            if "soso-spase" in path:
+                absPath, sep, after = path.partition("soso-spase")
+            else:
+                absPath, sep, after = path.partition("NASA/")
             record = absPath + item.replace("spase://","") + ".xml"
             record = record.replace("'","")
             if os.path.isfile(record):
@@ -1563,10 +1650,16 @@ def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], 
                         instrumentIDs[item]["URL"].append(each["url"])
         for k in instrumentIDs.keys():
             if instrumentIDs[k]["URL"]:
-                instrument.append({"@type": "IndividualProduct",
-                                    "identifier": k,
-                                    "name": instrumentIDs[k]["name"],
-                                    "url": instrumentIDs[k]["URL"]})
+                if len(instrumentIDs[k]["URL"]) > 1:
+                    instrument.append({"@type": "IndividualProduct",
+                                        "identifier": k,
+                                        "name": instrumentIDs[k]["name"],
+                                        "url": instrumentIDs[k]["URL"]})
+                else:
+                    instrument.append({"@type": "IndividualProduct",
+                                        "identifier": k,
+                                        "name": instrumentIDs[k]["name"],
+                                        "url": instrumentIDs[k]["URL"][0]})
             else:
                 instrument.append({"@type": "IndividualProduct",
                                 "identifier": k,
@@ -1594,7 +1687,10 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
         for each in instrument:
             instrumentIDs.append(each["identifier"])
         for item in instrumentIDs:
-            absPath, sep, after = path.partition("NASA/")
+            if "soso-spase" in path:
+                absPath, sep, after = path.partition("soso-spase")
+            else:
+                absPath, sep, after = path.partition("NASA/")
             record = absPath + item.replace("spase://","") + ".xml"
             record = record.replace("'","")
             if os.path.isfile(record):
@@ -1637,10 +1733,16 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                                 for each in groupInfoURL:
                                     groupURL.append(each["url"])
                                 if observatoryGroupID not in recordedIDs:
-                                    observatory.append({"@type": "ResearchProject",
+                                    if len(groupURL) > 1:
+                                        observatory.append({"@type": "ResearchProject",
+                                                            "@id": observatoryGroupID,
+                                                            "name": groupName,
+                                                            "url": groupURL})
+                                    else:
+                                        observatory.append({"@type": "ResearchProject",
                                                         "@id": observatoryGroupID,
                                                         "name": groupName,
-                                                        "url": groupURL})
+                                                        "url": groupURL[0]})
                                     recordedIDs.append(observatoryGroupID)
                             elif observatoryGroupID not in recordedIDs:
                                 observatory.append({"@type": "ResearchProject",
@@ -1648,10 +1750,16 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                                                     "name": groupName})
                                 recordedIDs.append(observatoryGroupID)
                     if url and (observatoryID not in recordedIDs):
-                        observatory.append({"@type": "ResearchProject",
+                        if len(url) > 1:
+                            observatory.append({"@type": "ResearchProject",
+                                                "@id": observatoryID,
+                                                "name": name,
+                                                "url": url})
+                        else:
+                            observatory.append({"@type": "ResearchProject",
                                             "@id": observatoryID,
                                             "name": name,
-                                            "url": url})
+                                            "url": url[0]})
                         recordedIDs.append(observatoryID)
                     elif observatoryID not in recordedIDs:
                         observatory.append({"@type": "ResearchProject",
@@ -1757,7 +1865,10 @@ def get_is_related_to(metadata: etree.ElementTree, path:str) -> Union[Dict, None
         i = 0
         # try and get DOI instead of SPASE ID
         for record in relations:
-            absPath, sep, after = path.partition("NASA/")
+            if "soso-spase" in path:
+                absPath, sep, after = path.partition("soso-spase")
+            else:
+                absPath, sep, after = path.partition("NASA/")
             record = absPath + record.replace("spase://","") + ".xml"
             record = record.replace("'","")
             if os.path.isfile(record):
@@ -1766,7 +1877,10 @@ def get_is_related_to(metadata: etree.ElementTree, path:str) -> Union[Dict, None
             else:
                 raise ValueError("Could not access associated SPASE record.")
             i += 1
-        is_related_to = {"@id": relations}
+        if len(relations) > 1:
+            is_related_to = {"@id": relations}
+        else:
+            is_related_to = {"@id": relations[0]}
     return is_related_to
 
 def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[Dict, None]:
@@ -1797,7 +1911,10 @@ def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[Dict, None]:
         i = 0
         # try and get DOI instead of SPASE ID
         for record in relations:
-            absPath, sep, after = path.partition("NASA/")
+            if "soso-spase" in path:
+                absPath, sep, after = path.partition("soso-spase")
+            else:
+                absPath, sep, after = path.partition("NASA/")
             record = absPath + record.replace("spase://","") + ".xml"
             record = record.replace("'","")
             if os.path.isfile(record):
@@ -1806,14 +1923,26 @@ def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[Dict, None]:
             else:
                 raise ValueError("Could not access associated SPASE record.")
             i += 1
-        is_part_of = {"@id": relations}
+        if len(relations) > 1:
+            is_part_of = {"@id": relations}
+        else:
+            is_part_of = {"@id": relations[0]}
     return is_part_of
 
 def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple:
+    """
+    :param PersonID: The SPASE ID linking the page with the Person's info.
+    :param file: The absolute path of the original xml file scraped.
+
+    :returns:   The ORCiD ID and organization name this Contact is affiliated with, as strings.
+    """
     # takes PersonID and follows its link to get ORCIdentifier and OrganizationName
     orcidID = ""
     affiliation = ""
-    absPath, sep, after = file.partition("NASA/")
+    if "soso-spase" in file:
+        absPath, sep, after = file.partition("soso-spase")
+    else:
+        absPath, sep, after = file.partition("NASA/")
     record = absPath + PersonID.replace("spase://","") + ".xml"
     record = record.replace("'","")
     if os.path.isfile(record):
@@ -1828,6 +1957,32 @@ def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple:
             elif child.tag.endswith("OrganizationName"):
                 affiliation = child.text
     return orcidID, affiliation
+
+def get_ROR(orgName:str) -> Union[str, None]:
+    """
+    :param orgName: The name of the organization you wish to retrieve the ROR ID for.
+
+    :returns: The ROR ID of the given organization, as a string.
+    """
+
+    # Request ROR ID's for a given org name
+    # https://api.ror.org/v2/organizations?affiliation=<URL-encoded string>
+
+    # Request entire Datacite DOI info
+    # "https://api.datacite.org/dois/10.48322%2F6cfb-rq65?affiliation=true&publisher=true"
+
+    ror = None
+    url = "https://api.ror.org/v2/organizations"
+    response = requests.get(url, params={"affiliation": orgName})
+    #print(response.text)
+    dict = json.loads(response.text)
+    #pprint(dict["items"][0])
+    for item in dict["items"]:
+        if (item["chosen"] == True) and (item["matching_type"] == "EXACT"):
+            #print("Found a match!")
+            ror = item["organization"]["id"]
+    #print(ror)
+    return ror
 
 def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sameAs", "url", "name", "description", "date_published",
                                                         "keywords", "creator", "citation", "temporal_coverage", "spatial_coverage",
@@ -2079,7 +2234,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
 folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/DisplayData/ACE/MAG"
 #folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-main(folder, False, ["creator", "contributor"])
+main(folder, False, ["creator", "contributor", "publisher", "funding"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
@@ -2087,6 +2242,6 @@ main(folder, False, ["creator", "contributor"])
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 # start at list item 163 if want to skip ACE folder
 folder = "C:/Users/zboquet/NASA/NumericalData"
-#main(folder, False, ["is_part_of"])
+main(folder, False, ["is_part_of"])
 
 
