@@ -159,24 +159,32 @@ class SPASE(StrategyInterface):
             keywords = None
         return delete_null_values(keywords)
 
-    def get_identifier(self) -> Union[str, Dict, None]:
+    def get_identifier(self) -> Union[Dict, List[Dict], None]:
         # Mapping: schema:identifier = spase:ResourceHeader/spase:DOI (or https://hpde.io landing page, if no DOI)
         # Each item is: {@id: URL, @type: schema:PropertyValue, propertyID: URI for identifier scheme, value: identifier value, url: URL}
         # Uses identifier scheme URI, provided at: https://schema.org/identifier
         #  OR schema:PropertyValue, provided at: https://schema.org/PropertyValue
         url = self.get_url()
+        ID = self.get_id()
         # if SPASE record has a DOI
         if "doi" in url:
             temp = url.split("/")
             value = "doi:" + "/".join(temp[3:])
-            identifier = {"@id": f"{url}",
-                        "@type" : "PropertyValue",
-                        "propertyID": "https://registry.identifiers.org/registry/doi",
-                        "value": f"{value}",
-                        "url": f"{url}"}
+            identifier = [{"@id": url,
+                            "@type" : "PropertyValue",
+                            "propertyID": "https://registry.identifiers.org/registry/doi",
+                            "value": value,
+                            "url": url},
+                        {"@type": "PropertyValue",
+                            "propertyID": "SPASE",
+                            "value": ID}
+                        ]
         # if SPASE record only has landing page instead
         else:
-            identifier = url
+            identifier = {"@type": "PropertyValue",
+                            "propertyID": "SPASE",
+                            "url": url,
+                            "value": ID}
         return identifier
 
     def get_citation(self) -> Union[str, Dict, None]:
@@ -440,9 +448,7 @@ class SPASE(StrategyInterface):
                                         #"maxValue": f"{maxVal}"})
                 i += 1
         # preserve order of elements
-        if len(variable_measured) != 0:
-            variable_measured = {"@list": variable_measured}
-        else:
+        if len(variable_measured) == 0:
             variable_measured = None
         return delete_null_values(variable_measured)
 
@@ -554,7 +560,7 @@ class SPASE(StrategyInterface):
                                                 })
         # preserve order of elements
         if len(potential_actionList) != 0:
-            potential_action = {"@list": potential_actionList}
+            potential_action = potential_actionList
         else:
             potential_action = None
         return delete_null_values(potential_action)
@@ -699,9 +705,7 @@ class SPASE(StrategyInterface):
                 }
             )
         # preserve order of elements
-        if len(spatial_coverage) != 0:
-            spatial_coverage = {"@list": spatial_coverage}
-        else:
+        if len(spatial_coverage) == 0:
             spatial_coverage = None
         return delete_null_values(spatial_coverage)
 
@@ -985,7 +989,7 @@ class SPASE(StrategyInterface):
             license_url = license_url[0]
         return license_url
 
-    def get_was_revision_of(self) -> Union[Dict, None]:
+    def get_was_revision_of(self) -> Union[List[Dict], Dict, None]:
         # Mapping: schema:wasRevisionOf = spase:Association/spase:AssociationID
         #   (if spase:AssociationType is "RevisionOf")
         #schema:wasRevisionOf found at https://www.w3.org/TR/prov-o/#wasRevisionOf
@@ -1017,7 +1021,9 @@ class SPASE(StrategyInterface):
                     relations[i] = testSpase.get_url()
                 i += 1
             if len(relations) > 1:
-                was_revision_of = {"@id": relations}
+                was_revision_of = []
+                for relation in relations:
+                    was_revision_of.append({"@id": relation})
             else:
                 was_revision_of = {"@id": relations[0]}
         return delete_null_values(was_revision_of)
@@ -1030,7 +1036,7 @@ class SPASE(StrategyInterface):
         was_derived_from = self.get_is_based_on()
         return delete_null_values(was_derived_from)
 
-    def get_is_based_on(self) -> Union[Dict, None]:
+    def get_is_based_on(self) -> Union[List[Dict], Dict, None]:
         # Mapping: schema:isBasedOn = spase:Association/spase:AssociationID
         #   (if spase:AssociationType is "DerivedFrom" or "ChildEventOf")
         # schema:isBasedOn found at https://schema.org/isBasedOn
@@ -1065,7 +1071,9 @@ class SPASE(StrategyInterface):
                     raise ValueError("Could not access associated SPASE record.")
                 i += 1
             if len(derivations) > 1:
-                is_based_on = {"@id": derivations}
+                is_based_on = []
+                for derivation in derivations:
+                    is_based_on.append({"@id": derivation})
             else:
                 is_based_on = {"@id": derivations[0]}
         return delete_null_values(is_based_on)
@@ -1837,11 +1845,11 @@ def get_cadenceContext(cadence:str) -> str:
         context = None
     return context
 
-def get_is_related_to(metadata: etree.ElementTree, path:str) -> Union[Dict, None]:
+def get_is_related_to(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dict, None]:
     """
     :param metadata:    The SPASE metadata object as an XML tree.
 
-    :returns:   The ID's of other SPASE records related to this one in some way, as a dictionary.
+    :returns:   The ID's of other SPASE records related to this one in some way.
     """
     # schema:isRelatedTo found at https://schema.org/isRelatedTo
     root = metadata.getroot()
@@ -1878,12 +1886,14 @@ def get_is_related_to(metadata: etree.ElementTree, path:str) -> Union[Dict, None
                 raise ValueError("Could not access associated SPASE record.")
             i += 1
         if len(relations) > 1:
-            is_related_to = {"@id": relations}
+            is_related_to = []
+            for relation in relations:
+                is_related_to.append({"@id": relation})
         else:
             is_related_to = {"@id": relations[0]}
     return is_related_to
 
-def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[Dict, None]:
+def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dict, None]:
     """
     :param metadata:    The SPASE metadata object as an XML tree.
 
@@ -1924,7 +1934,9 @@ def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[Dict, None]:
                 raise ValueError("Could not access associated SPASE record.")
             i += 1
         if len(relations) > 1:
-            is_part_of = {"@id": relations}
+            is_part_of = []
+            for relation in relations:
+                is_part_of.append({"@id": relation})
         else:
             is_part_of = {"@id": relations[0]}
     return is_part_of
@@ -2234,7 +2246,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
 folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/DisplayData/ACE/MAG"
 #folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-main(folder, False, ["creator", "contributor", "publisher", "funding"])
+#main(folder, False, ["creator", "contributor", "publisher", "funding"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
@@ -2242,6 +2254,6 @@ main(folder, False, ["creator", "contributor", "publisher", "funding"])
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 # start at list item 163 if want to skip ACE folder
 folder = "C:/Users/zboquet/NASA/NumericalData"
-main(folder, False, ["is_part_of"])
+#main(folder, False, ["is_part_of"])
 
 
