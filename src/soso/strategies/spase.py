@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 import json
 import os
 import requests
+import zipfile
 from pprint import pprint
 
 # pylint: disable=duplicate-code
@@ -111,6 +112,7 @@ class SPASE(StrategyInterface):
         return delete_null_values(url)
 
     def get_same_as(self) -> Union[List, None]:
+        # Mapping: schema:sameAs = spase:ResourceHeader/spase:PriorID
         same_as = []
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("PriorID"):
@@ -150,10 +152,12 @@ class SPASE(StrategyInterface):
         return delete_null_values(is_accessible_for_free)
 
     def get_keywords(self) -> Union[str, None]:
-        # Mapping: schema:keywords = spase:ResourceHeader/spase:Keyword
+        # Mapping: schema:keywords = spase:Keyword AND spase:MeasurementType
         keywords = []
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("Keyword"):
+                keywords.append(child.text)
+            elif child.tag.endswith("MeasurementType"):
                 keywords.append(child.text)
         if keywords == []:
             keywords = None
@@ -638,7 +642,7 @@ class SPASE(StrategyInterface):
     def get_temporal_coverage(self) -> Union[str, Dict, None]:
         # Mapping: schema:temporal_coverage = spase:TemporalDescription/spase:TimeSpan/*
         # Each object is:
-        #   {temporalCoverage: StartDate and StopDate|RelativeStopDate, temporal: Cadence}
+        #   {temporalCoverage: StartDate and StopDate|RelativeStopDate}
         # Result is either schema:Text or schema:DateTime, found at https://schema.org/Text and https://schema.org/DateTime
         # Using format as defined in: https://github.com/ESIPFed/science-on-schema.org/blob/main/guides/Dataset.md#temporal-coverage
         desiredTag = self.desiredRoot.tag.split("}")
@@ -652,35 +656,13 @@ class SPASE(StrategyInterface):
             SPASE_Location,
             namespaces=self.namespaces,
         )
-        SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:TemporalDescription/spase:Cadence"
-        repeat_frequency = self.metadata.findtext(
-            SPASE_Location,
-            namespaces=self.namespaces,
-        )
-
-        explanation = ""
 
         if start:
             if stop:
-                if repeat_frequency:
-                    explanation = get_cadenceContext(repeat_frequency)
-                    temporal_coverage = {"@type": "DateTime",
-                                        "temporalCoverage": f"{start}/{stop}",
-                                        "temporal": {"temporal": repeat_frequency,
-                                                    "description": explanation}
-                    }
-                else:
-                    temporal_coverage = f"{start}/{stop}"
+                temporal_coverage = {"@type": "DateTime",
+                                    "temporalCoverage": f"{start}/{stop}"}
             else:
-                if repeat_frequency:
-                    explanation = get_cadenceContext(repeat_frequency)
-                    temporal_coverage = {"@type": "DateTime",
-                                        "temporalCoverage": f"{start}/..",
-                                        "temporal": {"temporal": repeat_frequency,
-                                                    "description": explanation}
-                    }
-                else:
-                    temporal_coverage = f"{start}/.."
+                temporal_coverage = f"{start}/.."
         else:
             temporal_coverage = None
         return delete_null_values(temporal_coverage)
@@ -693,13 +675,14 @@ class SPASE(StrategyInterface):
         spatial_coverage = []
         desiredTag = self.desiredRoot.tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ObservedRegion"
+        #SPASE_Location = ".//spase:" + "NumericalData/spase:ObservedRegion"
         for item in self.metadata.findall(
             SPASE_Location,
             namespaces=self.namespaces,
         ):
             spatial_coverage.append(
                 {
-                    "@type": "schema:Place",
+                    "@type": "Place",
                     "identifier": f"http://www.spase-group.org/data/schema/{item.text.replace('.', '_').upper()}",
                     "alternateName": item.text,
                 }
@@ -1550,26 +1533,6 @@ def nameSplitter(person:str) -> tuple:
         raise ValueError("This function only takes a nonempty string as an argument. Try again.")
     return nameStr, givenName, familyName
 
-def get_measurement_type(metadata: etree.ElementTree) -> Union[Dict, None]:
-    """
-    :param metadata:    The SPASE metadata object as an XML tree.
-
-    :returns:   The values found in the MeasurementType field(s) formatted as a dictionary
-    """
-    root = metadata.getroot()
-    measurement_type = None
-    measurementTypes = []
-    for elt in root.iter(tag=etree.Element):
-        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
-            desiredRoot = elt
-    for child in desiredRoot.iter(tag=etree.Element):
-        if child.tag.endswith("MeasurementType"):
-            measurementTypes.append(child.text)
-    if measurementTypes:
-        measurement_type = {"@type": "DefinedTerm",
-                            "keywords": measurementTypes}
-    return measurement_type
-
 def get_information_url(metadata: etree.ElementTree) -> Union[List[Dict], None]:
     """
     :param metadata:    The SPASE metadata object as an XML tree.
@@ -1970,10 +1933,11 @@ def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple:
                 affiliation = child.text
     return orcidID, affiliation
 
-def get_ROR(orgName:str) -> Union[str, None]:
+def get_ROR(orgName:str, data="ROR_DataDump.zip") -> Union[str, None]:
     """
     :param orgName: The name of the organization you wish to retrieve the ROR ID for.
-
+    :param data: Name of the ROR Data Dump zip file to be used.
+    
     :returns: The ROR ID of the given organization, as a string.
     """
 
@@ -1984,7 +1948,9 @@ def get_ROR(orgName:str) -> Union[str, None]:
     # "https://api.datacite.org/dois/10.48322%2F6cfb-rq65?affiliation=true&publisher=true"
 
     ror = None
-    url = "https://api.ror.org/v2/organizations"
+    #print(orgName)
+    # if want to get ROR ID's via REST API (slow if testing all SPASE records)
+    """url = "https://api.ror.org/v2/organizations"
     response = requests.get(url, params={"affiliation": orgName})
     #print(response.text)
     dict = json.loads(response.text)
@@ -1992,19 +1958,65 @@ def get_ROR(orgName:str) -> Union[str, None]:
     for item in dict["items"]:
         if (item["chosen"] == True) and (item["matching_type"] == "EXACT"):
             #print("Found a match!")
-            ror = item["organization"]["id"]
+            ror = item["organization"]["id"]"""
+    # find ROR ID's by searching Data Dump file (faster?)
+    with zipfile.ZipFile(data) as z:    
+        for filename in z.namelist():
+            # find most up-to-date json
+            if not os.path.isdir(filename) and "v2.json" in filename:
+                # search the file for orgName
+                with open(filename, 'r') as file:
+                    dataDump = json.load(file)
+                    for item in dataDump:
+                        for name in item["names"]:
+                            if name["value"] == orgName:
+                                ror = item["id"]
     #print(ror)
     return ror
 
+def get_temporal(metadata: etree.ElementTree, namespaces: Dict) -> Union[List, None]:
+        # Mapping: schema:temporal = spase:TemporalDescription/spase:Cadence
+        # Each object is:
+        #   [ explanation (string explaining meaning of cadence), Cadence]
+        # Schema found at https://schema.org/temporal
+        root = metadata.getroot()
+        for elt in root.iter(tag=etree.Element):
+            if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+                desiredRoot = elt
+        
+        desiredTag = desiredRoot.tag.split("}")
+        SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:TemporalDescription/spase:Cadence"
+        repeat_frequency =  metadata.findtext(
+            SPASE_Location,
+            namespaces= namespaces,
+        )
+
+        explanation = ""
+
+        if repeat_frequency:
+            explanation = get_cadenceContext(repeat_frequency)
+            temporal = [explanation, repeat_frequency]
+        else:
+            temporal = None
+        return delete_null_values(temporal)
+
 def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sameAs", "url", "name", "description", "date_published",
-                                                        "keywords", "creator", "citation", "temporal_coverage", "spatial_coverage",
-                                                        "publisher", "distribution", "potential_action", "variable_measured", 
-                                                        "funding", "license", "was_revision_of", "was_derived_from", "is_based_on", 
-                                                        "is_related_to", "is_part_of", "date_created", "date_modified", "contributor",
-                                                        "measurement_type", "instrument", "observatory", "alternate_name", "inLanguage"]) -> None:
+                                                        "keywords", "creator", "citation", "temporal_coverage", "temporal", 
+                                                        "spatial_coverage", "publisher", "distribution", "potential_action",
+                                                        "variable_measured", "funding", "license", "was_revision_of", "was_derived_from",
+                                                        "is_based_on", "is_related_to", "is_part_of", "date_created", "date_modified",
+                                                        "contributor", "instrument", "observatory", "alternate_name", "inLanguage"]) -> None:
     # list that holds SPASE records already checked
     searched = []
     SPASE_paths = []
+
+    # downloads ROR Data Dump file for use in script
+    """response = requests.get("https://zenodo.org/api/communities/ror-data/records?q=&sort=newest")
+    RORrecords = json.loads(response.text)
+    downloadURL = RORrecords["hits"]["hits"][0]["files"][0]["links"]["self"]
+    response = requests.get(downloadURL)
+    with open('ROR_DataDump.zip', 'wb') as f:
+        f.write(response.content)"""
 
     # obtains all filepaths to all SPASE records found in given directory
     SPASE_paths = getPaths(folder, SPASE_paths)
@@ -2047,6 +2059,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 contributor = testSpase.get_contributor()
                 variable_measured = testSpase.get_variable_measured()
                 temporal_coverage = testSpase.get_temporal_coverage()
+                temporal = get_temporal(testSpase.metadata, testSpase.namespaces)
                 spatial_coverage = testSpase.get_spatial_coverage()
                 distribution = testSpase.get_distribution()
                 potential_action = testSpase.get_potential_action()
@@ -2062,7 +2075,6 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 #is_related_to, ObsBy, Part = get_is_related_to(testSpase.metadata)
                 is_related_to = get_is_related_to(testSpase.metadata, record)
                 is_part_of = get_is_part_of(testSpase.metadata, record)
-                measurement_type = get_measurement_type(testSpase.metadata)
                 instrument = get_instrument(testSpase.metadata, record)
                 observatory = get_observatory(testSpase.metadata, record)
                 alternate_name = get_alternate_name(testSpase.metadata)
@@ -2153,6 +2165,12 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                                 print(json.dumps(temporal_coverage, indent=4))
                             else:
                                 print("No start/stop times were found.")
+                        elif property == "temporal":
+                            if temporal is not None:
+                                print(" temporal:", end=" ")
+                                print(json.dumps(temporal, indent=4))
+                            else:
+                                print("No temporal cadence was found.")
                         elif property == "spatial_coverage":
                             if spatial_coverage is not None:
                                 print(" spatial_coverage:", end=" ")
@@ -2209,12 +2227,6 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                                 print(json.dumps(variable_measured, indent=4))
                             else:
                                 print("No parameters found.")
-                        elif property == "measurement_type":
-                            if measurement_type is not None:
-                                print(" measurement_type:", end=" ")
-                                print(json.dumps(measurement_type, indent=4))
-                            else:
-                                print("No measurementType found.")
                         elif property == "instrument":
                             if instrument is not None:
                                 print(" instrument:", end=" ")
@@ -2246,7 +2258,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
 folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/DisplayData/ACE/MAG"
 #folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-#main(folder, False, ["creator", "contributor", "publisher", "funding"])
+main(folder, False, ["creator"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
@@ -2254,6 +2266,6 @@ folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 # start at list item 163 if want to skip ACE folder
 folder = "C:/Users/zboquet/NASA/NumericalData"
-#main(folder, False, ["is_part_of"])
+main(folder, False, ["is_part_of"])
 
 
