@@ -451,7 +451,6 @@ class SPASE(StrategyInterface):
                                         #"minValue": f"{minVal}",
                                         #"maxValue": f"{maxVal}"})
                 i += 1
-        # preserve order of elements
         if len(variable_measured) == 0:
             variable_measured = None
         return delete_null_values(variable_measured)
@@ -476,11 +475,8 @@ class SPASE(StrategyInterface):
             distribution.append({"@type": "DataDownload",
                                 "contentUrl": f"{k}",
                                 "encodingFormat": f"{v[0]}"})
-        # preserve order of elements
         if len(distribution) != 0:
-            if len(distribution) > 1:
-                distribution = {"@list": distribution}
-            else:
+            if len(distribution) == 1:
                 distribution = distribution[0]
         else:
             distribution = None
@@ -521,11 +517,10 @@ class SPASE(StrategyInterface):
             pattern = "(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?"
 
             # if link has no prodKey
-            #TODO: find out what should go here!!!
             if prodKeys == "None":
                 potential_actionList.append({"@type": "SearchAction",
-                                            "target": {"@type": "URL",
-                                                        "encodingFormat": f"{encoding}",
+                                            "target": {"@type": "EntryPoint",
+                                                        "contentType": f"{encoding}",
                                                         "url": f"{k}",
                                                         "description": f"Download dataset data as {encoding} file at this URL"}
                                             })
@@ -557,12 +552,11 @@ class SPASE(StrategyInterface):
                     # use GSFC CDAWeb portal to download CDF
                     else:
                         potential_actionList.append({"@type": "SearchAction",
-                                                "target": {"@type": "URL",
-                                                            "encodingFormat": f"{encoding}",
+                                                "target": {"@type": "EntryPoint",
+                                                            "contentType": f"{encoding}",
                                                             "url": f"{k}",
                                                             "description": "Download dataset data as CDF or CSV file at this URL"}
                                                 })
-        # preserve order of elements
         if len(potential_actionList) != 0:
             potential_action = potential_actionList
         else:
@@ -687,7 +681,6 @@ class SPASE(StrategyInterface):
                     "alternateName": item.text,
                 }
             )
-        # preserve order of elements
         if len(spatial_coverage) == 0:
             spatial_coverage = None
         return delete_null_values(spatial_coverage)
@@ -832,11 +825,7 @@ class SPASE(StrategyInterface):
                         contributor.append(individual)
                         found = True
                 i += 1
-        # preserve order of elements
-        if len(contributor) != 0:
-            if len(contributor) > 1:
-                contributor = {"@list": contributor}
-        else:
+        if len(contributor) == 0:
             contributor = None
 
         return delete_null_values(contributor)
@@ -934,11 +923,8 @@ class SPASE(StrategyInterface):
                                     "name": f"{project[i]}"
                                 })
                 i += 1
-        # preserve order of elements
         if len(funding) != 0:
-            if len(funding) > 1:
-                funding = {"@list": funding}
-            else:
+            if len(funding) == 1:
                 funding = funding[0]
         else:
             funding = None
@@ -1270,8 +1256,8 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
                            'png', 'gif', 'tar', 'netcdf3', 'netcdf4', 'hdf5',
                            'zarr', 'asdf', 'zip']
             protocol, sep, domain = k.partition("://")
-            domain, sep, path = domain.partition("/")
-            domain, sep, ext = domain.rpartition(".")
+            domain, sep, downloadFile = domain.rpartition("/")
+            downloadFile, sep, ext = downloadFile.rpartition(".")
             # see if file extension is one associated w data files
             #print(ext)
             if ext not in DataFileExt:
@@ -1950,7 +1936,7 @@ def get_ROR(orgName:str, data="ROR_DataDump.zip") -> Union[str, None]:
     ror = None
     #print(orgName)
     # if want to get ROR ID's via REST API (slow if testing all SPASE records)
-    """url = "https://api.ror.org/v2/organizations"
+    url = "https://api.ror.org/v2/organizations"
     response = requests.get(url, params={"affiliation": orgName})
     #print(response.text)
     dict = json.loads(response.text)
@@ -1958,9 +1944,9 @@ def get_ROR(orgName:str, data="ROR_DataDump.zip") -> Union[str, None]:
     for item in dict["items"]:
         if (item["chosen"] == True) and (item["matching_type"] == "EXACT"):
             #print("Found a match!")
-            ror = item["organization"]["id"]"""
+            ror = item["organization"]["id"]
     # find ROR ID's by searching Data Dump file (faster?)
-    with zipfile.ZipFile(data) as z:    
+    """with zipfile.ZipFile(data) as z:    
         for filename in z.namelist():
             # find most up-to-date json
             if not os.path.isdir(filename) and "v2.json" in filename:
@@ -1970,7 +1956,7 @@ def get_ROR(orgName:str, data="ROR_DataDump.zip") -> Union[str, None]:
                     for item in dataDump:
                         for name in item["names"]:
                             if name["value"] == orgName:
-                                ror = item["id"]
+                                ror = item["id"]"""
     #print(ror)
     return ror
 
