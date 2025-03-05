@@ -41,7 +41,6 @@ class SPASE(StrategyInterface):
             - includedInDataCatalog
             - is_accessible_for_free
             - version
-            - subject_of
             - expires
             - provider
             - was_generated_by
@@ -76,7 +75,7 @@ class SPASE(StrategyInterface):
         return delete_null_values(dataset_id)
 
     def get_name(self) -> str:
-        # Mapping: schema:description = spase:ResourceHeader/spase:ResourceName
+        # Mapping: schema:name = spase:ResourceHeader/spase:ResourceName
         desiredTag = self.desiredRoot.tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ResourceHeader/spase:ResourceName"
         name = self.metadata.findtext(
@@ -191,219 +190,31 @@ class SPASE(StrategyInterface):
                             "value": ID}
         return identifier
 
-    def get_citation(self) -> Union[str, Dict, None]:
-        # Mapping: schema:citation = spase:ResourceHeader/spase:PublicationInfo/spase:Authors
-        # AND spase:ResourceHeader/spase:PublicationInfo/spase:PublicationDate
-        # AND spase:ResourceHeader/spase:PublicationInfo/spase:PublishedBy
-        # AND spase:ResourceHeader/spase:PublicationInfo/spase:Title
-        # AND spase:ResourceHeader/spase:DOI
-        # AND spase:ResourceHeader/spase:InformationURL
-
-        # local vars needed
-        authorTemp = ""
-        author = []
-        pubDate = ""
-        pub = ""
-        contributor = []
-        dataset = ""
-        i = 0
-
-        authorTemp, authorRole, pubDate, pub, contributor, dataset, backups, contactsList = get_authors(self.metadata)
-        pubDate = pubDate[:4]
-        authorStr = str(authorTemp)
-        authorStr = authorStr.replace("[", "").replace("]","")
-        authorStr = authorStr.replace("'","")
-        authorStr = authorStr.replace(" and ", " ")
-        # if author is not empty
-        if authorTemp:
-            # if author was pulled from ContactID
-            if "Person/" in authorStr:
-                # if multiple found, split them and iterate thru one by one
-                if len(authorTemp) > 1:
-                    for person in authorTemp:
-                        path, sep, authorStr = person.partition("Person/")
-                        givenName, sep, familyName = authorStr.partition(".")
-                        #print(givenName)
-                        #print(familyName)
-                        #print(authorStr)
-                        # if name has initial(s) already
-                        if ("." in familyName):
-                            initial, sep, familyName = familyName.partition(".")
-                            givenName = givenName[0] + "." + initial + "."
-                            givenName = givenName[0] + "." + initial + "."
-                        else:
-                            givenName = givenName[0] + "."
-                        # add commas to separate each name until last name in list
-                        if (i < (len(authorTemp) - 1)):
-                            author += [familyName + ", " + givenName]
-                        else:
-                            author += ["& " + familyName + ", " + givenName]
-                        i += 1
-                    # reformat author string
-                    # if only 2 authors, eliminate extra comma in bw them
-                    if len(authorTemp) == 2:
-                        authorStr = ""
-                        for each in author:
-                            authorStr += str(each).replace("'", "") + " "
-                        author = authorStr[:-1]
-                    # else convert the list into a string with proper format
-                    else:
-                        author = str(author).replace("[", "").replace("]","")
-                        author = author.replace("'","")
-                    # if only 2 authors, eliminate extra comma in bw them
-                    if len(authorTemp) == 2:
-                        authorStr = ""
-                        for each in author:
-                            authorStr += str(each).replace("'", "") + " "
-                        author = authorStr[:-1]
-                    # else convert the list into a string with proper format
-                    else:
-                        author = str(author).replace("[", "").replace("]","")
-                        author = author.replace("'","")
-                # if only one Contact found
-                else:
-                    path, sep, authorTemp = authorStr.partition("Person/")
-                    #print(authorTemp)
-                    givenName, sep, familyName = authorTemp.partition(".")
-                    # if name has initial(s) already
-                    if ("." in familyName):
-                        initial, sep, familyName = familyName.partition(".")
-                        givenName = givenName[0] + "." + initial + "."
-                        givenName = givenName[0] + "." + initial + "."
-                    else:
-                        givenName = givenName[0] + "."
-                    author = familyName + ", " + givenName
-            # case when in PubInfo but only one author
-            elif ";" not in authorStr:
-                # if formatted for citation already
-                if "et al" in authorStr:
-                    author = authorStr
-                # in case there are multiple w/o ;
-                elif "., " in authorStr:
-                    authorStr = authorStr.replace(".,", "..,")
-                    authorTemp = authorStr.split("., ")
-                    if ", " not in authorTemp[-1]:
-                        givenName, sep, familyName = authorTemp[-1].partition(". ")
-                        givenName = givenName.replace("and ", "") + "."
-                        authorTemp[-1] = familyName + ", " + givenName
-                    if ", " not in authorTemp[-1]:
-                        givenName, sep, familyName = authorTemp[-1].partition(". ")
-                        givenName = givenName.replace("and ", "") + "."
-                        authorTemp[-1] = familyName + ", " + givenName
-                    if "and " in authorTemp[-1]:
-                        authorTemp[-1].replace("and ", "& ")
-                    else:
-                        authorTemp[-1] = "& " + authorTemp[-1]
-                    # if only 2 authors, eliminate extra comma in bw them
-                    if len(authorTemp) == 2:
-                        authorStr = ""
-                        for each in authorTemp:
-                            authorStr += str(each).replace("'", "") + " "
-                        author = authorStr[:-1]
-                    else:
-                        author = str(authorTemp).replace("[", "").replace("]","")
-                        author = author.replace("'","")
-                    # if only 2 authors, eliminate extra comma in bw them
-                    if len(authorTemp) == 2:
-                        authorStr = ""
-                        for each in authorTemp:
-                            authorStr += str(each).replace("'", "") + " "
-                        author = authorStr[:-1]
-                    else:
-                        author = str(authorTemp).replace("[", "").replace("]","")
-                        author = author.replace("'","")
-                else:
-                    familyName, sep, givenName = authorStr.partition(", ")
-                    # if name has initial(s) already
-                    if ("," in givenName):
-                        givenName, sep, initial = givenName.partition(", ")
-                        givenName = givenName[0] + "." + initial
-                        givenName = givenName[0] + "." + initial
-                    else:
-                        # handle case when name is not formatted correctly
-                        if givenName == "":
-                            givenName, sep, familyName = familyName.partition(". ")
-                            initial, sep, familyName = familyName.partition(" ")
-                            givenName = givenName + "." + initial[0] + "."
-                            givenName = givenName + "." + initial[0] + "."
-                        else:
-                            givenName = givenName[0] + "."
-                    author = familyName + ", " + givenName
-            # handle case when multiple authors pulled from PubInfo
-            else:
-                authorTemp = authorStr.split("; ")
-                #print(authorTemp)
-                authorStr = ""
-                for each in authorTemp:
-                    familyName = None
-                    givenName = None
-                    eachTemp = str(each).replace("[", "").replace("]","")
-                    #print(eachTemp)
-                    if (", " in eachTemp) or ("." in eachTemp):
-                        if ", " in eachTemp:
-                            familyName, sep, givenName = eachTemp.partition(", ")
-                        else:
-                            givenName, sep, familyName = eachTemp.partition(".")
-                    #print(familyName)
-                    #print(givenName)
-                    if familyName is not None:
-                        # if name has initial(s) already
-                        if (". " in familyName):
-                            initial, sep, familyName = familyName.partition(". ")
-                            givenName = givenName[0] + "." + initial + "."                    
-                        if (". " in familyName):
-                            initial, sep, familyName = familyName.partition(". ")
-                            givenName = givenName[0] + "." + initial + "."                    
-                        elif ("," in givenName):
-                            givenName, sep, initial = givenName.partition(", ")
-                            givenName = givenName[0] + "." + initial
-                            givenName = givenName[0] + "." + initial
-                        else:
-                            givenName = givenName[0] + "."
-                            familyName = familyName.strip()
-                            familyName = familyName.strip()
-                        if authorTemp.index(each) == (len(authorTemp)-1):
-                            familyName = "& " + familyName
-                        else:
-                            givenName += ", "
-                        authorStr += familyName + ", " + givenName
-                    else:
-                        if authorTemp.index(each) == (len(authorTemp)-1):
-                            authorStr += "& " + eachTemp
-                        else:
-                            authorStr += eachTemp + ", "
-                author = authorStr
-        # no author was found
-        else:
-            author = ""
-        # assign backup values if not found in desired locations
-        if pub == '':
-            RepoID = get_repoID(self.metadata)
-            (before, sep, pub) = RepoID.partition("Repository/")
-        if pubDate == "":
-            #pubDate, trigger, date_created = self.get_date_modified()
-            pubDate = self.get_date_modified()
-            pubDate = pubDate[:4]
-        DOI = self.get_url()
+    def get_citation(self) -> Union[List[Dict], None]:
+        # Mapping: schema:citation = spase:ResourceHeader/spase:InformationURL
+        citation = []
         information_url = get_information_url(self.metadata)
         if information_url:
-            if dataset:
-                citation = {"@type": "CreativeWork",
-                            "citation": f"{author} ({pubDate}). {dataset}. {pub}. {DOI}",
-                            "about": information_url}
-            else:
-                citation = {"@type": "CreativeWork",
-                            "citation": f"{author} ({pubDate}). {pub}. {DOI}",
-                            "about": information_url}
+            for each in information_url:
+                if "name" in each.keys():
+                    if "description" in each.keys():
+                        citation.append({"@type": "CreativeWork",
+                                            "name": each["name"],
+                                            "url": each["url"],
+                                            "description": each["description"]})
+                    else:
+                        citation.append({"@type": "CreativeWork",
+                                            "name": each["name"],
+                                            "url": each["url"]})
+                else:
+                    citation.append({"@type": "CreativeWork",
+                                        "url": each["url"]})
         else:
-            if dataset:
-                citation = f"{author} ({pubDate}). {dataset}. {pub}. {DOI}"
-            else:
-                citation = f"{author} ({pubDate}). {pub}. {DOI}"
+            citation = None
         return delete_null_values(citation)
 
     def get_variable_measured(self) -> Union[List[Dict], None]:
-        # Mapping: schema:variable_measured = /spase:Parameters/spase:Name, Description, Units, ValidMin, ValidMax
+        # Mapping: schema:variable_measured = spase:Parameters/spase:Name, Description, Units, ValidMin, ValidMax
         # Each object is:
         #   {"@type": schema:PropertyValue, "name": Name, "description": Description, "unitText": Units}
         # Following schema:PropertyValue found at: https://schema.org/PropertyValue
@@ -459,9 +270,34 @@ class SPASE(StrategyInterface):
         included_in_data_catalog = None
         return delete_null_values(included_in_data_catalog)
 
-    def get_subject_of(self) -> None:
-        encoding_format = None
-        return delete_null_values(encoding_format)
+    def get_subject_of(self) -> Union[Dict, None]:
+        # Mapping: schema:subjectOf = {http://www.w3.org/2001/XMLSchema-instance}MetadataRights
+        #   AND spase:ResourceHeader/spase:ReleaseDate
+        # Following type:DataDownload found at: https://schema.org/DataDownload
+        date_modified = self.get_date_modified()
+        metadata_license = get_metadata_license(self.metadata)
+        before, sep, after = self.get_id().partition("/NASA")
+        contentURL = f"https://hpde.io{sep}{after}.xml"
+        if date_modified:
+            subject_of = {
+                    "@type": "DataDownload",
+                    "name": "SPASE metadata for dataset",
+                    "description": "SPASE metadata describing the dataset",
+                    "license": metadata_license,
+                    "encodingFormat": "application/xml",
+                    "contentUrl": contentURL,
+                    "dateModified": date_modified,
+                }
+        else:
+            subject_of = {
+                    "@type": "DataDownload",
+                    "name": "SPASE metadata for dataset",
+                    "description": "SPASE metadata describing the dataset",
+                    "license": metadata_license,
+                    "encodingFormat": "application/xml",
+                    "contentUrl": contentURL
+                }
+        return delete_null_values(subject_of)
 
     def get_distribution(self) -> Union[List[Dict], None]:
         # Mapping: schema:distribution = /spase:AccessInformation/spase:AccessURL/spase:URL
@@ -935,17 +771,17 @@ class SPASE(StrategyInterface):
         # Using schema:license as defined in: https://schema.org/license
         license_url = []
         # format in xml file is below
-        """<rightsList>
-            <rights xml:lang="en"
+        """<RightsList>
+            <Rights xml:lang="en"
             schemeURI="https://spdx.org/licenses/"
             rightsIdentifierScheme="SPDX"
             rightsIdentifier="CC-BY-4.0"
             rightsURI="https://creativecommons.org/licenses/by/4.0/">
-            Creative Commons Attribution 4.0 International</rights>
-        </rightsList>"""
+            Creative Commons Attribution 4.0 International</Rights>
+        </RightsList>"""
 
         desiredTag = self.desiredRoot.tag.split("}")
-        SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:AccessInformation/spase:rightsList/spase:rights"
+        SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:AccessInformation/spase:RightsList/spase:Rights"
         for item in self.metadata.findall(
             SPASE_Location,
             namespaces=self.namespaces,
@@ -1566,16 +1402,16 @@ def get_information_url(metadata: etree.ElementTree) -> Union[List[Dict], None]:
         information_url = None
     return information_url
 
-def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], None]:
+def get_measurementTechnique(metadata: etree.ElementTree, path: str) -> Union[List[Dict], None]:
     """
     :param metadata:    The SPASE metadata object as an XML tree.
     :param path:    The absolute file path of the XML file the user wishes to pull info from.
 
-    :returns:   The name, url(s), and ResourceID for each instrument found in the InstrumentID section,
+    :returns:   The name, url, and ResourceID for each instrument found in the InstrumentID section,
                 formatted as a list of dictionaries.
     """
     root = metadata.getroot()
-    instrument = []
+    measurementTechnique = []
     instrumentIDs = {}
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
@@ -1584,13 +1420,13 @@ def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], 
         if child.tag.endswith("InstrumentID"):
             instrumentIDs[child.text] = {}
     if instrumentIDs == {}:
-        instrument = None
+        measurementTechnique = None
     else:
         # follow link provided by instrumentID to instrument page
-        # from there grab name and infoURLs
+        # from there grab name and url
         for item in instrumentIDs:
             instrumentIDs[item]["name"] = ""
-            instrumentIDs[item]["URL"] = []
+            instrumentIDs[item]["URL"] = ""
             if "soso-spase" in path:
                 absPath, sep, after = path.partition("soso-spase")
             else:
@@ -1601,46 +1437,37 @@ def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], 
                 testSpase = SPASE(record)
                 root = testSpase.metadata.getroot()
                 instrumentIDs[item]["name"] = testSpase.get_name()
-                allURL_Info = get_information_url(testSpase.metadata)
-                if allURL_Info:
-                    for each in allURL_Info:
-                        instrumentIDs[item]["URL"].append(each["url"])
+                instrumentIDs[item]["URL"] = testSpase.get_url()
         for k in instrumentIDs.keys():
             if instrumentIDs[k]["URL"]:
-                if len(instrumentIDs[k]["URL"]) > 1:
-                    instrument.append({"@type": "IndividualProduct",
+                measurementTechnique.append({"@type": "DefinedTerm",
                                         "identifier": k,
                                         "name": instrumentIDs[k]["name"],
                                         "url": instrumentIDs[k]["URL"]})
-                else:
-                    instrument.append({"@type": "IndividualProduct",
-                                        "identifier": k,
-                                        "name": instrumentIDs[k]["name"],
-                                        "url": instrumentIDs[k]["URL"][0]})
             else:
-                instrument.append({"@type": "IndividualProduct",
+                measurementTechnique.append({"@type": "DefinedTerm",
                                 "identifier": k,
                                 "name": instrumentIDs[k]["name"]})
-    return instrument
+    return measurementTechnique
 
-def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict], None]:
+def get_producer(metadata: etree.ElementTree, path: str) -> Union[List[Dict], None]:
     """
     :param metadata:    The SPASE metadata object as an XML tree.
     :param path:    The absolute file path of the XML file the user wishes to pull info from.
 
-    :returns:   The name, url(s), and ResourceID for each observatory related to this dataset,
+    :returns:   The name, url, and ResourceID for each observatory related to this dataset,
                 formatted as a list of dictionaries.
     """
-    instrument = get_instrument(metadata, path)
+    instrument = get_measurementTechnique(metadata, path)
     if instrument is not None:
-        observatory = []
+        producer = []
         observatoryGroupID = ""
         observatoryID = ""
         recordedIDs = []
         instrumentIDs = []
         # follow link provided by instrument to instrument page, from there grab ObservatoryID
-        # then follow link provided by ObservatoryID to grab name, infoURL, and ObservatoryGrpID
-        # finally, follow that link to grab name and infoURL from there
+        # then follow link provided by ObservatoryID to grab name, url, and ObservatoryGrpID
+        # finally, follow that link to grab name and url from there
         for each in instrument:
             instrumentIDs.append(each["identifier"])
         for item in instrumentIDs:
@@ -1663,7 +1490,7 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                 record = absPath + observatoryID.replace("spase://","") + ".xml"
                 record = record.replace("'","")                
                 if os.path.isfile(record):
-                    url = []
+                    url = ""
                     testSpase = SPASE(record)
                     root = testSpase.metadata.getroot()
                     for elt in root.iter(tag=etree.Element):
@@ -1673,59 +1500,41 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                         if child.tag.endswith("ObservatoryGroupID"):
                             observatoryGroupID = child.text
                     name = testSpase.get_name()
-                    infoURL = get_information_url(testSpase.metadata)
-                    if infoURL:
-                        for each in infoURL:
-                            url.append(each["url"])
-                    # if there is a groupID, use that link to provide info on it as well
+                    url = testSpase.get_url()
                     if observatoryGroupID:
                         record = absPath + observatoryGroupID.replace("spase://","") + ".xml"
                         record = record.replace("'","")                
                         if os.path.isfile(record):
-                            groupURL = []
+                            groupURL = ""
                             testSpase = SPASE(record)
                             groupName = testSpase.get_name()
-                            groupInfoURL = get_information_url(testSpase.metadata)
-                            if groupInfoURL:
-                                for each in groupInfoURL:
-                                    groupURL.append(each["url"])
+                            groupURL = testSpase.get_url()
+                            if groupURL:
                                 if observatoryGroupID not in recordedIDs:
-                                    if len(groupURL) > 1:
-                                        observatory.append({"@type": "ResearchProject",
-                                                            "@id": observatoryGroupID,
-                                                            "name": groupName,
-                                                            "url": groupURL})
-                                    else:
-                                        observatory.append({"@type": "ResearchProject",
+                                    producer.append({"@type": "ResearchProject",
                                                         "@id": observatoryGroupID,
                                                         "name": groupName,
-                                                        "url": groupURL[0]})
+                                                        "url": groupURL})
                                     recordedIDs.append(observatoryGroupID)
                             elif observatoryGroupID not in recordedIDs:
-                                observatory.append({"@type": "ResearchProject",
+                                producer.append({"@type": "ResearchProject",
                                                     "@id": observatoryGroupID,
                                                     "name": groupName})
                                 recordedIDs.append(observatoryGroupID)
                     if url and (observatoryID not in recordedIDs):
-                        if len(url) > 1:
-                            observatory.append({"@type": "ResearchProject",
-                                                "@id": observatoryID,
-                                                "name": name,
-                                                "url": url})
-                        else:
-                            observatory.append({"@type": "ResearchProject",
+                        producer.append({"@type": "ResearchProject",
                                             "@id": observatoryID,
                                             "name": name,
-                                            "url": url[0]})
+                                            "url": url})
                         recordedIDs.append(observatoryID)
                     elif observatoryID not in recordedIDs:
-                        observatory.append({"@type": "ResearchProject",
+                        producer.append({"@type": "ResearchProject",
                                         "@id": observatoryID,
                                         "name": name})
                         recordedIDs.append(observatoryGroupID)
     else:
-        observatory = None
-    return observatory
+        producer = None
+    return producer
 
 def get_alternate_name(metadata: etree.ElementTree) -> Union[str, None]:
     """
@@ -1794,13 +1603,15 @@ def get_cadenceContext(cadence:str) -> str:
         context = None
     return context
 
-def get_is_related_to(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dict, None]:
+def get_mentions(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dict, None]:
     """
     :param metadata:    The SPASE metadata object as an XML tree.
 
     :returns:   The ID's of other SPASE records related to this one in some way.
     """
-    # schema:isRelatedTo found at https://schema.org/isRelatedTo
+    # Mapping: schema:mentions = spase:Association/spase:AssociationID
+    #   (if spase:AssociationType is "Other")
+    # schema:mentions found at https://schema.org/mentions
     root = metadata.getroot()
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
@@ -1817,7 +1628,7 @@ def get_is_related_to(metadata: etree.ElementTree, path:str) -> Union[List[Dict]
             if type == "Other":
                 relations.append(A_ID)
     if relations == []:
-        is_related_to = None
+        mentions = None
     else:
         i = 0
         # try and get DOI instead of SPASE ID
@@ -1835,12 +1646,12 @@ def get_is_related_to(metadata: etree.ElementTree, path:str) -> Union[List[Dict]
                 raise ValueError("Could not access associated SPASE record.")
             i += 1
         if len(relations) > 1:
-            is_related_to = []
+            mentions = []
             for relation in relations:
-                is_related_to.append({"@id": relation})
+                mentions.append({"@id": relation})
         else:
-            is_related_to = {"@id": relations[0]}
-    return is_related_to
+            mentions = {"@id": relations[0]}
+    return mentions
 
 def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dict, None]:
     """
@@ -1848,6 +1659,8 @@ def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[List[Dict], D
 
     :returns:   The ID(s) of the larger resource this SPASE record is a portion of, as a dictionary.
     """
+    # Mapping: schema:isBasedOn = spase:Association/spase:AssociationID
+    #   (if spase:AssociationType is "PartOf")
     # schema:isPartOf found at https://schema.org/isPartOf
     root = metadata.getroot()
     for elt in root.iter(tag=etree.Element):
@@ -1917,6 +1730,7 @@ def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple:
                 orcidID = child.text
             elif child.tag.endswith("OrganizationName"):
                 affiliation = child.text
+                #print(affiliation)
     return orcidID, affiliation
 
 def get_ROR(orgName:str, data="ROR_DataDump.zip") -> Union[str, None]:
@@ -1935,7 +1749,7 @@ def get_ROR(orgName:str, data="ROR_DataDump.zip") -> Union[str, None]:
 
     ror = None
     #print(orgName)
-    # if want to get ROR ID's via REST API (slow if testing all SPASE records)
+    # if want to get ROR ID's via REST API (faster than Data Dump)
     url = "https://api.ror.org/v2/organizations"
     response = requests.get(url, params={"affiliation": orgName})
     #print(response.text)
@@ -1945,7 +1759,7 @@ def get_ROR(orgName:str, data="ROR_DataDump.zip") -> Union[str, None]:
         if (item["chosen"] == True) and (item["matching_type"] == "EXACT"):
             #print("Found a match!")
             ror = item["organization"]["id"]
-    # find ROR ID's by searching Data Dump file (faster?)
+    # find ROR ID's by searching Data Dump file (slower)
     """with zipfile.ZipFile(data) as z:    
         for filename in z.namelist():
             # find most up-to-date json
@@ -1986,15 +1800,32 @@ def get_temporal(metadata: etree.ElementTree, namespaces: Dict) -> Union[List, N
             temporal = None
         return delete_null_values(temporal)
 
+def get_metadata_license(metadata: etree.ElementTree) -> str:
+    """
+    :param metadata: The metadata object as an XML tree.
+
+    :returns: The metadata license of the SPASE record.
+    """
+    metadata_license = None
+    root = metadata.getroot()
+    attributes = root.attrib
+    # key looks like this: {http://www.w3.org/2001/XMLSchema-instance}MetadataRights
+    for key, val in attributes.items():
+        if "MetadataRights" in key:
+            metadata_license = val
+    return metadata_license
+
 def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sameAs", "url", "name", "description", "date_published",
                                                         "keywords", "creator", "citation", "temporal_coverage", "temporal", 
                                                         "spatial_coverage", "publisher", "distribution", "potential_action",
                                                         "variable_measured", "funding", "license", "was_revision_of", "was_derived_from",
-                                                        "is_based_on", "is_related_to", "is_part_of", "date_created", "date_modified",
-                                                        "contributor", "instrument", "observatory", "alternate_name", "inLanguage"]) -> None:
+                                                        "is_based_on", "mentions", "is_part_of", "date_created", "date_modified",
+                                                        "contributor", "measurementTechnique", "producer", "alternate_name",
+                                                        "inLanguage", "subject_of"]) -> None:
     # list that holds SPASE records already checked
     searched = []
     SPASE_paths = []
+    numFound = 0
 
     # downloads ROR Data Dump file for use in script
     """response = requests.get("https://zenodo.org/api/communities/ror-data/records?q=&sort=newest")
@@ -2039,6 +1870,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 sameAs = testSpase.get_same_as()
                 keywords = testSpase.get_keywords()
                 citation = testSpase.get_citation()
+                subject_of = testSpase.get_subject_of()
                 identifier = testSpase.get_identifier()
                 creator = testSpase.get_creator()
                 publisher = testSpase.get_publisher()
@@ -2052,17 +1884,15 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                 funding = testSpase.get_funding()
                 license = testSpase.get_license()
                 date_created = testSpase.get_date_created()
-                #date_modified, trigger, mostRecentDate = testSpase.get_date_modified()
                 date_modified = testSpase.get_date_modified()
                 date_published = testSpase.get_date_published()
                 was_revision_of = testSpase.get_was_revision_of()
                 was_derived_from = testSpase.get_was_derived_from()
                 is_based_on = testSpase.get_is_based_on()
-                #is_related_to, ObsBy, Part = get_is_related_to(testSpase.metadata)
-                is_related_to = get_is_related_to(testSpase.metadata, record)
+                mentions = get_mentions(testSpase.metadata, record)
                 is_part_of = get_is_part_of(testSpase.metadata, record)
-                instrument = get_instrument(testSpase.metadata, record)
-                observatory = get_observatory(testSpase.metadata, record)
+                measurementTechnique = get_measurementTechnique(testSpase.metadata, record)
+                producer = get_producer(testSpase.metadata, record)
                 alternate_name = get_alternate_name(testSpase.metadata)
                 inLanguage = 'en'
 
@@ -2092,6 +1922,9 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                         elif property == "citation":
                             print(" citation:", end=" ")
                             print(json.dumps(citation, indent=4))
+                        elif property == "subject_of":
+                            print(" subject_of:", end=" ")
+                            print(json.dumps(subject_of, indent=4))
                         elif property == "identifier":
                             print(" identifier:", end=" ")
                             print(json.dumps(identifier, indent=4))
@@ -2129,8 +1962,10 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                         elif property == "contributor":
                             # pos 1161-2 in NumericalData
                             if contributor is not None:
+                                # 8 in total in Numerical that have Contact Role of contributor, none in Display
+                                # contributor role found in Contacts for #1162, 1220, 1278, etc
                                 print(" contributor:", end=" ")
-                                print(json.dumps(contributor, indent=4))
+                                print(json.dumps(contributor, indent=4, ensure_ascii=False))
                             else:
                                 print("No contributors found.")
                         elif property == "distribution" or property == "potential_action":
@@ -2195,12 +2030,12 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                             else:
                                 print("No is_based_on was found.")
                         # only 25 in NumericalData have "ObservedBy" or "PartOf" associationIDs
-                        elif property == "is_related_to":
-                            if is_related_to is not None:
-                                print(" schema:is_related_to:", end=" ")
-                                print(json.dumps(is_related_to, indent=4))
+                        elif property == "mentions":
+                            if mentions is not None:
+                                print(" mentions:", end=" ")
+                                print(json.dumps(mentions, indent=4))
                             else:
-                                print("No is_related_to was found.")
+                                print("No Other AssociationTypes were found.")
                         elif property == "is_part_of":
                             if is_part_of is not None:
                                 print(" schema:isPartOf:", end=" ")
@@ -2213,16 +2048,16 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
                                 print(json.dumps(variable_measured, indent=4))
                             else:
                                 print("No parameters found.")
-                        elif property == "instrument":
-                            if instrument is not None:
-                                print(" instrument:", end=" ")
-                                print(json.dumps(instrument, indent=4))
+                        elif property == "measurementTechnique":
+                            if measurementTechnique is not None:
+                                print(" measurementTechnique:", end=" ")
+                                print(json.dumps(measurementTechnique, indent=4))
                             else:
                                 print("No InstrumentIDs found.")
-                        elif property == "observatory":
-                            if observatory is not None:
-                                print(" observatory:", end=" ")
-                                print(json.dumps(observatory, indent=4))
+                        elif property == "producer":
+                            if producer is not None:
+                                print(" producer:", end=" ")
+                                print(json.dumps(producer, indent=4))
                             else:
                                 print("No ObservatoryIDs found.")
                         elif property == "alternate_name":
@@ -2244,7 +2079,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
 folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/DisplayData/ACE/MAG"
 #folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-main(folder, False, ["creator"])
+#main(folder, True, ["creator"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
@@ -2252,6 +2087,6 @@ main(folder, False, ["creator"])
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 # start at list item 163 if want to skip ACE folder
 folder = "C:/Users/zboquet/NASA/NumericalData"
-main(folder, False, ["is_part_of"])
+#main(folder, True, ["creator"])
 
 
