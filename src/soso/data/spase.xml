@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Spase xmlns="http://www.spase-group.org/data/schema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.spase-group.org/data/schema http://www.spase-group.org/data/schema/spase-2-5-0.xsd">
+<Spase xmlns="http://www.spase-group.org/data/schema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.spase-group.org/data/schema http://www.spase-group.org/data/schema/spase-2-5-0.xsd" MetadataRights="Creative Commons Zero v1.0 Universal">
    <Version>2.5.0</Version>
    <NumericalData>
       <ResourceID>spase://NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S</ResourceID>
@@ -143,14 +143,14 @@
          <RepositoryID>spase://SMWG/Repository/NASA/GSFC/SPDF/CDAWeb</RepositoryID>
          <Availability>Online</Availability>
          <AccessRights>Open</AccessRights>
-         <rightsList>
-            <rights xml:lang="en"
+         <RightsList>
+            <Rights xml:lang="en"
             schemeURI="https://spdx.org/licenses/"
             rightsIdentifierScheme="SPDX"
             rightsIdentifier="CC0-1.0"
             rightsURI="https://spdx.org/licenses/CC0-1.0.html">
-            Creative Commons Zero v1.0 Universal</rights>
-        </rightsList>
+            Creative Commons Zero v1.0 Universal</Rights>
+         </RightsList>
          <AccessURL>
             <Name>CDAWeb HAPI Server</Name>
             <URL>https://cdaweb.gsfc.nasa.gov/hapi</URL>
