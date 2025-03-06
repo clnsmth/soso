@@ -171,6 +171,8 @@ class SPASE(StrategyInterface):
         ID = self.get_id()
         # if SPASE record has a DOI
         if "doi" in url:
+            before, sep, after = ID.partition("/NASA")
+            hpdeURL = f"https://hpde.io{sep}{after}"
             temp = url.split("/")
             value = "doi:" + "/".join(temp[3:])
             identifier = [{"@id": url,
@@ -180,7 +182,8 @@ class SPASE(StrategyInterface):
                             "url": url},
                         {"@type": "PropertyValue",
                             "propertyID": "SPASE",
-                            "value": ID}
+                            "value": ID,
+                            "url": hpdeURL}
                         ]
         # if SPASE record only has landing page instead
         else:
@@ -277,7 +280,7 @@ class SPASE(StrategyInterface):
         date_modified = self.get_date_modified()
         metadata_license = get_metadata_license(self.metadata)
         before, sep, after = self.get_id().partition("/NASA")
-        contentURL = f"https://hpde.io{sep}{after}.xml"
+        contentURL = f"https://hpde.io{sep}{after}"
         if date_modified:
             subject_of = {
                     "@type": "DataDownload",
@@ -578,7 +581,7 @@ class SPASE(StrategyInterface):
                             givenName += "."
                         # add call to ORCiD and affiliation
                         # iterate thru contacts to find one that matches the current person
-                        for contact in contactsList:
+                        for contact in contactsList.keys():
                             firstName, sep, lastName = contact.rpartition(".")
                             firstName, sep, initial = firstName.partition(".")
                             path, sep, firstName = firstName.rpartition("/")
@@ -588,7 +591,8 @@ class SPASE(StrategyInterface):
                         if matchingContact is not None:
                             orcidID, affiliation = get_ORCiD_and_Affiliation(matchingContact, self.file)
                             ror = get_ROR(affiliation)
-                            creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName, affiliation, orcidID, ror)
+                            creatorEntry = creatorFormat([authorRole[0], contactsList[contact]], person, givenName, familyName, affiliation, orcidID, ror)
+                        # TODO: add call to add this author to contributors w role
                         else:
                             creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName)
                         creator.append(creatorEntry)
@@ -605,7 +609,7 @@ class SPASE(StrategyInterface):
                         givenName = givenName + ". " + initial[0] + "."
                     # add call to get ORCiD and affiliation
                     # iterate thru contacts to find one that matches the current person
-                    for contact in contactsList:
+                    for contact in contactsList.keys():
                         firstName, sep, lastName = contact.rpartition(".")
                         firstName, sep, initial = firstName.partition(".")
                         path, sep, firstName = firstName.rpartition("/")
@@ -615,7 +619,8 @@ class SPASE(StrategyInterface):
                     if matchingContact is not None:
                         orcidID, affiliation = get_ORCiD_and_Affiliation(matchingContact, self.file)
                         ror = get_ROR(affiliation)
-                        creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName, affiliation, orcidID, ror)
+                        creatorEntry = creatorFormat([authorRole[0], contactsList[contact]], person, givenName, familyName, affiliation, orcidID, ror)
+                    # TODO: add call to add this author to contributors w role
                     else:
                         creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName)
                     creator.append(creatorEntry)
@@ -920,7 +925,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
     """
     # local vars needed
     author = []
-    contactsList = []
+    contactsList = {}
     authorRole = []
     pubDate = ""
     pub = ""
@@ -954,21 +959,22 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                                     PersonID = child.text
                                     backups[PersonID] = []
                                     # add to ContactsList
-                                    contactsList.append(PersonID)
+                                    contactsList[PersonID] = []
                                 # find Role
                                 elif child.tag.endswith("Role"):
                                     # backup author
                                     if ("PrincipalInvestigator" or "PI" or "CoInvestigator") in child.text:
                                         # if a lesser priority author found
                                         #     first, overwrite author lists
-                                        if not priority and author:
+                                        """if not priority and author:
                                             author = [PersonID]
                                             authorRole = [child.text]
-                                        else:
-                                            author.append(PersonID)
-                                            authorRole.append(child.text)
+                                        else:"""
+                                        author.append(PersonID)
+                                        authorRole.append(child.text)
+                                        contactsList[PersonID] += [child.text]
                                         # mark that highest priority backup author was found
-                                        priority = True
+                                        #priority = True
                                     elif child.text == "Contributor":
                                         contributor.append(PersonID)
                                     # backup publisher
@@ -1809,9 +1815,9 @@ def get_metadata_license(metadata: etree.ElementTree) -> str:
     metadata_license = None
     root = metadata.getroot()
     attributes = root.attrib
-    # key looks like this: {http://www.w3.org/2001/XMLSchema-instance}MetadataRights
+    # key looks like this: {http://www.w3.org/2001/XMLSchema-instance}rights
     for key, val in attributes.items():
-        if "MetadataRights" in key:
+        if "rights" in key:
             metadata_license = val
     return metadata_license
 
