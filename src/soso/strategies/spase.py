@@ -534,101 +534,67 @@ class SPASE(StrategyInterface):
         authorStr = str(author).replace("[", "").replace("]","")
         creator = []
         multiple = False
-        matchingContact = None
-        # if creators were found in Contact/PersonID
-        if "Person/" in authorStr:
-            # if multiple found, split them and iterate thru one by one
-            if "'," in authorStr:
-                multiple = True
-            for person in author:
-                if multiple:
-                    # keep track of position so roles will match
-                    index = author.index(person)
-                else:
-                    index = 0
-                # add call to get ORCiD and affiliation here
-                authorStr, givenName, familyName = nameSplitter(person)
-                orcidID, affiliation = get_ORCiD_and_Affiliation(person, self.file)
-                ror = get_ROR(affiliation)
-                creatorEntry = creatorFormat(authorRole[index], authorStr, givenName, familyName, affiliation, orcidID, ror)
-                creator.append(creatorEntry)
-        # if all creators were found in PublicationInfo/Authors
-        else:
-            # if there are multiple authors
-            if (";" in authorStr) or (".," in authorStr):
-                if (";" in authorStr):
-                    author = authorStr.split("; ")
-                else:
-                    author = authorStr.split("., ")
-                # iterate over each person in author string
+        matchingContact = False
+        if author:
+            # if creators were found in Contact/PersonID
+            if "Person/" in authorStr:
+                # if multiple found, split them and iterate thru one by one
+                if "'," in authorStr:
+                    multiple = True
                 for person in author:
-                    # get rid of extra quotations
-                    person = person.replace("'","")
-                    # if first name doesnt have a period, check if it is an initial
-                    if (not person.endswith(".")):
-                        # if first name is an initial w/o a period, add one
-                        grp = re.search(r'[\.\s]{1}[\w]{1}$', person)
-                        if grp is not None:
-                            person += "."
-                    # remove 'and' from name
-                    if "and " in person:
-                        person = person.replace("and ", "")
-                    if authorRole == ["Author"]:
-                        if ", " in person:
-                            familyName, sep, givenName = person.partition(", ")
-                        else:
-                            givenName, sep, familyName = person.partition(". ")
-                            givenName += "."
-                        # add call to ORCiD and affiliation
-                        # iterate thru contacts to find one that matches the current person
-                        for contact in contactsList.keys():
-                            firstName, sep, lastName = contact.rpartition(".")
-                            firstName, sep, initial = firstName.partition(".")
-                            path, sep, firstName = firstName.rpartition("/")
-                            #print("First: " + firstName + "\nInitial: " + initial + "\nLast: " + lastName)
-                            if (firstName in person) and (initial in person) and (lastName in person):
-                                matchingContact = contact
-                        if matchingContact is not None:
-                            orcidID, affiliation = get_ORCiD_and_Affiliation(matchingContact, self.file)
-                            ror = get_ROR(affiliation)
-                            creatorEntry = creatorFormat([authorRole[0], contactsList[contact]], person, givenName, familyName, affiliation, orcidID, ror)
-                        # TODO: add call to add this author to contributors w role
-                        else:
-                            creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName)
-                        creator.append(creatorEntry)
-            # if there is only one author listed
-            else:
-                # get rid of extra quotations
-                person = authorStr.replace("\"","")
-                if authorRole == ["Author"]:
-                    familyName, sep, givenName = person.partition(",")
-                    # handle case when name is not formatted correctly
-                    if givenName == "":
-                        givenName, sep, familyName = familyName.partition(". ")
-                        initial, sep, familyName = familyName.partition(" ")
-                        givenName = givenName + ". " + initial[0] + "."
-                    # add call to get ORCiD and affiliation
-                    # iterate thru contacts to find one that matches the current person
-                    for contact in contactsList.keys():
-                        firstName, sep, lastName = contact.rpartition(".")
-                        firstName, sep, initial = firstName.partition(".")
-                        path, sep, firstName = firstName.rpartition("/")
-                        #print("First: " + firstName + "\nInitial: " + initial + "\nLast: " + lastName)
-                        if (firstName in person) and (initial in person) and (lastName in person):
-                            matchingContact = contact
-                    if matchingContact is not None:
-                        orcidID, affiliation = get_ORCiD_and_Affiliation(matchingContact, self.file)
-                        ror = get_ROR(affiliation)
-                        creatorEntry = creatorFormat([authorRole[0], contactsList[contact]], person, givenName, familyName, affiliation, orcidID, ror)
-                    # TODO: add call to add this author to contributors w role
+                    print(author)
+                    if multiple:
+                        # keep track of position so roles will match
+                        index = author.index(person)
                     else:
+                        index = 0
+                    # add call to get ORCiD and affiliation here
+                    authorStr, givenName, familyName = nameSplitter(person)
+                    orcidID, affiliation = get_ORCiD_and_Affiliation(person, self.file)
+                    ror = get_ROR(affiliation)
+                    creatorEntry = creatorFormat(authorRole[index], authorStr, givenName, familyName, affiliation, orcidID, ror)
+                    creator.append(creatorEntry)
+            # if all creators were found in PublicationInfo/Authors
+            else:
+                # if there are multiple authors
+                if len(author) > 1:
+                    # get rid of extra quotations
+                    for num, each in enumerate(author):
+                        if "\'" in each:
+                            author[num] = each.replace("\'","")
+                    # iterate over each person in author string
+                    for person in author:
+                        index = author.index(person)
+                        familyName, sep, givenName = person.partition(", ")
+                        for key, val in contactsList.items():
+                            if person == val:
+                                matchingContact = True
+                                orcidID, affiliation = get_ORCiD_and_Affiliation(key, self.file)
+                                ror = get_ROR(affiliation)
+                                creatorEntry = creatorFormat(authorRole[index], person, givenName, familyName, affiliation, orcidID, ror)
+                        if not matchingContact:
+                            creatorEntry = creatorFormat(authorRole[index], person, givenName, familyName)
+                        creator.append(creatorEntry)
+                # if there is only one author listed
+                else:
+                    # get rid of extra quotations
+                    person = authorStr.replace("\"","")
+                    familyName, sep, givenName = person.partition(",")
+                    for key, val in contactsList.items():
+                        if person == val:
+                            matchingContact = True
+                            orcidID, affiliation = get_ORCiD_and_Affiliation(key, self.file)
+                            ror = get_ROR(affiliation)
+                            creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName, affiliation, orcidID, ror)
+                    if not matchingContact:
                         creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName)
                     creator.append(creatorEntry)
-        # preserve order of elements
-        if len(creator) != 0:
-            creator = {"@list": creator}
         else:
-            creator = None
+            # preserve order of elements
+            if len(creator) != 0:
+                creator = {"@list": creator}
+            else:
+                creator = None
         return delete_null_values(creator)
 
     def get_contributor(self) -> Union[List, None]:
@@ -641,15 +607,27 @@ class SPASE(StrategyInterface):
         # holds role values that are not initially considered for contributor var
         CuratorRoles = ["HostContact", "GeneralContact", "DataProducer", "MetadataContact", "TechnicalContact"]
         
-        for person in contributors:
-            # add call to get ORCiD and affiliation
-            contributorStr, givenName, familyName = nameSplitter(person)
-            orcidID, affiliation = get_ORCiD_and_Affiliation(person, self.file)
-            ror = get_ROR(affiliation)
-            individual = contributorFormat("Contributor", contributorStr, givenName, familyName, affiliation, orcidID, ror)
-            contributor.append(individual)
-        # if no contributor found use backups (editors)
-        if contributor == []:
+        # check for ppl w author roles that were not found in PubInfo
+        for key, val in contactsList.items():
+            if "." not in val:
+                # add call to get ORCiD and affiliation
+                contributorStr, givenName, familyName = nameSplitter(key)
+                orcidID, affiliation = get_ORCiD_and_Affiliation(key, self.file)
+                ror = get_ROR(affiliation)
+                individual = contributorFormat(contactsList[key], contributorStr, givenName, familyName, affiliation, orcidID, ror)
+                contributor.append(individual)
+
+        # check for non-author role contributors
+        if contributors:
+            for person in contributors:
+                # add call to get ORCiD and affiliation
+                contributorStr, givenName, familyName = nameSplitter(person)
+                orcidID, affiliation = get_ORCiD_and_Affiliation(person, self.file)
+                ror = get_ROR(affiliation)
+                individual = contributorFormat("Contributor", contributorStr, givenName, familyName, affiliation, orcidID, ror)
+                contributor.append(individual)
+        # if no non-author role contributor is found, use backups (editors)
+        else:
             found = False
             i = 0
             # while a curator is not found
@@ -666,7 +644,10 @@ class SPASE(StrategyInterface):
                         contributor.append(individual)
                         found = True
                 i += 1
-        if len(contributor) == 0:
+        # preserve order of elements
+        if len(contributor) != 0:
+            contributor = {"@list": contributor}
+        else:
             contributor = None
 
         return delete_null_values(contributor)
@@ -958,31 +939,31 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                                     # store PersonID
                                     PersonID = child.text
                                     backups[PersonID] = []
-                                    # add to ContactsList
                                     contactsList[PersonID] = []
                                 # find Role
                                 elif child.tag.endswith("Role"):
                                     # backup author
-                                    if ("PrincipalInvestigator" or "PI" or "CoInvestigator") in child.text:
-                                        # if a lesser priority author found
-                                        #     first, overwrite author lists
-                                        """if not priority and author:
-                                            author = [PersonID]
-                                            authorRole = [child.text]
-                                        else:"""
-                                        author.append(PersonID)
-                                        authorRole.append(child.text)
+                                    if ("PrincipalInvestigator" in child.text) or ("PI" in child.text) or ("CoInvestigator" in child.text):
+                                        if PersonID not in author:
+                                            author.append(PersonID)
+                                            authorRole.append(child.text)
+                                        else:
+                                            index = author.index(PersonID)
+                                            authorRole[index] = [authorRole[index] + child.text]
                                         contactsList[PersonID] += [child.text]
                                         # mark that highest priority backup author was found
                                         #priority = True
                                     elif child.text == "Contributor":
                                         contributor.append(PersonID)
+                                        contactsList.pop(PersonID)
                                     # backup publisher
                                     elif child.text == "Publisher":
                                         pub = child.text
+                                        contactsList.pop(PersonID)
                                     else:
                                         # use list for values in case one person has multiple roles
                                         backups[PersonID] += [child.text]
+                                        contactsList.pop(PersonID)
                             except AttributeError as err:
                                 continue
                 except AttributeError as err:
@@ -1001,6 +982,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
             # collect preferred dataset
             elif child.tag.endswith("Title"):
                 dataset = child.text
+    author, authorRole, contactsList = process_authors(author, authorRole, contactsList)
     return author, authorRole, pubDate, pub, contributor, dataset, backups, contactsList
 
 def getPaths(entry, paths) -> list:
@@ -1821,6 +1803,97 @@ def get_metadata_license(metadata: etree.ElementTree) -> str:
             metadata_license = val
     return metadata_license
 
+def process_authors(author:List, authorRole:List, contactsList:Dict) -> tuple:
+    # loop thru all contacts to find any that match authors, unless no PubInfo was found
+    # if matches found, add roles to authorRoles
+    # if no match found for person(s), leave in contactsList for use in get_contributors
+
+    authorStr = str(author).replace("[", "").replace("]","")
+    # if creators were found in Contact/PersonID, no sorting needed
+    if "Person/" in authorStr:
+        # TODO: remove author roles from contactsList so not duplicated in contributors
+        return author, authorRole, contactsList
+    # if all creators were found in PublicationInfo/Authors
+    else:
+        # if there are multiple authors
+        if (";" in authorStr) or (".," in authorStr):
+            if (";" in authorStr):
+                author = authorStr.split("; ")
+            else:
+                author = authorStr.split("., ")
+            # fix num of roles
+            while (len(authorRole) < len(author)):
+                authorRole += ["Author"]
+            # get rid of extra quotations
+            for num, each in enumerate(author):
+                if "\'" in each:
+                    author[num] = each.replace("\'","")
+            # iterate over each person in author string
+            for person in author:
+                matchingContact = None
+                # if first name doesnt have a period, check if it is an initial
+                if (not person.endswith(".")):
+                    # if first name is an initial w/o a period, add one
+                    grp = re.search(r'[\.\s]{1}[\w]{1}$', person)
+                    if grp is not None:
+                        person += "."
+                # remove 'and' from name
+                if "and " in person:
+                    person = person.replace("and ", "")
+                # continued formatting fixes
+                if ", " in person:
+                    familyName, sep, givenName = person.partition(", ")
+                else:
+                    givenName, sep, familyName = person.partition(". ")
+                    givenName += "."
+                if "," in givenName:
+                    givenName = givenName.replace(",","")
+                # iterate thru contacts to find one that matches the current person
+                for contact in contactsList.keys():
+                    if matchingContact is None:
+                        firstName, sep, lastName = contact.rpartition(".")
+                        firstName, sep, initial = firstName.partition(".")
+                        path, sep, firstName = firstName.rpartition("/")
+                        #print("First: " + firstName + "\nInitial: " + initial + "\nLast: " + lastName)
+                        if (firstName in person) and (initial in person) and (lastName in person):
+                            matchingContact = contact
+                index = author.index(person)
+                # if match is found, add role to authorRole and replace role with person name in contactsList
+                if matchingContact is not None:
+                    authorRole[index] = [authorRole[index], str(contactsList[matchingContact])]
+                    contactsList[matchingContact] = f"{lastName}, {firstName} {initial}."
+                # TODO: what if no initial?
+                author[index] = f'{familyName}, {givenName}'
+        # if there is only one author listed
+        else:
+            matchingContact = None
+            # get rid of extra quotations
+            person = authorStr.replace("\"","")
+            if authorRole == ["Author"]:
+                familyName, sep, givenName = person.partition(",")
+                # handle case when name is not formatted correctly
+                if givenName == "":
+                    givenName, sep, familyName = familyName.partition(". ")
+                    initial, sep, familyName = familyName.partition(" ")
+                    givenName = givenName + ". " + initial[0] + "."
+                if "," in givenName:
+                    givenName = givenName.replace(",","")
+                # iterate thru contacts to find one that matches the current person
+                for contact in contactsList.keys():
+                    if matchingContact is None:
+                        firstName, sep, lastName = contact.rpartition(".")
+                        firstName, sep, initial = firstName.partition(".")
+                        path, sep, firstName = firstName.rpartition("/")
+                        #print("First: " + firstName + "\nInitial: " + initial + "\nLast: " + lastName)
+                        if (firstName in person) and (initial in person) and (lastName in person):
+                            matchingContact = contact
+                # if match is found, add role to authorRole and replace role with person name in contactsList
+                if matchingContact is not None:
+                    authorRole[0] = [authorRole[0], str(contactsList[matchingContact])]
+                    contactsList[matchingContact] = f"{lastName}, {firstName} {initial}."
+                author[0] = f'{familyName}, {givenName}'
+    return author, authorRole, contactsList
+
 def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sameAs", "url", "name", "description", "date_published",
                                                         "keywords", "creator", "citation", "temporal_coverage", "temporal", 
                                                         "spatial_coverage", "publisher", "distribution", "potential_action",
@@ -1847,10 +1920,8 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
     if len(SPASE_paths) == 0:
         print("No records found. Returning.")
     else:
-        #print("The number of records is " + str(len(SPASE_paths)))
         # iterate through all SPASE records
         # Note: starting at record 24 in ACE/EPAM folder, end of author string is formatted wrong with "and first last" instead of "and last, first" (SPASE issue)
-        # Successfully passed for all 129 records in NumericalData/ACE/EPAM folder and all 187 in DisplayData
         # In DisplayData, records 130, 167-70 has authors formatted wrong
         # DisplayData: record 70 is ex w multiple contacts, ACE has ex's w multiple authors
         # ReleaseDate is not most recent at this dataset (causes dateModified to be incorrect): C:/Users/zboquet/NASA/DisplayData\SDO\AIA\SSC
@@ -1859,7 +1930,8 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
         # DD: #134 is ex w a LOT of observatory entries thanks to multiple instruments
         # record NASA/DisplayData\OBSPM/H-ALPHA.xml has broken instrumentID link
         # record NASA/DisplayData/UCLA/Global-MHD-code/mS1-Vx/PT10S.xml has extra spacing in PubInfo/Authors
-        for r, record in enumerate(SPASE_paths):
+        # record NASA/NumericalData/ACE/Ephemeris/Definitive/P1D.xml is ex of author role in Contacts w/o match in PubInfo
+        for r, record in enumerate(SPASE_paths[5:6]):
             if record not in searched:
                 # scrape metadata for each record
                 statusMessage = f"Extracting metadata from record {r+1}"
@@ -2085,7 +2157,7 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
 folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/DisplayData/ACE/MAG"
 #folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-#main(folder, True, ["creator"])
+main(folder, True, ["creator", "contributor"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
@@ -2093,6 +2165,6 @@ folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
 # start at list item 163 if want to skip ACE folder
 folder = "C:/Users/zboquet/NASA/NumericalData"
-#main(folder, True, ["creator"])
+#main(folder, True, ["creator", "contributor"])
 
 
