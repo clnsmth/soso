@@ -180,14 +180,16 @@ class SPASE(StrategyInterface):
                             "propertyID": "https://registry.identifiers.org/registry/doi",
                             "value": value,
                             "url": url},
-                        {"@type": "PropertyValue",
+                        {"@id": hpdeURL,
+                            "@type": "PropertyValue",
                             "propertyID": "SPASE",
                             "value": ID,
                             "url": hpdeURL}
                         ]
         # if SPASE record only has landing page instead
         else:
-            identifier = {"@type": "PropertyValue",
+            identifier = {"@id": url,
+                            "@type": "PropertyValue",
                             "propertyID": "SPASE",
                             "url": url,
                             "value": ID}
@@ -201,16 +203,19 @@ class SPASE(StrategyInterface):
             for each in information_url:
                 if "name" in each.keys():
                     if "description" in each.keys():
-                        citation.append({"@type": "CreativeWork",
+                        citation.append({"@id": each["url"],
+                                            "@type": "CreativeWork",
                                             "name": each["name"],
                                             "url": each["url"],
                                             "description": each["description"]})
                     else:
-                        citation.append({"@type": "CreativeWork",
+                        citation.append({"@id": each["url"],
+                                            "@type": "CreativeWork",
                                             "name": each["name"],
                                             "url": each["url"]})
                 else:
-                    citation.append({"@type": "CreativeWork",
+                    citation.append({"@id": each["url"],
+                                        "@type": "CreativeWork",
                                         "url": each["url"]})
         else:
             citation = None
@@ -283,6 +288,7 @@ class SPASE(StrategyInterface):
         contentURL = f"https://hpde.io{sep}{after}"
         if date_modified:
             subject_of = {
+                    "@id": contentURL,
                     "@type": "DataDownload",
                     "name": "SPASE metadata for dataset",
                     "description": "SPASE metadata describing the dataset",
@@ -293,6 +299,7 @@ class SPASE(StrategyInterface):
                 }
         else:
             subject_of = {
+                    "@id": contentURL,
                     "@type": "DataDownload",
                     "name": "SPASE metadata for dataset",
                     "description": "SPASE metadata describing the dataset",
@@ -516,8 +523,8 @@ class SPASE(StrategyInterface):
             spatial_coverage.append(
                 {
                     "@type": "Place",
-                    "identifier": f"http://www.spase-group.org/data/schema/{item.text.replace('.', '_').upper()}",
-                    "alternateName": item.text,
+                    #"identifier": f"http://www.spase-group.org/data/schema/{item.text.replace('.', '_').upper()}",
+                    "alternateName": item.text
                 }
             )
         if len(spatial_coverage) == 0:
@@ -542,7 +549,6 @@ class SPASE(StrategyInterface):
                 if "'," in authorStr:
                     multiple = True
                 for person in author:
-                    print(author)
                     if multiple:
                         # keep track of position so roles will match
                         index = author.index(person)
@@ -592,7 +598,8 @@ class SPASE(StrategyInterface):
         else:
             # preserve order of elements
             if len(creator) != 0:
-                creator = {"@list": creator}
+                if len(creator) > 1:
+                    creator = {"@list": creator}
             else:
                 creator = None
         return delete_null_values(creator)
@@ -646,7 +653,8 @@ class SPASE(StrategyInterface):
                 i += 1
         # preserve order of elements
         if len(contributor) != 0:
-            contributor = {"@list": contributor}
+            if len(contributor) > 1:
+                contributor = {"@list": contributor}
         else:
             contributor = None
 
@@ -864,9 +872,11 @@ class SPASE(StrategyInterface):
             if len(derivations) > 1:
                 is_based_on = []
                 for derivation in derivations:
-                    is_based_on.append({"@id": derivation})
+                    is_based_on.append({"@type": "Dataset",
+                                        "@id": derivation})
             else:
-                is_based_on = {"@id": derivations[0]}
+                is_based_on = {"@type": "Dataset",
+                               "@id": derivations[0]}
         return delete_null_values(is_based_on)
 
     def get_was_generated_by(self) -> None:
@@ -949,21 +959,17 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                                             authorRole.append(child.text)
                                         else:
                                             index = author.index(PersonID)
-                                            authorRole[index] = [authorRole[index] + child.text]
+                                            authorRole[index] = [authorRole[index], child.text]
                                         contactsList[PersonID] += [child.text]
-                                        # mark that highest priority backup author was found
-                                        #priority = True
+                                    # preferred contributor
                                     elif child.text == "Contributor":
                                         contributor.append(PersonID)
-                                        contactsList.pop(PersonID)
                                     # backup publisher
                                     elif child.text == "Publisher":
                                         pub = child.text
-                                        contactsList.pop(PersonID)
                                     else:
                                         # use list for values in case one person has multiple roles
                                         backups[PersonID] += [child.text]
-                                        contactsList.pop(PersonID)
                             except AttributeError as err:
                                 continue
                 except AttributeError as err:
@@ -982,7 +988,14 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
             # collect preferred dataset
             elif child.tag.endswith("Title"):
                 dataset = child.text
-    author, authorRole, contactsList = process_authors(author, authorRole, contactsList)
+
+    # remove contacts w/o author roles
+    contactsCopy = {}
+    for contact, role in contactsList.items():
+        if role:
+            contactsCopy[contact] = role
+
+    author, authorRole, contactsList = process_authors(author, authorRole, contactsCopy)
     return author, authorRole, pubDate, pub, contributor, dataset, backups, contactsList
 
 def getPaths(entry, paths) -> list:
@@ -1184,7 +1197,8 @@ def contributorFormat(roleName:str, name:str, givenName:str, familyName:str, aff
     if orcidID and affiliation and ror:
         contact = {"@type": "Role", 
                     "roleName": roleName,
-                    "contributor": {"@type": "Person",
+                    "contributor": {"@id": f"https://orcid.org/{orcidID}",
+                                    "@type": "Person",
                                     "name": name,
                                     "givenName": givenName,
                                     "familyName": familyName,
@@ -1200,7 +1214,8 @@ def contributorFormat(roleName:str, name:str, givenName:str, familyName:str, aff
     elif orcidID and affiliation:
         contact = {"@type": "Role", 
                     "roleName": roleName,
-                    "contributor": {"@type": "Person",
+                    "contributor": {"@id": f"https://orcid.org/{orcidID}",
+                                    "@type": "Person",
                                     "name": name,
                                     "givenName": givenName,
                                     "familyName": familyName,
@@ -1262,7 +1277,8 @@ def creatorFormat(roleName:str, name:str, givenName:str, familyName:str, affilia
     if orcidID and affiliation and ror:
         creator = {"@type": "Role", 
                     "roleName": roleName,
-                    "creator": {"@type": "Person",
+                    "creator": {"@id": f"https://orcid.org/{orcidID}",
+                                "@type": "Person",
                                 "name": name,
                                 "givenName": givenName,
                                 "familyName": familyName,
@@ -1276,7 +1292,8 @@ def creatorFormat(roleName:str, name:str, givenName:str, familyName:str, affilia
                                                 "value": f"orcid:{orcidVal}"}}
                         }
     elif orcidID and affiliation:
-        creator = {"@type": "Role", 
+        creator = {"@id": f"https://orcid.org/{orcidID}",
+                   "@type": "Role", 
                     "roleName": roleName,
                     "creator": {"@type": "Person",
                                 "name": name,
@@ -1428,14 +1445,11 @@ def get_measurementTechnique(metadata: etree.ElementTree, path: str) -> Union[Li
                 instrumentIDs[item]["URL"] = testSpase.get_url()
         for k in instrumentIDs.keys():
             if instrumentIDs[k]["URL"]:
-                measurementTechnique.append({"@type": "DefinedTerm",
-                                        "identifier": k,
-                                        "name": instrumentIDs[k]["name"],
-                                        "url": instrumentIDs[k]["URL"]})
-            else:
-                measurementTechnique.append({"@type": "DefinedTerm",
-                                "identifier": k,
-                                "name": instrumentIDs[k]["name"]})
+                measurementTechnique.append({"@id": instrumentIDs[k]["URL"],
+                                                "@type": "DefinedTerm",
+                                                "identifier": k,
+                                                "name": instrumentIDs[k]["name"],
+                                                "url": instrumentIDs[k]["URL"]})
     return measurementTechnique
 
 def get_producer(metadata: etree.ElementTree, path: str) -> Union[List[Dict], None]:
@@ -1491,7 +1505,7 @@ def get_producer(metadata: etree.ElementTree, path: str) -> Union[List[Dict], No
                     url = testSpase.get_url()
                     if observatoryGroupID:
                         record = absPath + observatoryGroupID.replace("spase://","") + ".xml"
-                        record = record.replace("'","")                
+                        record = record.replace("'","") 
                         if os.path.isfile(record):
                             groupURL = ""
                             testSpase = SPASE(record)
@@ -1500,26 +1514,16 @@ def get_producer(metadata: etree.ElementTree, path: str) -> Union[List[Dict], No
                             if groupURL:
                                 if observatoryGroupID not in recordedIDs:
                                     producer.append({"@type": "ResearchProject",
-                                                        "@id": observatoryGroupID,
+                                                        "@id": groupURL,
                                                         "name": groupName,
                                                         "url": groupURL})
                                     recordedIDs.append(observatoryGroupID)
-                            elif observatoryGroupID not in recordedIDs:
-                                producer.append({"@type": "ResearchProject",
-                                                    "@id": observatoryGroupID,
-                                                    "name": groupName})
-                                recordedIDs.append(observatoryGroupID)
                     if url and (observatoryID not in recordedIDs):
                         producer.append({"@type": "ResearchProject",
-                                            "@id": observatoryID,
+                                            "@id": url,
                                             "name": name,
                                             "url": url})
                         recordedIDs.append(observatoryID)
-                    elif observatoryID not in recordedIDs:
-                        producer.append({"@type": "ResearchProject",
-                                        "@id": observatoryID,
-                                        "name": name})
-                        recordedIDs.append(observatoryGroupID)
     else:
         producer = None
     return producer
@@ -1636,9 +1640,11 @@ def get_mentions(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dic
         if len(relations) > 1:
             mentions = []
             for relation in relations:
-                mentions.append({"@id": relation})
+                mentions.append({"@type": "Dataset",
+                                    "@id": relation})
         else:
-            mentions = {"@id": relations[0]}
+            mentions = {"@type": "Dataset",
+                            "@id": relations[0]}
     return mentions
 
 def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dict, None]:
@@ -1809,10 +1815,20 @@ def process_authors(author:List, authorRole:List, contactsList:Dict) -> tuple:
     # if no match found for person(s), leave in contactsList for use in get_contributors
 
     authorStr = str(author).replace("[", "").replace("]","")
-    # if creators were found in Contact/PersonID, no sorting needed
+    # if creators were found in Contact/PersonID (no PubInfo)
+    # remove author roles from contactsList so not duplicated in contributors
     if "Person/" in authorStr:
-        # TODO: remove author roles from contactsList so not duplicated in contributors
-        return author, authorRole, contactsList
+        contactsCopy = {}
+        for person, val in contactsList.items():
+            contactsCopy[person] = []
+            for role in val:
+                # if role is not considered for author, add to acceptable roles list
+                if ("PrincipalInvestigator" not in role) and ("PI" not in role) and ("CoInvestigator" not in role):
+                    contactsCopy[person].append(role)
+            # if no acceptable roles were found, remove that author from contributor consideration
+            if contactsCopy[person] == []:
+                contactsCopy.pop(person)
+        return author, authorRole, contactsCopy
     # if all creators were found in PublicationInfo/Authors
     else:
         # if there are multiple authors
@@ -1831,6 +1847,7 @@ def process_authors(author:List, authorRole:List, contactsList:Dict) -> tuple:
             # iterate over each person in author string
             for person in author:
                 matchingContact = None
+                index = author.index(person)
                 # if first name doesnt have a period, check if it is an initial
                 if (not person.endswith(".")):
                     # if first name is an initial w/o a period, add one
@@ -1855,15 +1872,15 @@ def process_authors(author:List, authorRole:List, contactsList:Dict) -> tuple:
                         firstName, sep, initial = firstName.partition(".")
                         path, sep, firstName = firstName.rpartition("/")
                         #print("First: " + firstName + "\nInitial: " + initial + "\nLast: " + lastName)
-                        if (firstName in person) and (initial in person) and (lastName in person):
+                        # Assumption: if first name initial, middle initial, and last name match = same person
+                        # remove <f"{firstName[0]}."> in the line below if this assumption is no longer accurate
+                        if ((f"{firstName[0]}." in person) or (firstName in person)) and (f"{initial}." in person) and (lastName in person):
                             matchingContact = contact
-                index = author.index(person)
                 # if match is found, add role to authorRole and replace role with person name in contactsList
                 if matchingContact is not None:
-                    authorRole[index] = [authorRole[index], str(contactsList[matchingContact])]
+                    authorRole[index] = [authorRole[index]] + contactsList[matchingContact]
                     contactsList[matchingContact] = f"{lastName}, {firstName} {initial}."
-                # TODO: what if no initial?
-                author[index] = f'{familyName}, {givenName}'
+                author[index] = (f'{familyName}, {givenName}').strip()
         # if there is only one author listed
         else:
             matchingContact = None
@@ -1885,13 +1902,15 @@ def process_authors(author:List, authorRole:List, contactsList:Dict) -> tuple:
                         firstName, sep, initial = firstName.partition(".")
                         path, sep, firstName = firstName.rpartition("/")
                         #print("First: " + firstName + "\nInitial: " + initial + "\nLast: " + lastName)
-                        if (firstName in person) and (initial in person) and (lastName in person):
+                        # Assumption: if first name initial, middle initial, and last name match = same person
+                        # remove <f"{firstName[0]}."> in the line below if this assumption is no longer accurate
+                        if ((f"{firstName[0]}." in person) or (firstName in person)) and (f"{initial}." in person) and (lastName in person):
                             matchingContact = contact
                 # if match is found, add role to authorRole and replace role with person name in contactsList
                 if matchingContact is not None:
-                    authorRole[0] = [authorRole[0], str(contactsList[matchingContact])]
+                    authorRole[0] = [authorRole[0]] + contactsList[matchingContact]
                     contactsList[matchingContact] = f"{lastName}, {firstName} {initial}."
-                author[0] = f'{familyName}, {givenName}'
+                author[0] = (f'{familyName}, {givenName}').strip()
     return author, authorRole, contactsList
 
 def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sameAs", "url", "name", "description", "date_published",
@@ -1931,7 +1950,9 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
         # record NASA/DisplayData\OBSPM/H-ALPHA.xml has broken instrumentID link
         # record NASA/DisplayData/UCLA/Global-MHD-code/mS1-Vx/PT10S.xml has extra spacing in PubInfo/Authors
         # record NASA/NumericalData/ACE/Ephemeris/Definitive/P1D.xml is ex of author role in Contacts w/o match in PubInfo
-        for r, record in enumerate(SPASE_paths[5:6]):
+        # record NASA/NumericalData\ACE\MAG\KeyParameter/PT16S.xml is example where person in Contacts and PubInfo are 
+        #   considered same because of first initial, initial, last name matching
+        for r, record in enumerate(SPASE_paths):
             if record not in searched:
                 # scrape metadata for each record
                 statusMessage = f"Extracting metadata from record {r+1}"
@@ -2156,8 +2177,8 @@ def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sam
 # test directories
 folder = "C:/Users/zboquet/NASA/DisplayData"
 #folder = "C:/Users/zboquet/NASA/DisplayData/ACE/MAG"
-#folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-main(folder, True, ["creator", "contributor"])
+folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
+main(folder, True, ["producer"])
 
 #folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
 #folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
