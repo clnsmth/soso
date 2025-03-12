@@ -7,110 +7,141 @@
    "@type": "Dataset",
    "citation": [
       {
+         "@id": "https://mms.gsfc.nasa.gov/",
          "@type": "CreativeWork",
          "description": "The Magnetospheric Multiscale (MMS) Mission Home Page hosted by the Goddard Space Flight Center (GSFC).",
          "name": "The Magnetospheric Multiscale (MMS) Mission home page at Goddard Space Flight Center (GSFC)",
          "url": "https://mms.gsfc.nasa.gov/"
       },
       {
+         "@id": "https://lasp.colorado.edu/mms/sdc/public/datasets/hpca/",
          "@type": "CreativeWork",
          "description": "The Magnetospheric Multiscale (MMS) Mission home page hosted by the Laboratory of Atmospheric and Space Physics, Science Data Center (LASP, SDC) at the University of Colorado, Boulder.",
          "name": "Data Caveats and Current Release Notes at LASP MMS SDC",
          "url": "https://lasp.colorado.edu/mms/sdc/public/datasets/hpca/"
       }
    ],
-   "contributor": [
-      {
-         "@type": "Role",
-         "contributor": {
-            "@type": "Person",
-            "affiliation": {
-               "@type": "Organization",
-               "name": "Magnetospheric Multiscale (MMS) Science Operations Center (SOC)"
-            },
-            "givenName": "MMS_SDC_POC",
-            "name": "MMS_SDC_POC "
-         },
-         "roleName": "HostContact"
-      }
-   ],
-   "creator": {
+   "contributor": {
       "@list": [
          {
             "@type": "Role",
-            "creator": {
+            "contributor": {
                "@type": "Person",
                "affiliation": {
+                  "@id": "https://ror.org/036jqmy94",
                   "@type": "Organization",
-                  "name": "Southwest Research Institute, also affiliated with the University of Texas at San Antonio"
+                  "name": "University of Iowa"
                },
-               "familyName": "Fuselier",
-               "givenName": "Stephen, A.",
-               "name": "Fuselier, Stephen, A."
+               "familyName": "Pickett",
+               "givenName": "Jolene S.",
+               "name": "Jolene S. Pickett"
             },
-            "roleName": "Author"
+            "roleName": "PrincipalInvestigator"
          },
          {
             "@type": "Role",
-            "creator": {
+            "contributor": {
                "@type": "Person",
                "affiliation": {
-                  "@id": "https://ror.org/03tghng59",
                   "@type": "Organization",
-                  "name": "Southwest Research Institute"
+                  "name": "Magnetospheric Multiscale (MMS) Science Operations Center (SOC)"
                },
-               "familyName": "Young",
-               "givenName": "David, T.",
-               "identifier": {
-                  "@id": "https://orcid.org/0000-0001-9473-7000",
-                  "@type": "PropertyValue",
-                  "propertyID": "https://registry.identifiers.org/registry/orcid",
-                  "url": "https://orcid.org/0000-0001-9473-7000",
-                  "value": "orcid:0000-0001-9473-7000"
-               },
-               "name": "Young, David, T."
+               "givenName": "MMS_SDC_POC",
+               "name": "MMS_SDC_POC "
             },
-            "roleName": "Author"
-         },
-         {
-            "@type": "Role",
-            "creator": {
-               "@type": "Person",
-               "affiliation": {
-                  "@id": "https://ror.org/03tghng59",
-                  "@type": "Organization",
-                  "name": "Southwest Research Institute"
-               },
-               "familyName": "Gomez",
-               "givenName": "Roman, G.",
-               "identifier": {
-                  "@id": "https://orcid.org/0000-0001-7888-668X",
-                  "@type": "PropertyValue",
-                  "propertyID": "https://registry.identifiers.org/registry/orcid",
-                  "url": "https://orcid.org/0000-0001-7888-668X",
-                  "value": "orcid:0000-0001-7888-668X"
-               },
-               "name": "Gomez, Roman, G."
-            },
-            "roleName": "Author"
-         },
-         {
-            "@type": "Role",
-            "creator": {
-               "@type": "Person",
-               "affiliation": {
-                  "@id": "https://ror.org/03tghng59",
-                  "@type": "Organization",
-                  "name": "Southwest Research Institute"
-               },
-               "familyName": "Burch",
-               "givenName": "James, L.",
-               "name": "Burch, James, L."
-            },
-            "roleName": "Author"
+            "roleName": "HostContact"
          }
       ]
    },
+   "creator": [
+      {
+         "@type": "Role",
+         "creator": {
+            "@type": "Person",
+            "affiliation": {
+               "@type": "Organization",
+               "name": "Southwest Research Institute, also affiliated with the University of Texas at San Antonio"
+            },
+            "familyName": "Fuselier",
+            "givenName": "Stephen A.",
+            "name": "Fuselier, Stephen A."
+         },
+         "roleName": [
+            "Author",
+            "CoInvestigator"
+         ]
+      },
+      {
+         "@type": "Role",
+         "creator": {
+            "@id": "https://orcid.org/0000-0001-9473-7000",
+            "@type": "Person",
+            "affiliation": {
+               "@id": "https://ror.org/03tghng59",
+               "@type": "Organization",
+               "name": "Southwest Research Institute"
+            },
+            "familyName": "Young",
+            "givenName": "David T.",
+            "identifier": {
+               "@id": "https://orcid.org/0000-0001-9473-7000",
+               "@type": "PropertyValue",
+               "propertyID": "https://registry.identifiers.org/registry/orcid",
+               "url": "https://orcid.org/0000-0001-9473-7000",
+               "value": "orcid:0000-0001-9473-7000"
+            },
+            "name": "Young, David T."
+         },
+         "roleName": [
+            "Author",
+            "CoInvestigator"
+         ]
+      },
+      {
+         "@type": "Role",
+         "creator": {
+            "@id": "https://orcid.org/0000-0001-7888-668X",
+            "@type": "Person",
+            "affiliation": {
+               "@id": "https://ror.org/03tghng59",
+               "@type": "Organization",
+               "name": "Southwest Research Institute"
+            },
+            "familyName": "Gomez",
+            "givenName": "Roman G.",
+            "identifier": {
+               "@id": "https://orcid.org/0000-0001-7888-668X",
+               "@type": "PropertyValue",
+               "propertyID": "https://registry.identifiers.org/registry/orcid",
+               "url": "https://orcid.org/0000-0001-7888-668X",
+               "value": "orcid:0000-0001-7888-668X"
+            },
+            "name": "Gomez, Roman G."
+         },
+         "roleName": [
+            "Author",
+            "CoInvestigator"
+         ]
+      },
+      {
+         "@type": "Role",
+         "creator": {
+            "@type": "Person",
+            "affiliation": {
+               "@id": "https://ror.org/03tghng59",
+               "@type": "Organization",
+               "name": "Southwest Research Institute"
+            },
+            "familyName": "Burch",
+            "givenName": "James L.",
+            "name": "Burch, James L."
+         },
+         "roleName": [
+            "Author",
+            "PrincipalInvestigator"
+         ]
+      }
+   ],
    "dateCreated": "2022-01-01T00:00:00",
    "dateModified": "2023-03-04T12:34:56",
    "datePublished": "2022-01-01T00:00:00",
@@ -139,13 +170,16 @@
          "value": "doi:10.48322/6cfb-rq65"
       },
       {
+         "@id": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
          "@type": "PropertyValue",
          "propertyID": "SPASE",
+         "url": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
          "value": "spase://NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S"
       }
    ],
    "isBasedOn": {
-      "@id": "https://doi.org/10.48322/cb14-a164"
+      "@id": "https://doi.org/10.48322/cb14-a164",
+      "@type": "Dataset"
    },
    "keywords": [
       "EnergeticParticles",
@@ -168,6 +202,7 @@
       {
          "@type": "SearchAction",
          "target": {
+            "@id": "https://lasp.colorado.edu/mms/sdc/public/data/mms4/hpca/brst/l2/ion/",
             "@type": "EntryPoint",
             "contentType": "CDF",
             "description": "Download dataset data as CDF file at this URL",
@@ -186,6 +221,7 @@
       {
          "@type": "SearchAction",
          "target": {
+            "@id": "https://cdaweb.gsfc.nasa.gov/cgi-bin/eval2.cgi?dataset=MMS4_HPCA_BRST_L2_ION&index=sp_phys",
             "@type": "EntryPoint",
             "contentType": "CDF",
             "description": "Download dataset data as CDF or CSV file at this URL",
@@ -204,13 +240,14 @@
             },
             {
                "@type": "PropertyValueSpecification",
-               "description": "A UTC ISO DateTime. Use 2015-09-01T12:11:01 as default value.",
+               "description": "A UTC ISO DateTime. Use 2015-09-01T12:12:00 as a test end value.",
                "valueName": "end",
                "valuePattern": "(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?",
                "valueRequired": false
             }
          ],
          "target": {
+            "@id": "https://cdaweb.gsfc.nasa.gov/hapi",
             "@type": "EntryPoint",
             "contentType": "CSV",
             "description": "Download dataset labeled by id in CSV format based on the requested start and end dates",
@@ -220,10 +257,98 @@
       }
    ],
    "prov:wasDerivedFrom": {
-      "@id": "https://doi.org/10.48322/cb14-a164"
+      "@id": "https://doi.org/10.48322/cb14-a164",
+      "@type": "Dataset"
    },
+   "prov:wasGeneratedBy": [
+      {
+         "@type": [
+            "ResearchProject",
+            "prov:Activity"
+         ],
+         "prov:used": {
+            "@id": "https://hpde.io/SMWG/Observatory/MMS",
+            "@type": [
+               "ResearchProject",
+               "prov:Entity",
+               "sosa:Platform"
+            ],
+            "identifier": {
+               "@type": "PropertyValue",
+               "propertyID": "SPASE Resource ID",
+               "value": "spase://SMWG/Observatory/MMS"
+            },
+            "name": "MMS",
+            "url": "https://hpde.io/SMWG/Observatory/MMS"
+         }
+      },
+      {
+         "@type": [
+            "ResearchProject",
+            "prov:Activity"
+         ],
+         "prov:used": {
+            "@id": "https://hpde.io/SMWG/Observatory/MMS/4",
+            "@type": [
+               "ResearchProject",
+               "prov:Entity",
+               "sosa:Platform"
+            ],
+            "identifier": {
+               "@type": "PropertyValue",
+               "propertyID": "SPASE Resource ID",
+               "value": "spase://SMWG/Observatory/MMS/4"
+            },
+            "name": "MMS-4",
+            "url": "https://hpde.io/SMWG/Observatory/MMS/4"
+         }
+      },
+      {
+         "@type": [
+            "ResearchProject",
+            "prov:Activity"
+         ],
+         "prov:used": {
+            "@id": "https://hpde.io/SMWG/Instrument/MMS/4/FIELDS/FGM",
+            "@type": [
+               "IndividualProduct",
+               "prov:Entity",
+               "sosa:System"
+            ],
+            "identifier": {
+               "@type": "PropertyValue",
+               "propertyID": "SPASE Resource ID",
+               "value": "spase://SMWG/Instrument/MMS/4/FIELDS/FGM"
+            },
+            "name": "MMS 4 FIELDS Suite, Fluxgate Magnetometer (FGM) Instrument",
+            "url": "https://hpde.io/SMWG/Instrument/MMS/4/FIELDS/FGM"
+         }
+      },
+      {
+         "@type": [
+            "ResearchProject",
+            "prov:Activity"
+         ],
+         "prov:used": {
+            "@id": "https://hpde.io/SMWG/Instrument/MMS/4/HotPlasmaCompositionAnalyzer",
+            "@type": [
+               "IndividualProduct",
+               "prov:Entity",
+               "sosa:System"
+            ],
+            "identifier": {
+               "@type": "PropertyValue",
+               "propertyID": "SPASE Resource ID",
+               "value": "spase://SMWG/Instrument/MMS/4/HotPlasmaCompositionAnalyzer"
+            },
+            "name": "MMS 4 Hot Plasma Composition Analyzer (HPCA) Instrument",
+            "url": "https://hpde.io/SMWG/Instrument/MMS/4/HotPlasmaCompositionAnalyzer"
+         }
+      }
+   ],
    "prov:wasRevisionOf": {
-      "@id": "https://doi.org/10.48322/hx4p-3v35"
+      "@id": "https://doi.org/10.48322/hx4p-3v35",
+      "@type": "Dataset"
    },
    "publisher": {
       "@id": "https://ror.org/00ryjtt64",
@@ -234,48 +359,41 @@
    "spatialCoverage": [
       {
          "@type": "Place",
-         "alternateName": "Earth.Magnetosheath",
-         "identifier": "http://www.spase-group.org/data/schema/EARTH_MAGNETOSHEATH"
+         "alternateName": "Earth.Magnetosheath"
       },
       {
          "@type": "Place",
-         "alternateName": "Earth.Magnetosphere",
-         "identifier": "http://www.spase-group.org/data/schema/EARTH_MAGNETOSPHERE"
+         "alternateName": "Earth.Magnetosphere"
       },
       {
          "@type": "Place",
-         "alternateName": "Earth.Magnetosphere.Magnetotail",
-         "identifier": "http://www.spase-group.org/data/schema/EARTH_MAGNETOSPHERE_MAGNETOTAIL"
+         "alternateName": "Earth.Magnetosphere.Magnetotail"
       },
       {
          "@type": "Place",
-         "alternateName": "Earth.Magnetosphere.Main",
-         "identifier": "http://www.spase-group.org/data/schema/EARTH_MAGNETOSPHERE_MAIN"
+         "alternateName": "Earth.Magnetosphere.Main"
       },
       {
          "@type": "Place",
-         "alternateName": "Earth.Magnetosphere.RadiationBelt",
-         "identifier": "http://www.spase-group.org/data/schema/EARTH_MAGNETOSPHERE_RADIATIONBELT"
+         "alternateName": "Earth.Magnetosphere.RadiationBelt"
       },
       {
          "@type": "Place",
-         "alternateName": "Earth.NearSurface.EquatorialRegion",
-         "identifier": "http://www.spase-group.org/data/schema/EARTH_NEARSURFACE_EQUATORIALREGION"
+         "alternateName": "Earth.NearSurface.EquatorialRegion"
       },
       {
          "@type": "Place",
-         "alternateName": "Earth.NearSurface.Plasmasphere",
-         "identifier": "http://www.spase-group.org/data/schema/EARTH_NEARSURFACE_PLASMASPHERE"
+         "alternateName": "Earth.NearSurface.Plasmasphere"
       },
       {
          "@type": "Place",
-         "alternateName": "Heliosphere.NearEarth",
-         "identifier": "http://www.spase-group.org/data/schema/HELIOSPHERE_NEAREARTH"
+         "alternateName": "Heliosphere.NearEarth"
       }
    ],
    "subjectOf": {
+      "@id": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
       "@type": "DataDownload",
-      "contentUrl": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S.xml",
+      "contentUrl": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
       "dateModified": "2023-03-04T12:34:56",
       "description": "SPASE metadata describing the dataset",
       "encodingFormat": "application/xml",
