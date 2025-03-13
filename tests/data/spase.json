@@ -1,9 +1,10 @@
 {
    "@context": {
       "@vocab": "https://schema.org/",
-      "prov": "http://www.w3.org/ns/prov#"
+      "prov": "http://www.w3.org/ns/prov#",
+      "sosa": "https://w3c.github.io/sdw-sosa-ssn/ssn/#SOSA"
    },
-   "@id": "spase://NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
+   "@id": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
    "@type": "Dataset",
    "citation": [
       {

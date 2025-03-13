@@ -65,13 +65,12 @@ class SPASE(StrategyInterface):
         #print(etree.tostring(self.desiredRoot, pretty_print = True).decode(), end=' ')
 
     def get_id(self) -> str:
-        # Mapping: schema:identifier = spase:ResourceID
-        desiredTag = self.desiredRoot.tag.split("}")
-        SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ResourceID"
-        dataset_id = self.metadata.findtext(
-            SPASE_Location, namespaces=self.namespaces
-        )
-        return delete_null_values(dataset_id)
+        # Mapping: schema:identifier = hpde.io landing page for the SPASE record
+        ResourceID = get_ResourceID(self.metadata, self.namespaces)
+        before, sep, after = ResourceID.partition("/NASA")
+        hpdeURL = f"https://hpde.io{sep}{after}"
+
+        return delete_null_values(hpdeURL)
 
     def get_name(self) -> str:
         # Mapping: schema:name = spase:ResourceHeader/spase:ResourceName
@@ -112,6 +111,8 @@ class SPASE(StrategyInterface):
     def get_same_as(self) -> Union[List, None]:
         # Mapping: schema:sameAs = spase:ResourceHeader/spase:PriorID
         same_as = []
+
+        # traverse xml to extract needed info
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("PriorID"):
                 same_as.append(child.text)
@@ -152,6 +153,8 @@ class SPASE(StrategyInterface):
     def get_keywords(self) -> Union[str, None]:
         # Mapping: schema:keywords = spase:Keyword AND spase:MeasurementType
         keywords = []
+
+        # traverse xml to extract needed info
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("Keyword"):
                 keywords.append(child.text)
@@ -167,11 +170,10 @@ class SPASE(StrategyInterface):
         # Uses identifier scheme URI, provided at: https://schema.org/identifier
         #  OR schema:PropertyValue, provided at: https://schema.org/PropertyValue
         url = self.get_url()
-        ID = self.get_id()
+        ID = get_ResourceID(self.metadata, self.namespaces)
+        hpdeURL = self.get_id()
         # if SPASE record has a DOI
         if "doi" in url:
-            before, sep, after = ID.partition("/NASA")
-            hpdeURL = f"https://hpde.io{sep}{after}"
             temp = url.split("/")
             value = "doi:" + "/".join(temp[3:])
             identifier = [{"@id": url,
@@ -221,7 +223,7 @@ class SPASE(StrategyInterface):
         return delete_null_values(citation)
 
     def get_variable_measured(self) -> Union[List[Dict], None]:
-        # Mapping: schema:variable_measured = spase:Parameters/spase:Name, Description, Units, ValidMin, ValidMax
+        # Mapping: schema:variable_measured = spase:Parameters/spase:Name, Description, Units
         # Each object is:
         #   {"@type": schema:PropertyValue, "name": Name, "description": Description, "unitText": Units}
         # Following schema:PropertyValue found at: https://schema.org/PropertyValue
@@ -231,6 +233,8 @@ class SPASE(StrategyInterface):
         paramDesc = ""
         unitsFound = []
         i = 0
+
+        # traverse xml to extract needed info
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("Parameter"):
                 targetChild = child
@@ -283,8 +287,7 @@ class SPASE(StrategyInterface):
         # Following type:DataDownload found at: https://schema.org/DataDownload
         date_modified = self.get_date_modified()
         metadata_license = get_metadata_license(self.metadata)
-        before, sep, after = self.get_id().partition("/NASA")
-        contentURL = f"https://hpde.io{sep}{after}"
+        contentURL = self.get_id()
         if date_modified:
             subject_of = {
                     "@id": contentURL,
@@ -310,6 +313,7 @@ class SPASE(StrategyInterface):
 
     def get_distribution(self) -> Union[List[Dict], None]:
         # Mapping: schema:distribution = /spase:AccessInformation/spase:AccessURL/spase:URL
+        #   (if URL is a direct link to download data)
         # AND /spase:AccessInformation/spase:Format
         # Each object is:
         #   {"@type": schema:DataDownload, "contentURL": URL, "encodingFormat": Format}
@@ -329,6 +333,7 @@ class SPASE(StrategyInterface):
 
     def get_potential_action(self) -> Union[List[Dict], None]:
         # Mapping: schema:potentialAction = /spase:AccessInformation/spase:AccessURL/spase:URL
+        #   (if URL is not a direct link to download data)
         # AND /spase:AccessInformation/spase:Format
         # Following schema:potentialAction found at: https://schema.org/potentialAction
         potential_actionList = []
@@ -367,6 +372,7 @@ class SPASE(StrategyInterface):
 
             # if link has no prodKey
             if prodKeys == "None":
+                # if ftp link, do not include @id
                 if "ftp" in k: 
                     potential_actionList.append({"@type": "SearchAction",
                                                 "target": {"@type": "EntryPoint",
@@ -377,7 +383,7 @@ class SPASE(StrategyInterface):
                 else:
                     potential_actionList.append({"@type": "SearchAction",
                                             "target": {"@id": f"{k}",
-                                                       "@type": "EntryPoint",
+                                                        "@type": "EntryPoint",
                                                         "contentType": f"{encoding}",
                                                         "url": f"{k}",
                                                         "description": f"Download dataset data as {encoding} file at this URL"}
@@ -388,6 +394,7 @@ class SPASE(StrategyInterface):
                     prodKey = prodKey.replace("\"", "")
                     # if link is a hapi link, provide the hapi interface web service to download data
                     if "/hapi" in k:
+                        # if ftp link, do not include @id
                         if 'ftp' in k:
                             potential_actionList.append({"@type": "SearchAction",
                                                 "target": {"@type": "EntryPoint",
@@ -411,7 +418,7 @@ class SPASE(StrategyInterface):
                         else:
                             potential_actionList.append({"@type": "SearchAction",
                                             "target": {"@id": f"{k}",
-                                                       "@type": "EntryPoint",
+                                                        "@type": "EntryPoint",
                                                         "contentType": f"{encoding}",
                                                         "urlTemplate": f"{k}/data?id={prodKey}&time.min=(start)&time.max=(end)",
                                                         "description": "Download dataset labeled by id in CSV format based on the requested start and end dates",
@@ -431,6 +438,7 @@ class SPASE(StrategyInterface):
                         })
                     # use GSFC CDAWeb portal to download CDF
                     else:
+                        # if ftp link, do not include @id
                         if 'ftp' in k:
                             potential_actionList.append({"@type": "SearchAction",
                                                     "target": {"@type": "EntryPoint",
@@ -441,7 +449,7 @@ class SPASE(StrategyInterface):
                         else:
                             potential_actionList.append({"@type": "SearchAction",
                                                 "target": {"@id": f"{k}",
-                                                           "@type": "EntryPoint",
+                                                            "@type": "EntryPoint",
                                                             "contentType": f"{encoding}",
                                                             "url": f"{k}",
                                                             "description": "Download dataset data as CDF or CSV file at this URL"}
@@ -490,6 +498,7 @@ class SPASE(StrategyInterface):
                         #date_created = str(revisions[i])
             #print(date_created)
             #print(date_modified)
+            # raise Error if releaseDate is not the latest in RevisionHistory
             #if datetime.strptime(date_created, "%Y-%m-%d %H:%M:%S") != release:
                 #raise ValueError("ReleaseDate is not the latest date in the record!")
                 #trigger = True
@@ -512,7 +521,6 @@ class SPASE(StrategyInterface):
                             date_published = str(revisions[i])
                 date_published = date_published.replace(" ", "T")
                 date_published = date_published.replace("Z", "")
-                #print("Taken from RevisionHistory")
         else:
             date_published = pubDate.replace(" ", "T")
             date_published = date_published.replace("Z", "")
@@ -551,14 +559,13 @@ class SPASE(StrategyInterface):
         return delete_null_values(temporal_coverage)
 
     def get_spatial_coverage(self) -> Union[List[Dict], None]:
-        # Mapping: schema:spatial_coverage = list of spase:NumericalData/spase:ObservedRegion/*
+        # Mapping: schema:spatial_coverage = list of spase:NumericalData/spase:ObservedRegion
         # Each object is:
-        #   {"@type": schema:Place, "@id": URI}
+        #   {"@type": schema:Place, "alternateName": ObservedRegion (removed: "@id": URI)}
         # Using URIs, as defined in: https://github.com/polyneme/topst-spase-rdf-tools/blob/main/data/spase.owl
         spatial_coverage = []
         desiredTag = self.desiredRoot.tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ObservedRegion"
-        #SPASE_Location = ".//spase:" + "NumericalData/spase:ObservedRegion"
         for item in self.metadata.findall(
             SPASE_Location,
             namespaces=self.namespaces,
@@ -579,6 +586,8 @@ class SPASE(StrategyInterface):
         # OR schema:creator = spase:ResourceHeader/spase:Contact/spase:PersonID
         # Each item is:
         #   {@type: Role, roleName: Contact Role, creator: {@type: Person, name: Author Name, givenName: First Name, familyName: Last Name}}
+        #   plus the additional properties if available: affiliation and identifier (ORCiD ID),
+        #       which are pulled from SMWG Person SPASE records and ROR API
         # Using schema:Creator as defined in: https://schema.org/creator
         author, authorRole, pubDate, pub, contributor, dataset, backups, contactsList = get_authors(self.metadata)
         authorStr = str(author).replace("[", "").replace("]","")
@@ -597,10 +606,11 @@ class SPASE(StrategyInterface):
                         index = author.index(person)
                     else:
                         index = 0
-                    # add call to get ORCiD and affiliation here
+                    # split text from Contact into properly formatted name fields
                     authorStr, givenName, familyName = nameSplitter(person)
                     orcidID, affiliation = get_ORCiD_and_Affiliation(person, self.file)
                     ror = get_ROR(affiliation)
+                    # create the dictionary entry for that person and append to list
                     creatorEntry = creatorFormat(authorRole[index], authorStr, givenName, familyName, affiliation, orcidID, ror)
                     creator.append(creatorEntry)
             # if all creators were found in PublicationInfo/Authors
@@ -615,6 +625,7 @@ class SPASE(StrategyInterface):
                     for person in author:
                         index = author.index(person)
                         familyName, sep, givenName = person.partition(", ")
+                        # find matching person in contacts, if any, to retrieve affiliation and ORCiD
                         for key, val in contactsList.items():
                             if person == val:
                                 matchingContact = True
@@ -629,6 +640,7 @@ class SPASE(StrategyInterface):
                     # get rid of extra quotations
                     person = authorStr.replace("\"","")
                     familyName, sep, givenName = person.partition(",")
+                    # find matching person in contacts, if any, to retrieve affiliation and ORCiD
                     for key, val in contactsList.items():
                         if person == val:
                             matchingContact = True
@@ -651,13 +663,15 @@ class SPASE(StrategyInterface):
         # Mapping: schema:contributor = spase:ResourceHeader/spase:Contact/spase:PersonID
         # Each item is:
         #   {@type: Role, roleName: Contributor or curator role, contributor: {@type: Person, name: Author Name, givenName: First Name, familyName: Last Name}}
+        #   plus the additional properties if available: affiliation and identifier (ORCiD ID),
+        #       which are pulled from SMWG Person SPASE records and ROR API
         # Using schema:Person as defined in: https://schema.org/Person
         author, authorRole, pubDate, pub, contributors, dataset, backups, contactsList = get_authors(self.metadata)
         contributor = []
         # holds role values that are not initially considered for contributor var
         CuratorRoles = ["HostContact", "GeneralContact", "DataProducer", "MetadataContact", "TechnicalContact"]
         
-        # check for ppl w author roles that were not found in PubInfo
+        # Step 1: check for ppl w author roles that were not found in PubInfo
         for key, val in contactsList.items():
             if "." not in val:
                 # add call to get ORCiD and affiliation
@@ -670,7 +684,7 @@ class SPASE(StrategyInterface):
                     individual = contributorFormat(contactsList[key][0], contributorStr, givenName, familyName, affiliation, orcidID, ror)
                 contributor.append(individual)
 
-        # check for non-author role contributors
+        # Step 2: check for non-author role contributors found in Contacts
         if contributors:
             for person in contributors:
                 # add call to get ORCiD and affiliation
@@ -679,7 +693,7 @@ class SPASE(StrategyInterface):
                 ror = get_ROR(affiliation)
                 individual = contributorFormat("Contributor", contributorStr, givenName, familyName, affiliation, orcidID, ror)
                 contributor.append(individual)
-        # if no non-author role contributor is found, use backups (editors)
+        # Step 3: if no non-author role contributor is found, use backups (editors/curators)
         else:
             found = False
             i = 0
@@ -715,11 +729,10 @@ class SPASE(StrategyInterface):
         # OR spase:ResourceHeader/spase:PublicationInfo/spase:PublishedBy
         # OR spase:AccessInformation/spase:RepositoryID
         # Each item is:
-        #   {@type: Organization, name: PublishedBy OR Contact (if Role = Publisher) OR RepositoryID}
+        #   {@type: Organization, name: PublishedBy OR Contact (if Role = Publisher) OR last part of RepositoryID}
         # Using schema:Organization as defined in: https://schema.org/Organization
         author, authorRole, pubDate, publisher, contributor, dataset, backups, contactsList = get_authors(self.metadata)
         if publisher == "":
-            #publisher = None
             RepoID = get_repoID(self.metadata)
             (before, sep, publisher) = RepoID.partition("Repository/")
         if ("SDAC" in publisher) or ("Solar Data Analysis Center" in publisher):
@@ -746,7 +759,7 @@ class SPASE(StrategyInterface):
         # AND spase:ResourceHeader/spase:Funding/spase:Project
         # AND spase:ResourceHeader/spase:Funding/spase:AwardNumber
         # Each item is:
-        #   {@type: MonetaryGrant, funder: {@type: Person or Organization, name: Agency}, identifier: AwardNumber, name: Project}
+        #   {@type: MonetaryGrant, funder: {@type: Organization, name: Agency}, identifier: AwardNumber, name: Project}
         # Using schema:MonetaryGrant as defined in: https://schema.org/MonetaryGrant
         funding = []
         agency = []
@@ -757,7 +770,6 @@ class SPASE(StrategyInterface):
             if child.tag.endswith("Funding"):
                 targetChild = child
                 for child in targetChild:
-                    # TODO: add call to get ROR for agency
                     if child.tag.endswith("Agency"):
                         agency.append(child.text)
                     elif child.tag.endswith("Project"):
@@ -772,7 +784,7 @@ class SPASE(StrategyInterface):
                 if award and ror:
                     funding.append({"@type": "MonetaryGrant",
                                     "funder": {"@id": ror,
-                                               "@type": "Organization",
+                                                "@type": "Organization",
                                                 "name": f"{funder}"},
                                     "identifier": f"{award[i]}",
                                     "name": f"{project[i]}"
@@ -787,7 +799,7 @@ class SPASE(StrategyInterface):
                 elif ror:
                     funding.append({"@type": "MonetaryGrant",
                                     "funder": {"@id": ror,
-                                               "@type": "Organization",
+                                                "@type": "Organization",
                                                 "name": f"{funder}"},
                                     "name": f"{project[i]}"
                                 })
@@ -807,18 +819,9 @@ class SPASE(StrategyInterface):
         return delete_null_values(funding)
 
     def get_license(self) -> Union[List, None]:
-        # Mapping: schema:license = spase:AccessInformation/spase:rightsList/spase:rights
+        # Mapping: schema:license = spase:AccessInformation/spase:RightsList/spase:Rights
         # Using schema:license as defined in: https://schema.org/license
         license_url = []
-        # format in xml file is below
-        """<RightsList>
-            <Rights xml:lang="en"
-            schemeURI="https://spdx.org/licenses/"
-            rightsIdentifierScheme="SPDX"
-            rightsIdentifier="CC-BY-4.0"
-            rightsURI="https://creativecommons.org/licenses/by/4.0/">
-            Creative Commons Attribution 4.0 International</Rights>
-        </RightsList>"""
 
         desiredTag = self.desiredRoot.tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:AccessInformation/spase:RightsList/spase:Rights"
@@ -839,6 +842,8 @@ class SPASE(StrategyInterface):
         #   (if spase:AssociationType is "RevisionOf")
         # prov:wasRevisionOf found at https://www.w3.org/TR/prov-o/#wasRevisionOf
         relations = []
+
+        # traverse xml to extract needed info
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("Association"):
                 targetChild = child
@@ -864,7 +869,10 @@ class SPASE(StrategyInterface):
                 if os.path.isfile(record):
                     testSpase = SPASE(record)
                     relations[i] = testSpase.get_url()
+                else:
+                    raise ValueError("Could not access associated SPASE record.")
                 i += 1
+            # add Dataset Type if it is actually a dataset
             if len(relations) > 1:
                 was_revision_of = []
                 for relation in relations:
@@ -886,6 +894,7 @@ class SPASE(StrategyInterface):
         #   (if spase:AssociationType is "DerivedFrom" or "ChildEventOf")
         # schema:wasDerivedFrom found at https://www.w3.org/TR/prov-o/#wasDerivedFrom
         was_derived_from = None
+        # same mapping as is_based_on
         was_derived_from = self.get_is_based_on()
         return delete_null_values(was_derived_from)
 
@@ -895,6 +904,8 @@ class SPASE(StrategyInterface):
         # schema:isBasedOn found at https://schema.org/isBasedOn
         is_based_on = []
         derivations = []
+
+        # traverse xml to extract needed info
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("Association"):
                 targetChild = child
@@ -923,6 +934,7 @@ class SPASE(StrategyInterface):
                 else:
                     raise ValueError("Could not access associated SPASE record.")
                 i += 1
+            # add Dataset Type if it is actually a dataset
             if len(derivations) > 1:
                 is_based_on = []
                 for derivation in derivations:
@@ -971,9 +983,9 @@ class SPASE(StrategyInterface):
 
 def get_schema_version(metadata: etree.ElementTree) -> str:
     """
-    :param metadata:    The SPASE metadata object as an XML tree.
+    :param metadata: The SPASE metadata object as an XML tree.
 
-    :returns:   The version of the SPASE schema used in the metadata record.
+    :returns: The version of the SPASE schema used in the metadata record.
     """
     schema_version = metadata.findtext(
         "{http://www.spase-group.org/data/schema}Version"
@@ -983,17 +995,18 @@ def get_schema_version(metadata: etree.ElementTree) -> str:
 def get_authors(metadata: etree.ElementTree) -> tuple:
     """
     Takes an XML tree and scrapes the desired authors (with their roles), publication date,
-        publisher, contributors, and publication title. Also scraped are the names and roles of
-        the backups, which are any Contacts found that are not considered authors. It then returns 
-        these items, with the author, author roles, and contributors as lists and the rest as strings,
-        except for the backups which is a dictionary.
+    publisher, contributors, and publication title. Also scraped are the names and roles of
+    the backups, which are any Contacts found that are not considered authors. It then returns 
+    these items, with the author, author roles, and contributors as lists and the rest as strings,
+    except for the backups which is a dictionary.
 
-    :param metadata:    The SPASE metadata object as an XML tree.
+    :param metadata: The SPASE metadata object as an XML tree.
     :type entry: etree.ElementTree object
     :returns: The highest priority authors found within the SPASE record as a list
                 as well as a list of their roles, the publication date, publisher,
                 contributors, and the title of the publication. It also returns any contacts found,
-                along with their role(s), that were not considered for the author role.
+                along with their role(s) in two separate dictionaries: ones that are not considered
+                for the author role and ones that are.
     :rtype: tuple
     """
     # local vars needed
@@ -1006,12 +1019,12 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
     dataset = ""
     backups = {}
     PI_child = None
-    priority = False
     root = metadata.getroot()
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desiredRoot = elt
 
+    # traverse xml to extract needed info
     # iterate thru to find ResourceHeader
     for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("ResourceHeader"):
@@ -1042,6 +1055,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                                         else:
                                             index = author.index(PersonID)
                                             authorRole[index] = [authorRole[index], child.text]
+                                        # store author roles found here in case PubInfo present
                                         contactsList[PersonID] += [child.text]
                                     # preferred contributor
                                     elif child.text == "Contributor":
@@ -1051,6 +1065,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                                         pub = child.text
                                     else:
                                         # use list for values in case one person has multiple roles
+                                        # store contacts w non-author roles for use in contributors
                                         backups[PersonID] += [child.text]
                             except AttributeError as err:
                                 continue
@@ -1071,44 +1086,19 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
             elif child.tag.endswith("Title"):
                 dataset = child.text
 
-    # remove contacts w/o author roles
+    # remove contacts w/o role values
     contactsCopy = {}
     for contact, role in contactsList.items():
         if role:
             contactsCopy[contact] = role
-
+    # compare author and contactsList to add author roles from contactsList for matching people found in PubInfo
+    # also formats the author list correctly for use in get_creator
     author, authorRole, contactsList = process_authors(author, authorRole, contactsCopy)
     return author, authorRole, pubDate, pub, contributor, dataset, backups, contactsList
 
-def getPaths(entry, paths) -> list:
-    """Takes the absolute path of a SPASE record directory to be walked
-    to extract all SPASE records present. Returns these paths using the
-    list parameter paths, which holds the absolute paths generated by
-    the function.
-
-    :param entry: A string of the absolute path of the SPASE record directory
-                    to be searched/walked to find all SPASE records within.
-    :type entry: String
-    :param paths: A list to hold absolute paths of all SPASE records found
-                    within the given directory
-    :type paths: list
-    :return: A list containing the absolute paths of all SPASE records found
-                within the given directory.
-    :rtype: list
-    """
-    import os
-    if os.path.exists(entry):
-        for root, dirs, files in os.walk(entry):
-            if files:
-                for file in files:
-                    paths.append(root + "/" + file)
-    else:
-        print(entry + " does not exist")
-    return paths
-
 def get_accessURLs(metadata: etree.ElementTree) -> tuple:
     """
-    :param metadata:    The SPASE metadata object as an XML tree.
+    :param metadata: The SPASE metadata object as an XML tree.
     
     :returns: The AccessURLs found in the SPASE record, separated into two dictionaries,
                 dataDownloads and potentialActions, depending on if they are a direct 
@@ -1133,10 +1123,9 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
     desiredTag = desiredRoot.tag.split("}")
     SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:AccessInformation/spase:Format"
     for item in metadata.findall(SPASE_Location, namespaces={"spase": "http://www.spase-group.org/data/schema"}):
-        #print(f"Adding {item.text} to encoding list.")
         encoding.append(item.text)
-    #print(len(encoding))
 
+    # traverse xml to extract needed info
     # iterate thru children to locate Access Information
     for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("AccessInformation"):
@@ -1153,7 +1142,6 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
                             AccessURLs[url] = []
                             # append an encoder for each URL
                             encoder.append(encoding[j])
-                            #print(f"Adding {encoding[j]} to encoder list")
                         # check if URL has a product key
                         elif child.tag.endswith("ProductKey"):
                             prodKey = child.text
@@ -1163,22 +1151,18 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
                             # if multiple prodKeys exist
                             else:
                                 AccessURLs[url] += [prodKey]
-                    #print(f"leaving {url}")
-            #print(f"exiting AccessInfo #{j}")
             j += 1
     for k, v in AccessURLs.items():
         # if URL has no access key
         if not v:
-            #print(i)
             NonDataFileExt = ['html', 'com', 'gov', 'edu', 'org', 'eu', 'int']
             DataFileExt = ['csv', 'cdf', 'fits', 'txt', 'nc', 'jpeg',
-                           'png', 'gif', 'tar', 'netcdf3', 'netcdf4', 'hdf5',
-                           'zarr', 'asdf', 'zip']
+                            'png', 'gif', 'tar', 'netcdf3', 'netcdf4', 'hdf5',
+                            'zarr', 'asdf', 'zip']
             protocol, sep, domain = k.partition("://")
             domain, sep, downloadFile = domain.rpartition("/")
             downloadFile, sep, ext = downloadFile.rpartition(".")
             # see if file extension is one associated w data files
-            #print(ext)
             if ext not in DataFileExt:
                 downloadable = False
             else:
@@ -1196,9 +1180,9 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
 
 def get_dates(metadata: etree.ElementTree) -> tuple:
     """
-    :param metadata:    The SPASE metadata object as an XML tree.
+    :param metadata: The SPASE metadata object as an XML tree.
 
-    :returns:   The ReleaseDate and a list of all the dates found in RevisionHistory
+    :returns: The ReleaseDate and a list of all the dates found in RevisionHistory
     """
     root = metadata.getroot()
     for elt in root.iter(tag=etree.Element):
@@ -1207,11 +1191,12 @@ def get_dates(metadata: etree.ElementTree) -> tuple:
     RevisionHistory = []
     ReleaseDate = ""
 
+    # traverse xml to extract needed info
     for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("ResourceHeader"):
             targetChild = child
             for child in targetChild:
-                # find ReleaseDate
+                # find ReleaseDate and construct datetime object from the string
                 try:
                     if child.tag.endswith("ReleaseDate"):
                         date, sep, time = child.text.partition("T")
@@ -1249,15 +1234,16 @@ def get_dates(metadata: etree.ElementTree) -> tuple:
 
 def get_repoID(metadata: etree.ElementTree) -> str:
     """
-    :param metadata:    The SPASE metadata object as an XML tree.
+    :param metadata: The SPASE metadata object as an XML tree.
 
-    :returns:   The RepositoryID found in the last AccessInformation section
+    :returns: The RepositoryID found in the last AccessInformation section
     """
     root = metadata.getroot()
     repoID = None
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desiredRoot = elt
+    # traverse xml to extract needed info
     for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("AccessInformation"):
             targetChild = child
@@ -1277,7 +1263,7 @@ def contributorFormat(roleName:str, name:str, givenName:str, familyName:str, aff
     :param orcidID: The ORCiD identifier for this Contact
     :param ror: The ROR ID for the associated affiliation
 
-    :returns:   The entry in the correct format to append to the contributor dictionary
+    :returns: The entry in the correct format to append to the contributor dictionary
     """
     
     domain, sep, orcidVal = orcidID.rpartition("/")
@@ -1357,7 +1343,7 @@ def creatorFormat(roleName:str, name:str, givenName:str, familyName:str, affilia
     :param orcidID: The ORCiD identifier for this Contact
     :param ror: The ROR ID for the associated affiliation
 
-    :returns:   The entry in the correct format to append to the creator dictionary
+    :returns: The entry in the correct format to append to the creator dictionary
     """
 
     domain, sep, orcidVal = orcidID.rpartition("/")
@@ -1428,9 +1414,9 @@ def creatorFormat(roleName:str, name:str, givenName:str, familyName:str, affilia
 
 def nameSplitter(person:str) -> tuple:
     """
-    :param person:    The string found in the Contacts field as is formatted in the SPASE record.
+    :param person: The string found in the Contacts field as is formatted in the SPASE record.
 
-    :returns:   The string containing only the full name of the Contact, the string containing the first name/initial of the Contact,
+    :returns: The string containing only the full name of the Contact, the string containing the first name/initial of the Contact,
                 and the string containing the last name of the Contact
     """
     if person:
@@ -1450,9 +1436,9 @@ def nameSplitter(person:str) -> tuple:
 
 def get_information_url(metadata: etree.ElementTree) -> Union[List[Dict], None]:
     """
-    :param metadata:    The SPASE metadata object as an XML tree.
+    :param metadata: The SPASE metadata object as an XML tree.
 
-    :returns:   The name, description, and url(s) for all InformationURL sections found in the ResourceHeader,
+    :returns: The name, description, and url(s) for all InformationURL sections found in the ResourceHeader,
                 formatted as a list of dictionaries.
     """
     root = metadata.getroot()
@@ -1463,6 +1449,7 @@ def get_information_url(metadata: etree.ElementTree) -> Union[List[Dict], None]:
         if (elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData")
             or elt.tag.endswith("Observatory") or elt.tag.endswith("Instrument")):
             desiredRoot = elt
+    # traverse xml to extract needed info
     for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("ResourceHeader"):
             targetChild = child
@@ -1497,12 +1484,17 @@ def get_information_url(metadata: etree.ElementTree) -> Union[List[Dict], None]:
 
 def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], None]:
     """
-    :param metadata:    The SPASE metadata object as an XML tree.
-    :param path:    The absolute file path of the XML file the user wishes to pull info from.
+    :param metadata: The SPASE metadata object as an XML tree.
+    :param path: The absolute file path of the XML file the user wishes to pull info from.
 
-    :returns:   The name, url, and ResourceID for each instrument found in the InstrumentID section,
+    :returns: The name, url, and ResourceID for each instrument found in the InstrumentID section,
                 formatted as a list of dictionaries.
     """
+    # Mapping: schema:IndividualProduct, prov:Entity, and sosa:System = spase:InstrumentID
+    # schema:IndividualProduct found at https://schema.org/IndividualProduct
+    # prov:Entity found at https://www.w3.org/TR/prov-o/#Entity
+    # sosa:System found at https://w3c.github.io/sdw-sosa-ssn/ssn/#SOSASystem
+
     root = metadata.getroot()
     instrument = []
     instrumentIDs = {}
@@ -1531,6 +1523,8 @@ def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], 
                 root = testSpase.metadata.getroot()
                 instrumentIDs[item]["name"] = testSpase.get_name()
                 instrumentIDs[item]["URL"] = testSpase.get_url()
+            else:
+                raise ValueError("Could not access associated SPASE record.")
         for k in instrumentIDs.keys():
             if instrumentIDs[k]["URL"]:
                 instrument.append({"@id": instrumentIDs[k]["URL"],
@@ -1550,6 +1544,12 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
     :returns:   The name, url, and ResourceID for each observatory related to this dataset,
                 formatted as a list of dictionaries.
     """
+    # Mapping: schema:ResearchProject, prov:Entity, and sosa:Platform = spase:InstrumentID/spase:ObservatoryID
+    #   AND spase:InstrumentID/spase:ObservatoryID/spase:ObservatoryGroupID if available
+    # schema:ResearchProject found at https://schema.org/ResearchProject
+    # prov:Entity found at https://www.w3.org/TR/prov-o/#Entity
+    # sosa:Platform found at https://w3c.github.io/sdw-sosa-ssn/ssn/#SOSAPlatform
+
     instrument = get_instrument(metadata, path)
     if instrument is not None:
         observatory = []
@@ -1611,6 +1611,8 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                                                                         "value": observatoryGroupID},
                                                         "url": groupURL})
                                     recordedIDs.append(observatoryGroupID)
+                        else:
+                            raise ValueError("Could not access associated SPASE record.")
                     if url and (observatoryID not in recordedIDs):
                         observatory.append({"@type": ["ResearchProject", "prov:Entity", "sosa:Platform"],
                                             "@id": url,
@@ -1620,6 +1622,10 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                                                                         "value": observatoryID},
                                             "url": url})
                         recordedIDs.append(observatoryID)
+                else:
+                    raise ValueError("Could not access associated SPASE record.")
+            else:
+                raise ValueError("Could not access associated SPASE record.")
     else:
         observatory = None
     return observatory
@@ -1733,6 +1739,7 @@ def get_mentions(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dic
             else:
                 raise ValueError("Could not access associated SPASE record.")
             i += 1
+        # add Dataset Type if it is actually a dataset
         if len(relations) > 1:
             mentions = []
             for relation in relations:
@@ -1791,6 +1798,7 @@ def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[List[Dict], D
             else:
                 raise ValueError("Could not access associated SPASE record.")
             i += 1
+        # add Dataset Type if it is actually a dataset
         if len(relations) > 1:
             is_part_of = []
             for relation in relations:
@@ -1837,10 +1845,9 @@ def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple:
                 #print(affiliation)
     return orcidID, affiliation
 
-def get_ROR(orgName:str, data="ROR_DataDump.zip") -> Union[str, None]:
+def get_ROR(orgName:str) -> Union[str, None]:
     """
     :param orgName: The name of the organization you wish to retrieve the ROR ID for.
-    :param data: Name of the ROR Data Dump zip file to be used.
     
     :returns: The ROR ID of the given organization, as a string.
     """
@@ -1852,19 +1859,24 @@ def get_ROR(orgName:str, data="ROR_DataDump.zip") -> Union[str, None]:
     # "https://api.datacite.org/dois/10.48322%2F6cfb-rq65?affiliation=true&publisher=true"
 
     ror = None
-    #print(orgName)
     # if want to get ROR ID's via REST API (faster than Data Dump)
     url = "https://api.ror.org/v2/organizations"
     response = requests.get(url, params={"affiliation": orgName})
-    #print(response.text)
     dict = json.loads(response.text)
-    #pprint(dict["items"][0])
     for item in dict["items"]:
         if (item["chosen"] == True) and (item["matching_type"] == "EXACT"):
-            #print("Found a match!")
             ror = item["organization"]["id"]
+
+    # downloads ROR Data Dump file for use in script
+    """response = requests.get("https://zenodo.org/api/communities/ror-data/records?q=&sort=newest")
+    RORrecords = json.loads(response.text)
+    downloadURL = RORrecords["hits"]["hits"][0]["files"][0]["links"]["self"]
+    response = requests.get(downloadURL)
+    with open('ROR_DataDump.zip', 'wb') as f:
+        f.write(response.content)"""
+
     # find ROR ID's by searching Data Dump file (slower)
-    """with zipfile.ZipFile(data) as z:    
+    """with zipfile.ZipFile("ROR_DataDump.zip") as z:    
         for filename in z.namelist():
             # find most up-to-date json
             if not os.path.isdir(filename) and "v2.json" in filename:
@@ -1875,34 +1887,40 @@ def get_ROR(orgName:str, data="ROR_DataDump.zip") -> Union[str, None]:
                         for name in item["names"]:
                             if name["value"] == orgName:
                                 ror = item["id"]"""
-    #print(ror)
     return ror
 
 def get_temporal(metadata: etree.ElementTree, namespaces: Dict) -> Union[List, None]:
-        # Mapping: schema:temporal = spase:TemporalDescription/spase:Cadence
-        # Each object is:
-        #   [ explanation (string explaining meaning of cadence), Cadence]
-        # Schema found at https://schema.org/temporal
-        root = metadata.getroot()
-        for elt in root.iter(tag=etree.Element):
-            if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
-                desiredRoot = elt
-        
-        desiredTag = desiredRoot.tag.split("}")
-        SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:TemporalDescription/spase:Cadence"
-        repeat_frequency =  metadata.findtext(
-            SPASE_Location,
-            namespaces= namespaces,
-        )
+    """
+    :param metadata: The SPASE metadata object as an XML tree.
+    :param namespaces: The SPASE namespaces used in the form of a dictionary.
 
-        explanation = ""
+    :returns: The cadence or common time interval between the start of successive measurements,
+                given in its ISO 8601 formatting as well as a explanation sentence.
+    """
+    # Mapping: schema:temporal = spase:TemporalDescription/spase:Cadence
+    # Each object is:
+    #   [ explanation (string explaining meaning of cadence), Cadence]
+    # Schema found at https://schema.org/temporal
+    root = metadata.getroot()
+    for elt in root.iter(tag=etree.Element):
+        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+            desiredRoot = elt
+    
+    desiredTag = desiredRoot.tag.split("}")
+    SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:TemporalDescription/spase:Cadence"
+    repeat_frequency =  metadata.findtext(
+        SPASE_Location,
+        namespaces= namespaces,
+    )
 
-        if repeat_frequency:
-            explanation = get_cadenceContext(repeat_frequency)
-            temporal = [explanation, repeat_frequency]
-        else:
-            temporal = None
-        return delete_null_values(temporal)
+    explanation = ""
+
+    if repeat_frequency:
+        explanation = get_cadenceContext(repeat_frequency)
+        temporal = [explanation, repeat_frequency]
+    else:
+        temporal = None
+    return delete_null_values(temporal)
 
 def get_metadata_license(metadata: etree.ElementTree) -> str:
     """
@@ -1920,8 +1938,18 @@ def get_metadata_license(metadata: etree.ElementTree) -> str:
     return metadata_license
 
 def process_authors(author:List, authorRole:List, contactsList:Dict) -> tuple:
+    """
+    :param author: The list of names found in SPASE record to be used in get_creator
+    :param authorRole: The list of roles associated with each person found in author list
+    :param contactsList: The dictionary containing the names of people considered to 
+                            be authors as formatted in the Contacts container in the 
+                            SPASE record, as well as their roles
+
+    :returns: The updated author, authorRoles, and contactsList items after merging any author
+                roles from Contacts with the roles associated with them if found in PubInfo.  
+    """
     # loop thru all contacts to find any that match authors, unless no PubInfo was found
-    # if matches found, add roles to authorRoles
+    # if matches found, add roles to authorRoles and remove them from contactsList
     # if no match found for person(s), leave in contactsList for use in get_contributors
 
     authorStr = str(author).replace("[", "").replace("]","")
@@ -2024,6 +2052,11 @@ def process_authors(author:List, authorRole:List, contactsList:Dict) -> tuple:
     return author, authorRole, contactsList
 
 def isDataset(url:str) -> bool:
+    """
+    :param url: The link provided as an Associated work/reference for the SPASE record
+
+    :returns: True or False depending on if the link is to an hpde.io landing page for a Dataset
+    """
     # tests SPASE records to make sure they are datasets
     isDataset = False
 
@@ -2040,287 +2073,22 @@ def isDataset(url:str) -> bool:
 
     return isDataset
 
-def main(folder, printFlag = True, desiredProperties = ["id", "identifier", "sameAs", "url", "name", "description", "date_published",
-                                                        "keywords", "creator", "citation", "temporal_coverage", "temporal", 
-                                                        "spatial_coverage", "publisher", "distribution", "potential_action",
-                                                        "variable_measured", "funding", "license", "was_revision_of", "was_derived_from",
-                                                        "is_based_on", "mentions", "is_part_of", "date_created", "date_modified",
-                                                        "contributor", "instrument", "observatory", "alternate_name",
-                                                        "inLanguage", "subject_of", "was_generated_by"]) -> None:
-    # list that holds SPASE records already checked
-    searched = []
-    SPASE_paths = []
-    numFound = 0
+def get_ResourceID(metadata: etree.ElementTree, namespaces: Dict):
+    """
+    :param metadata: The SPASE metadata object as an XML tree.
+    :param namespaces: The SPASE namespaces used in the form of a dictionary.
 
-    # downloads ROR Data Dump file for use in script
-    """response = requests.get("https://zenodo.org/api/communities/ror-data/records?q=&sort=newest")
-    RORrecords = json.loads(response.text)
-    downloadURL = RORrecords["hits"]["hits"][0]["files"][0]["links"]["self"]
-    response = requests.get(downloadURL)
-    with open('ROR_DataDump.zip', 'wb') as f:
-        f.write(response.content)"""
+    :returns: The ResourceID for the SPASE record.
+    """
+    # Mapping: schema:identifier = spase:ResourceID
+    root = metadata.getroot()
+    for elt in root.iter(tag=etree.Element):
+        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+            desiredRoot = elt
 
-    # obtains all filepaths to all SPASE records found in given directory
-    SPASE_paths = getPaths(folder, SPASE_paths)
-    #print("You entered " + folder)
-    if len(SPASE_paths) == 0:
-        print("No records found. Returning.")
-    else:
-        # iterate through all SPASE records
-        # Note: starting at record 24 in ACE/EPAM folder, end of author string is formatted wrong with "and first last" instead of "and last, first" (SPASE issue)
-        # In DisplayData, records 130, 167-70 has authors formatted wrong
-        # DisplayData: record 70 is ex w multiple contacts, ACE has ex's w multiple authors
-        # ReleaseDate is not most recent at this dataset (causes dateModified to be incorrect): C:/Users/zboquet/NASA/DisplayData\SDO\AIA\SSC
-        #   And some here too: C:/Users/zboquet/NASA/DisplayData\STEREO-A\SECCHI\, C:/Users/zboquet/NASA/DisplayData\STEREO-B\SECCHI
-        #                       C:/Users/zboquet/NASA/NumericalData\Cluster-Rumba\WBD\BM2
-        # DD: #134 is ex w a LOT of observatory entries thanks to multiple instruments
-        # record NASA/DisplayData\OBSPM/H-ALPHA.xml has broken instrumentID link
-        # record NASA/DisplayData/UCLA/Global-MHD-code/mS1-Vx/PT10S.xml has extra spacing in PubInfo/Authors
-        # record NASA/NumericalData/ACE/Ephemeris/Definitive/P1D.xml is ex of author role in Contacts w/o match in PubInfo
-        # record NASA/NumericalData\ACE\MAG\KeyParameter/PT16S.xml is example where person in Contacts and PubInfo are 
-        #   considered same because of first initial, initial, last name matching
-        # record NASA/NumericalData/ACE/SWICS_SWIMS/L2ChargeState/PT2H.xml is ex to test stopDate used in potentialAction when hapi link present
-        for r, record in enumerate(SPASE_paths):
-            if record not in searched:
-                # scrape metadata for each record
-                statusMessage = f"Extracting metadata from record {r+1}"
-                statusMessage += f" of {len(SPASE_paths)}"
-                print(statusMessage)
-                print(record)
-                print()
-                testSpase = SPASE(record)
-
-                #print(testSpase.get_is_accessible_for_free())
-                id = testSpase.get_id()
-                url = testSpase.get_url()
-                name = testSpase.get_name()
-                sameAs = testSpase.get_same_as()
-                keywords = testSpase.get_keywords()
-                citation = testSpase.get_citation()
-                subject_of = testSpase.get_subject_of()
-                identifier = testSpase.get_identifier()
-                creator = testSpase.get_creator()
-                publisher = testSpase.get_publisher()
-                contributor = testSpase.get_contributor()
-                variable_measured = testSpase.get_variable_measured()
-                temporal_coverage = testSpase.get_temporal_coverage()
-                temporal = get_temporal(testSpase.metadata, testSpase.namespaces)
-                spatial_coverage = testSpase.get_spatial_coverage()
-                distribution = testSpase.get_distribution()
-                potential_action = testSpase.get_potential_action()
-                funding = testSpase.get_funding()
-                license = testSpase.get_license()
-                date_created = testSpase.get_date_created()
-                date_modified = testSpase.get_date_modified()
-                date_published = testSpase.get_date_published()
-                was_revision_of = testSpase.get_was_revision_of()
-                was_derived_from = testSpase.get_was_derived_from()
-                was_generated_by = testSpase.get_was_generated_by()
-                is_based_on = testSpase.get_is_based_on()
-                mentions = get_mentions(testSpase.metadata, record)
-                is_part_of = get_is_part_of(testSpase.metadata, record)
-                instrument = get_instrument(testSpase.metadata, record)
-                observatory = get_observatory(testSpase.metadata, record)
-                alternate_name = get_alternate_name(testSpase.metadata)
-                inLanguage = 'en'
-
-                if printFlag:
-                    for property in desiredProperties:
-                        if property == "id":
-                            print(" @id:", end=" ")
-                            print(json.dumps(id, indent=4))
-                        elif property == "sameAs":
-                            if sameAs is not None:
-                                print(" sameAs:", end=" ")
-                                print(json.dumps(sameAs, indent=4))
-                            else:
-                                print("No PriorID(s) were found.")
-                        elif property == "url":
-                            print(" url:", end=" ")
-                            print(json.dumps(url, indent=4))
-                        elif property == "name":
-                            print(" name:", end=" ")
-                            print(json.dumps(name, indent=4))
-                        elif property == "keywords":
-                            if keywords is None:
-                                print("No keywords found")
-                            else:
-                                print(" keywords:", end=" ")
-                                print(json.dumps(keywords, indent=4))
-                        elif property == "citation":
-                            print(" citation:", end=" ")
-                            print(json.dumps(citation, indent=4))
-                        elif property == "subject_of":
-                            print(" subject_of:", end=" ")
-                            print(json.dumps(subject_of, indent=4))
-                        elif property == "identifier":
-                            print(" identifier:", end=" ")
-                            print(json.dumps(identifier, indent=4))
-                        elif property == "creator":
-                            if creator is not None:
-                                print(" creator:", end=" ")
-                                print(json.dumps(creator, indent=4))
-                            else:
-                                print("No creators were found according to the priority rules.")
-                        elif property == "date_created":
-                            if date_created is not None:
-                                print(" date_created:", end=" ")
-                                print(json.dumps(date_created, indent=4))
-                            else:
-                                print("No creation date was found.")
-                        elif property == "date_modified":
-                            #if trigger:
-                                #print("This record has incorrect dates.")
-                            #else:
-                            print(" date_modified:", end=" ")
-                            print(json.dumps(date_modified, indent=4))
-                                #print("")
-                        elif property == "date_published":
-                            if date_published is not None:
-                                print(" date_published:", end=" ")
-                                print(json.dumps(date_published, indent=4))
-                            else:
-                                print("No publication date was found.")
-                        elif property == "publisher":
-                            if publisher is not None:
-                                print(" publisher:", end=" ")
-                                print(json.dumps(publisher, indent=4))
-                            else:
-                                print("No publisher was found.")
-                        elif property == "contributor":
-                            # pos 1161-2 in NumericalData
-                            if contributor is not None:
-                                # 8 in total in Numerical that have Contact Role of contributor, none in Display
-                                # contributor role found in Contacts for #1162, 1220, 1278, etc
-                                print(" contributor:", end=" ")
-                                print(json.dumps(contributor, indent=4, ensure_ascii=False))
-                            else:
-                                print("No contributors found.")
-                        elif property == "distribution" or property == "potential_action":
-                            if property == "distribution":
-                                if distribution is not None:
-                                    print(" distribution:", end=" ")
-                                    print(json.dumps(distribution, indent=4))
-                                    #raise ValueError("A dataDownload was found!")
-                                else:
-                                    print("No dataDownloads were found")
-                            else:
-                                if potential_action is not None:
-                                    print(" potential_action:", end=" ")
-                                    print(json.dumps(potential_action, indent=4))
-                        elif property == "temporal_coverage":
-                            if temporal_coverage is not None:
-                                print(" temporal_coverage:", end=" ")
-                                print(json.dumps(temporal_coverage, indent=4))
-                            else:
-                                print("No start/stop times were found.")
-                        elif property == "temporal":
-                            if temporal is not None:
-                                print(" temporal:", end=" ")
-                                print(json.dumps(temporal, indent=4))
-                            else:
-                                print("No temporal cadence was found.")
-                        elif property == "spatial_coverage":
-                            if spatial_coverage is not None:
-                                print(" spatial_coverage:", end=" ")
-                                print(json.dumps(spatial_coverage, indent=4))
-                            else:
-                                print("No observed regions were found.")
-                        elif property == "funding":
-                            if funding is not None:
-                                print(" funding:", end=" ")
-                                print(json.dumps(funding, indent=4))
-                            else:
-                                print("No funding info was found.")
-                        elif property == "license":
-                            if license is not None:
-                                print(" license:", end=" ")
-                                print(json.dumps(license, indent=4))
-                            else:
-                                print("No license for the dataset was found.")
-                        elif property == "was_revision_of":
-                            if was_revision_of is not None:
-                                print(" prov:was_revision_of:", end=" ")
-                                print(json.dumps(was_revision_of, indent=4))
-                            else:
-                                print("No was_revision_of was found.")
-                        elif property == "was_derived_from":
-                            if was_derived_from is not None:
-                                print(" prov:was_derived_from:", end=" ")
-                                print(json.dumps(was_derived_from, indent=4))
-                            else:
-                                print("No was_derived_from was found.")
-                        elif property == "is_based_on":
-                            # only 16 in DisplayData have this, none in ACE/EPAM, 6 in NumericalData
-                            if is_based_on is not None:
-                                print(" schema:is_based_on:", end=" ")
-                                print(json.dumps(is_based_on, indent=4))
-                            else:
-                                print("No is_based_on was found.")
-                        elif property == "was_generated_by":
-                            if was_generated_by is not None:
-                                print(" prov:was_generated_by:", end=" ")
-                                print(json.dumps(was_generated_by, indent=4))
-                            else:
-                                print("No was_generated_by was found.")
-                        # only 25 in NumericalData have "ObservedBy" or "PartOf" associationIDs
-                        elif property == "mentions":
-                            if mentions is not None:
-                                print(" mentions:", end=" ")
-                                print(json.dumps(mentions, indent=4))
-                            else:
-                                print("No Other AssociationTypes were found.")
-                        elif property == "is_part_of":
-                            if is_part_of is not None:
-                                print(" schema:isPartOf:", end=" ")
-                                print(json.dumps(is_part_of, indent=4))
-                            else:
-                                print("No is_part_of was found.")
-                        elif property == "variable_measured":
-                            if variable_measured is not None:
-                                print(" variable_measured:", end=" ")
-                                print(json.dumps(variable_measured, indent=4))
-                            else:
-                                print("No parameters found.")
-                        elif property == "instrument":
-                            if instrument is not None:
-                                print(" instrument:", end=" ")
-                                print(json.dumps(instrument, indent=4))
-                            else:
-                                print("No InstrumentIDs found.")
-                        elif property == "observatory":
-                            if observatory is not None:
-                                print(" observatory:", end=" ")
-                                print(json.dumps(observatory, indent=4))
-                            else:
-                                print("No ObservatoryIDs found.")
-                        elif property == "alternate_name":
-                            if alternate_name is not None:
-                                print(" alternate_name:", end=" ")
-                                print(json.dumps(alternate_name, indent=4))
-                            else:
-                                print("No alternateName found.")
-                        elif property == "inLanguage":
-                            print(" inLanguage:", end=" ")
-                            print(json.dumps(inLanguage, indent=4))
-                print("Metadata extraction completed")
-                print()
-
-                # add record to searched
-                searched.append(record)
-
-# test directories
-folder = "C:/Users/zboquet/NASA/DisplayData"
-#folder = "C:/Users/zboquet/NASA/DisplayData/ACE/MAG"
-folder = "C:/Users/zboquet/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
-#main(folder, True, ["mentions", "is_part_of", "is_based_on", "was_revision_of"])
-
-#folder = "C:/Users/zboquet/NASA/NumericalData/ACE/EPAM"
-#folder = "C:/Users/zboquet/NASA/NumericalData/Cassini/MAG"
-# start at list item 132 if want to skip EPAM folder
-#folder = "C:/Users/zboquet/NASA/NumericalData/ACE"
-# start at list item 163 if want to skip ACE folder
-folder = "C:/Users/zboquet/NASA/NumericalData"
-#main(folder, False, ["creator", "contributor"])
-
-
+    desiredTag = desiredRoot.tag.split("}")
+    SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ResourceID"
+    dataset_id = metadata.findtext(
+        SPASE_Location, namespaces=namespaces
+    )
+    return dataset_id
