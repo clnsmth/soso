@@ -68,6 +68,7 @@ class SPASE(StrategyInterface):
         # Mapping: schema:identifier = hpde.io landing page for the SPASE record
         ResourceID = get_ResourceID(self.metadata, self.namespaces)
         before, sep, after = ResourceID.partition("/NASA")
+        #before, sep, after = ResourceID.partition("/SMWG")
         hpdeURL = f"https://hpde.io{sep}{after}"
 
         return delete_null_values(hpdeURL)
@@ -872,18 +873,26 @@ class SPASE(StrategyInterface):
                 else:
                     raise ValueError("Could not access associated SPASE record.")
                 i += 1
-            # add Dataset Type if it is actually a dataset
+            # add correct type
             if len(relations) > 1:
                 was_revision_of = []
                 for relation in relations:
-                    if isDataset(relation):
+                    isDataset, isArticle = verifyType(relation)
+                    if isDataset:
                         was_revision_of.append({"@type": "Dataset",
+                                            "@id": relation})
+                    elif isArticle:
+                        was_revision_of.append({"@type": "ScholarlyArticle",
                                             "@id": relation})
                     else:
                         was_revision_of.append({"@id": relation})
             else:
-                if isDataset(relations[0]):
+                isDataset, isArticle = verifyType(relations[0])
+                if isDataset:
                     was_revision_of = {"@type": "Dataset",
+                                        "@id": relations[0]}
+                elif isArticle:
+                    was_revision_of = {"@type": "ScholarlyArticle",
                                         "@id": relations[0]}
                 else:
                     was_revision_of = {"@id": relations[0]}
@@ -934,18 +943,26 @@ class SPASE(StrategyInterface):
                 else:
                     raise ValueError("Could not access associated SPASE record.")
                 i += 1
-            # add Dataset Type if it is actually a dataset
+            # add correct type
             if len(derivations) > 1:
                 is_based_on = []
                 for derivation in derivations:
-                    if isDataset(derivation):
+                    isDataset, isArticle = verifyType(derivation)
+                    if isDataset:
                         is_based_on.append({"@type": "Dataset",
+                                            "@id": derivation})
+                    elif isArticle:
+                        is_based_on.append({"@type": "ScholarlyArticle",
                                             "@id": derivation})
                     else:
                         is_based_on.append({"@id": derivation})
             else:
-                if isDataset(derivations[0]):
+                isDataset, isArticle = verifyType(derivations[0])
+                if isDataset:
                     is_based_on = {"@type": "Dataset",
+                                        "@id": derivations[0]}
+                elif isArticle:
+                    is_based_on = {"@type": "ScholarlyArticle",
                                         "@id": derivations[0]}
                 else:
                     is_based_on = {"@id": derivations[0]}
@@ -1523,8 +1540,8 @@ def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], 
                 root = testSpase.metadata.getroot()
                 instrumentIDs[item]["name"] = testSpase.get_name()
                 instrumentIDs[item]["URL"] = testSpase.get_url()
-            else:
-                raise ValueError("Could not access associated SPASE record.")
+            #else:
+                #raise ValueError("Could not access associated SPASE record.")
         for k in instrumentIDs.keys():
             if instrumentIDs[k]["URL"]:
                 instrument.append({"@id": instrumentIDs[k]["URL"],
@@ -1538,8 +1555,8 @@ def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], 
 
 def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict], None]:
     """
-    :param metadata:    The SPASE metadata object as an XML tree.
-    :param path:    The absolute file path of the XML file the user wishes to pull info from.
+    :param metadata: The SPASE metadata object as an XML tree.
+    :param path: The absolute file path of the XML file the user wishes to pull info from.
 
     :returns:   The name, url, and ResourceID for each observatory related to this dataset,
                 formatted as a list of dictionaries.
@@ -1557,9 +1574,7 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
         observatoryID = ""
         recordedIDs = []
         instrumentIDs = []
-        # follow link provided by instrument to instrument page, from there grab ObservatoryID
-        # then follow link provided by ObservatoryID to grab name, url, and ObservatoryGrpID
-        # finally, follow that link to grab name and url from there
+
         for each in instrument:
             instrumentIDs.append(each["identifier"]["value"])
         for item in instrumentIDs:
@@ -1569,6 +1584,7 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                 absPath, sep, after = path.partition("NASA/")
             record = absPath + item.replace("spase://","") + ".xml"
             record = record.replace("'","")
+            # follow link provided by instrument to instrument page, from there grab ObservatoryID
             if os.path.isfile(record):
                 testSpase = SPASE(record)
                 root = testSpase.metadata.getroot()
@@ -1593,6 +1609,7 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                             observatoryGroupID = child.text
                     name = testSpase.get_name()
                     url = testSpase.get_url()
+                    # finally, follow that link to grab name and url from there
                     if observatoryGroupID:
                         record = absPath + observatoryGroupID.replace("spase://","") + ".xml"
                         record = record.replace("'","") 
@@ -1611,8 +1628,8 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                                                                         "value": observatoryGroupID},
                                                         "url": groupURL})
                                     recordedIDs.append(observatoryGroupID)
-                        else:
-                            raise ValueError("Could not access associated SPASE record.")
+                        #else:
+                            #raise ValueError("Could not access associated SPASE record.")
                     if url and (observatoryID not in recordedIDs):
                         observatory.append({"@type": ["ResearchProject", "prov:Entity", "sosa:Platform"],
                                             "@id": url,
@@ -1622,19 +1639,19 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                                                                         "value": observatoryID},
                                             "url": url})
                         recordedIDs.append(observatoryID)
-                else:
-                    raise ValueError("Could not access associated SPASE record.")
-            else:
-                raise ValueError("Could not access associated SPASE record.")
+                #else:
+                    #raise ValueError("Could not access associated SPASE record.")
+            #else:
+                #raise ValueError("Could not access associated SPASE record.")
     else:
         observatory = None
     return observatory
 
 def get_alternate_name(metadata: etree.ElementTree) -> Union[str, None]:
     """
-    :param metadata:    The SPASE metadata object as an XML tree.
+    :param metadata: The SPASE metadata object as an XML tree.
 
-    :returns:   The alternate name of the dataset as a string.
+    :returns: The alternate name of the dataset as a string.
     """
     root = metadata.getroot()
     alternate_name = None
@@ -1644,7 +1661,7 @@ def get_alternate_name(metadata: etree.ElementTree) -> Union[str, None]:
     for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("ResourceHeader"):
             targetChild = child
-            # iterate thru children to locate AccessURL and Format
+            # iterate thru children to locate AlternateName for dataset
             for child in targetChild:
                 try:
                     if child.tag.endswith("AlternateName"):
@@ -1655,9 +1672,9 @@ def get_alternate_name(metadata: etree.ElementTree) -> Union[str, None]:
 
 def get_cadenceContext(cadence:str) -> str:
     """
-    :param cadence:    The value found in the Cadence field of the TemporalDescription section
+    :param cadence: The value found in the Cadence field of the TemporalDescription section
 
-    :returns:   A string description of what this value represents/means.
+    :returns: A string description of what this value represents/means.
     """
     # takes cadence/repeatFreq and returns an explanation for what it means
     # ISO 8601 Format = PTHH:MM:SS.sss
@@ -1699,9 +1716,9 @@ def get_cadenceContext(cadence:str) -> str:
 
 def get_mentions(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dict, None]:
     """
-    :param metadata:    The SPASE metadata object as an XML tree.
+    :param metadata: The SPASE metadata object as an XML tree.
 
-    :returns:   The ID's of other SPASE records related to this one in some way.
+    :returns: The ID's of other SPASE records related to this one in some way.
     """
     # Mapping: schema:mentions = spase:Association/spase:AssociationID
     #   (if spase:AssociationType is "Other")
@@ -1711,6 +1728,7 @@ def get_mentions(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dic
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desiredRoot = elt
     relations = []
+    # iterate thru xml to find desired info
     for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("Association"):
             targetChild = child
@@ -1739,18 +1757,26 @@ def get_mentions(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dic
             else:
                 raise ValueError("Could not access associated SPASE record.")
             i += 1
-        # add Dataset Type if it is actually a dataset
+        # add correct type
         if len(relations) > 1:
             mentions = []
             for relation in relations:
-                if isDataset(relation):
+                isDataset, isArticle = verifyType(relation)
+                if isDataset:
                     mentions.append({"@type": "Dataset",
+                                        "@id": relation})
+                elif isArticle:
+                    mentions.append({"@type": "ScholarlyArticle",
                                         "@id": relation})
                 else:
                     mentions.append({"@id": relation})
         else:
-            if isDataset(relations[0]):
+            isDataset, isArticle = verifyType(relations[0])
+            if isDataset:
                 mentions = {"@type": "Dataset",
+                                    "@id": relations[0]}
+            elif isArticle:
+                mentions = {"@type": "ScholarlyArticle",
                                     "@id": relations[0]}
             else:
                 mentions = {"@id": relations[0]}
@@ -1758,9 +1784,9 @@ def get_mentions(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dic
 
 def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dict, None]:
     """
-    :param metadata:    The SPASE metadata object as an XML tree.
+    :param metadata: The SPASE metadata object as an XML tree.
 
-    :returns:   The ID(s) of the larger resource this SPASE record is a portion of, as a dictionary.
+    :returns: The ID(s) of the larger resource this SPASE record is a portion of, as a dictionary.
     """
     # Mapping: schema:isBasedOn = spase:Association/spase:AssociationID
     #   (if spase:AssociationType is "PartOf")
@@ -1770,6 +1796,7 @@ def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[List[Dict], D
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desiredRoot = elt
     relations = []
+    # iterate thru xml to find desired info
     for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("Association"):
             targetChild = child
@@ -1798,19 +1825,27 @@ def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[List[Dict], D
             else:
                 raise ValueError("Could not access associated SPASE record.")
             i += 1
-        # add Dataset Type if it is actually a dataset
+        # add correct type
         if len(relations) > 1:
             is_part_of = []
             for relation in relations:
-                if isDataset(relation):
+                isDataset, isArticle = verifyType(relation)
+                if isDataset:
                     is_part_of.append({"@type": "Dataset",
+                                        "@id": relation})
+                elif isArticle:
+                    is_part_of.append({"@type": "ScholarlyArticle",
                                         "@id": relation})
                 else:
                     is_part_of.append({"@id": relation})
         else:
-            if isDataset(relations[0]):
+            isDataset, isArticle = verifyType(relations[0])
+            if isDataset:
                 is_part_of = {"@type": "Dataset",
-                                "@id": relations[0]}
+                                    "@id": relations[0]}
+            elif isArticle:
+                is_part_of = {"@type": "ScholarlyArticle",
+                                    "@id": relations[0]}
             else:
                 is_part_of = {"@id": relations[0]}
     return is_part_of
@@ -1820,7 +1855,7 @@ def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple:
     :param PersonID: The SPASE ID linking the page with the Person's info.
     :param file: The absolute path of the original xml file scraped.
 
-    :returns:   The ORCiD ID and organization name this Contact is affiliated with, as strings.
+    :returns: The ORCiD ID and organization name this Contact is affiliated with, as strings.
     """
     # takes PersonID and follows its link to get ORCIdentifier and OrganizationName
     orcidID = ""
@@ -1834,6 +1869,7 @@ def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple:
     if os.path.isfile(record):
         testSpase = SPASE(record)
         root = testSpase.metadata.getroot()
+        # iterate thru xml to get desired info
         for elt in root.iter(tag=etree.Element):
             if elt.tag.endswith("Person"):
                 desiredRoot = elt
@@ -1842,7 +1878,8 @@ def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple:
                 orcidID = child.text
             elif child.tag.endswith("OrganizationName"):
                 affiliation = child.text
-                #print(affiliation)
+    else:
+        raise ValueError("Could not access associated SPASE record.")
     return orcidID, affiliation
 
 def get_ROR(orgName:str) -> Union[str, None]:
@@ -1954,13 +1991,13 @@ def process_authors(author:List, authorRole:List, contactsList:Dict) -> tuple:
 
     authorStr = str(author).replace("[", "").replace("]","")
     # if creators were found in Contact/PersonID (no PubInfo)
-    # remove author roles from contactsList so not duplicated in contributors
+    # remove author roles from contactsList so not duplicated in contributors (since already in author list)
     if "Person/" in authorStr:
         contactsCopy = {}
         for person, val in contactsList.items():
             contactsCopy[person] = []
             for role in val:
-                # if role is not considered for author, add to acceptable roles list
+                # if role is not considered for author, add to acceptable roles list for use in contributors
                 if ("PrincipalInvestigator" not in role) and ("PI" not in role) and ("CoInvestigator" not in role):
                     contactsCopy[person].append(role)
             # if no acceptable roles were found, remove that author from contributor consideration
@@ -2009,12 +2046,11 @@ def process_authors(author:List, authorRole:List, contactsList:Dict) -> tuple:
                         firstName, sep, lastName = contact.rpartition(".")
                         firstName, sep, initial = firstName.partition(".")
                         path, sep, firstName = firstName.rpartition("/")
-                        #print("First: " + firstName + "\nInitial: " + initial + "\nLast: " + lastName)
                         # Assumption: if first name initial, middle initial, and last name match = same person
                         # remove <f"{firstName[0]}."> in the line below if this assumption is no longer accurate
                         if ((f"{firstName[0]}." in person) or (firstName in person)) and (f"{initial}." in person) and (lastName in person):
                             matchingContact = contact
-                # if match is found, add role to authorRole and replace role with person name in contactsList
+                # if match is found, add role to authorRole and replace role with formatted person name in contactsList
                 if matchingContact is not None:
                     authorRole[index] = [authorRole[index]] + contactsList[matchingContact]
                     contactsList[matchingContact] = f"{lastName}, {firstName} {initial}."
@@ -2039,39 +2075,53 @@ def process_authors(author:List, authorRole:List, contactsList:Dict) -> tuple:
                         firstName, sep, lastName = contact.rpartition(".")
                         firstName, sep, initial = firstName.partition(".")
                         path, sep, firstName = firstName.rpartition("/")
-                        #print("First: " + firstName + "\nInitial: " + initial + "\nLast: " + lastName)
                         # Assumption: if first name initial, middle initial, and last name match = same person
                         # remove <f"{firstName[0]}."> in the line below if this assumption is no longer accurate
                         if ((f"{firstName[0]}." in person) or (firstName in person)) and (f"{initial}." in person) and (lastName in person):
                             matchingContact = contact
-                # if match is found, add role to authorRole and replace role with person name in contactsList
+                # if match is found, add role to authorRole and replace role with formatted person name in contactsList
                 if matchingContact is not None:
                     authorRole[0] = [authorRole[0]] + contactsList[matchingContact]
                     contactsList[matchingContact] = f"{lastName}, {firstName} {initial}."
                 author[0] = (f'{familyName}, {givenName}').strip()
     return author, authorRole, contactsList
 
-def isDataset(url:str) -> bool:
+def verifyType(url:str) -> tuple:
     """
     :param url: The link provided as an Associated work/reference for the SPASE record
 
-    :returns: True or False depending on if the link is to an hpde.io landing page for a Dataset
+    :returns: Boolean values signifying if the link is a Dataset or a ScholarlyArticle
     """
-    # tests SPASE records to make sure they are datasets
+    # tests SPASE records to make sure they are datasets or a journal article
     isDataset = False
+    isArticle = False
 
     if "hpde.io" in url:
         if "Data" in url:
             isDataset = True
-    # url provided is a DOI
+    # case where url provided is a DOI
     else:
         link = requests.head(url)
         # check to make sure doi resolved to an hpde.io page
         if "hpde.io" in link.headers['location']:
             if "Data" in link.headers['location']:
                 isDataset = True
+        # if not, call DataCite API to check resourceTypeGeneral property associated w the record
+        else:
+            protocol, sep, doi = link.partition("doi.org/")
+            dataciteLink = f"https://api.datacite.org/dois/{doi}"
+            headers = {"accept": "application/vnd.api+json"}
+            response = requests.get(dataciteLink, headers=headers)
+            dict = json.loads(response.text)
+            for item in dict["data"]["types"]:
+                if (item["resourceTypeGeneral"] == "Dataset"):
+                    isDataset = True
+                elif (item["resourceTypeGeneral"] == "JournalArticle"):
+                    isArticle = True
+                # if wish to add more checks, simply add more "elif" stmts like above
+                # and adjust provenance/relationship functions to include new type check
 
-    return isDataset
+    return isDataset, isArticle
 
 def get_ResourceID(metadata: etree.ElementTree, namespaces: Dict):
     """
@@ -2080,10 +2130,11 @@ def get_ResourceID(metadata: etree.ElementTree, namespaces: Dict):
 
     :returns: The ResourceID for the SPASE record.
     """
-    # Mapping: schema:identifier = spase:ResourceID
     root = metadata.getroot()
     for elt in root.iter(tag=etree.Element):
-        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+        if (elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData")
+                or elt.tag.endswith("Observatory") or elt.tag.endswith("Instrument")
+                or elt.tag.endswith("Person")):
             desiredRoot = elt
 
     desiredTag = desiredRoot.tag.split("}")
