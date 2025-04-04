@@ -11,8 +11,6 @@ from datetime import datetime, timedelta
 import json
 import os
 import requests
-import zipfile
-from pprint import pprint
 
 # pylint: disable=duplicate-code
 
@@ -151,15 +149,13 @@ class SPASE(StrategyInterface):
         #    is_accessible_for_free = False
         return delete_null_values(is_accessible_for_free)
 
-    def get_keywords(self) -> Union[str, None]:
-        # Mapping: schema:keywords = spase:Keyword AND spase:MeasurementType
+    def get_keywords(self) -> Union[List, None]:
+        # Mapping: schema:keywords = spase:Keyword
         keywords = []
 
         # traverse xml to extract needed info
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("Keyword"):
-                keywords.append(child.text)
-            elif child.tag.endswith("MeasurementType"):
                 keywords.append(child.text)
         if keywords == []:
             keywords = None
@@ -195,7 +191,7 @@ class SPASE(StrategyInterface):
                             "propertyID": "SPASE",
                             "url": url,
                             "value": ID}
-        return identifier
+        return delete_null_values(identifier)
 
     def get_citation(self) -> Union[List[Dict], None]:
         # Mapping: schema:citation = spase:ResourceHeader/spase:InformationURL
@@ -203,36 +199,31 @@ class SPASE(StrategyInterface):
         information_url = get_information_url(self.metadata)
         if information_url:
             for each in information_url:
+                # most basic citation item
+                entry = {"@id": each["url"],
+                        "@type": "CreativeWork",
+                        "url": each["url"],
+                        "identifier": each["url"]}
                 if "name" in each.keys():
-                    if "description" in each.keys():
-                        citation.append({"@id": each["url"],
-                                            "@type": "CreativeWork",
-                                            "name": each["name"],
-                                            "url": each["url"],
-                                            "description": each["description"]})
-                    else:
-                        citation.append({"@id": each["url"],
-                                            "@type": "CreativeWork",
-                                            "name": each["name"],
-                                            "url": each["url"]})
-                else:
-                    citation.append({"@id": each["url"],
-                                        "@type": "CreativeWork",
-                                        "url": each["url"]})
+                    entry["name"] = each["name"]
+                if "description" in each.keys():
+                    entry["description"] = each["description"]
+                citation.append(entry)
         else:
             citation = None
         return delete_null_values(citation)
 
     def get_variable_measured(self) -> Union[List[Dict], None]:
-        # Mapping: schema:variable_measured = spase:Parameters/spase:Name, Description, Units
+        # Mapping: schema:variable_measured = spase:Parameters/spase:Name, Description, Units, ParameterKey
         # Each object is:
-        #   {"@type": schema:PropertyValue, "name": Name, "description": Description, "unitText": Units}
+        #   {"@type": schema:PropertyValue, "name": Name, "description": Description, "unitText": Units, "alternateName": ParameterKey}
         # Following schema:PropertyValue found at: https://schema.org/PropertyValue
         variable_measured = []
         minVal = ""
         maxVal = ""
         paramDesc = ""
         unitsFound = []
+        key = ""
         i = 0
 
         # traverse xml to extract needed info
@@ -249,31 +240,27 @@ class SPASE(StrategyInterface):
                         elif child.tag.endswith("Units"):
                             unit = child.text
                             unitsFound[i] = unit
+                        elif child.tag.endswith("ParameterKey"):
+                            key = child.text
                         #elif child.tag.endswith("ValidMin"):
                             #minVal = child.text
                         #elif child.tag.endswith("ValidMax"):
                             #maxVal = child.text
                     except AttributeError as err:
                         continue
-                if paramDesc and unitsFound[i]:
-                    variable_measured.append({"@type": "PropertyValue", 
-                                            "name": f"{paramName}",
-                                            "description": f"{paramDesc}",
-                                            "unitText": f"{unitsFound[i]}"})
-                elif paramDesc:
-                    variable_measured.append({"@type": "PropertyValue", 
-                                        "name": f"{paramName}",
-                                        "description": f"{paramDesc}"})
-                elif unitsFound[i]:
-                    variable_measured.append({"@type": "PropertyValue", 
-                                        "name": f"{paramName}",
-                                        "unitText": f"{unitsFound[i]}"})
-                else:
-                    variable_measured.append({"@type": "PropertyValue", 
-                                        "name": f"{paramName}"})
-                                        #"minValue": f"{minVal}",
-                                        #"maxValue": f"{maxVal}"})
+                # most basic entry for variable measured
+                entry = {"@type": "PropertyValue", 
+                        "name": paramName}
+                        #"minValue": f"{minVal}",
+                        #"maxValue": f"{maxVal}"})
+                if paramDesc:
+                    entry["description"] = paramDesc
+                if unitsFound[i]:
+                    entry["unitText"] = unitsFound[i]
+                if key:
+                    entry["alternateName"] = key
                 i += 1
+                variable_measured.append(entry)
         if len(variable_measured) == 0:
             variable_measured = None
         return delete_null_values(variable_measured)
@@ -289,27 +276,43 @@ class SPASE(StrategyInterface):
         date_modified = self.get_date_modified()
         metadata_license = get_metadata_license(self.metadata)
         contentURL = self.get_id()
-        if date_modified:
-            subject_of = {
-                    "@id": contentURL,
+        # small lookup table for commonly used licenses in SPASE (CC0 for NASA, CC-BY-NC-3.0 for ESA, etc)
+        commonLicenses = [{"fullName":"Creative Commons Zero v1.0 Universal",
+                            "identifier": "CC0-1.0",
+                            "url": "https://spdx.org/licenses/CC0-1.0.html"},
+                            {"fullName": "Creative Commons Attribution Non Commercial 3.0 Unported",
+                                "identifier": "CC-BY-NC-3.0",
+                                "url": "https://spdx.org/licenses/CC-BY-NC-3.0.html"},
+                            {"fullName": "Creative Commons Attribution 1.0 Generic",
+                                "identifier": "CC-BY-1.0",
+                                "url": "https://spdx.org/licenses/CC-BY-1.0.html"}]
+        if metadata_license:
+            # find URL associated w license found in top-level SPASE line
+            licenseURL = ""
+            for entry in commonLicenses:
+                if entry["fullName"] == metadata_license:
+                    licenseURL = entry["url"]
+            # if license is not in lookup table
+            if not licenseURL:
+                # find licenseURL from SPDX data file at https://github.com/spdx/license-list-data/tree/main
+                #   and add to commonLicenses dictionary. Then rerun script for those that failed.
+                pass
+
+            # basic format for item
+            entry = {"@id": contentURL,
                     "@type": "DataDownload",
                     "name": "SPASE metadata for dataset",
                     "description": "SPASE metadata describing the dataset",
-                    "license": metadata_license,
+                    "license": licenseURL,
                     "encodingFormat": "application/xml",
                     "contentUrl": contentURL,
-                    "dateModified": date_modified,
-                }
+                    "identifier": contentURL}
+            # if date modified is available, add it
+            if date_modified:
+                entry["dateModified"] = date_modified
+            subject_of = entry
         else:
-            subject_of = {
-                    "@id": contentURL,
-                    "@type": "DataDownload",
-                    "name": "SPASE metadata for dataset",
-                    "description": "SPASE metadata describing the dataset",
-                    "license": metadata_license,
-                    "encodingFormat": "application/xml",
-                    "contentUrl": contentURL
-                }
+            subject_of = None
         return delete_null_values(subject_of)
 
     def get_distribution(self) -> Union[List[Dict], None]:
@@ -322,9 +325,13 @@ class SPASE(StrategyInterface):
         distribution = []
         dataDownloads, potentialActions = get_accessURLs(self.metadata)
         for k, v in dataDownloads.items():
-            distribution.append({"@type": "DataDownload",
-                                "contentUrl": f"{k}",
-                                "encodingFormat": f"{v[0]}"})
+            entry = ({"@type": "DataDownload",
+                        "contentUrl": k,
+                        "encodingFormat": v[0]})
+            # if AccessURL has a name
+            if v[1]:
+                entry["name"] = v[1]
+            distribution.append(entry)
         if len(distribution) != 0:
             if len(distribution) == 1:
                 distribution = distribution[0]
@@ -365,46 +372,43 @@ class SPASE(StrategyInterface):
             endSent += f"Use {testEnd} as a test end value."
             startSent = f"Use {start} as default value."
 
+        # potentialActions[url] = [encoding, {"keys": [], "name": ""}]
+
         # loop thru all AccessURLs
         for k, v in potentialActions.items():
-            prodKeys = v[1]
+            prodKeys = v[1]["keys"]
+            name = v[1]["name"]
             encoding = v[0]
             pattern = "(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?"
 
+            # most basic format for a potentialAction item
+            entry = {"@type": "SearchAction",
+                            "target": {"@type": "EntryPoint",
+                                        "contentType": encoding,
+                                        "url": k,
+                                        "description": f"Download dataset data as {encoding} file at this URL"}
+                            }
             # if link has no prodKey
-            if prodKeys == "None":
-                # if ftp link, do not include @id
-                if "ftp" in k: 
-                    potential_actionList.append({"@type": "SearchAction",
-                                                "target": {"@type": "EntryPoint",
-                                                            "contentType": f"{encoding}",
-                                                            "url": f"{k}",
-                                                            "description": f"Download dataset data as {encoding} file at this URL"}
-                                                })
-                else:
-                    potential_actionList.append({"@type": "SearchAction",
-                                            "target": {"@id": f"{k}",
-                                                        "@type": "EntryPoint",
-                                                        "contentType": f"{encoding}",
-                                                        "url": f"{k}",
-                                                        "description": f"Download dataset data as {encoding} file at this URL"}
-                                            })
+            if prodKeys == []:
+                # if not an ftp link, include url as @id
+                if "ftp" not in k: 
+                    entry["target"]["@id"] = k
+                    entry["target"]["identifier"] = k
+                # if name available, add it
+                if name:
+                    entry["target"]["name"] = name
+                potential_actionList.append(entry)
             else:
                 # loop thru all product keys if there are multiple
                 for prodKey in prodKeys:
                     prodKey = prodKey.replace("\"", "")
+                    # if name available, add it
+                    if name:
+                        entry["target"]["name"] = name
                     # if link is a hapi link, provide the hapi interface web service to download data
                     if "/hapi" in k:
-                        # if ftp link, do not include @id
-                        if 'ftp' in k:
-                            potential_actionList.append({"@type": "SearchAction",
-                                                "target": {"@type": "EntryPoint",
-                                                            "contentType": f"{encoding}",
-                                                            "urlTemplate": f"{k}/data?id={prodKey}&time.min=(start)&time.max=(end)",
-                                                            "description": "Download dataset labeled by id in CSV format based on the requested start and end dates",
-                                                            "httpMethod": "GET"},
-                                                "query-input": [
-                                                    {"@type": "PropertyValueSpecification",
+                        # additions needed for each hapi link
+                        queryFormat = [{"@type": "PropertyValueSpecification",
                                                     "valueName": "start",
                                                     "description": f"A UTC ISO DateTime. {startSent}",
                                                     "valueRequired": False,
@@ -413,48 +417,24 @@ class SPASE(StrategyInterface):
                                                     "valueName": "end",
                                                     "description": f"A UTC ISO DateTime. {endSent}",
                                                     "valueRequired": False,
-                                                    "valuePattern": f"{pattern}"}
-                                                ]
-                            })
-                        else:
-                            potential_actionList.append({"@type": "SearchAction",
-                                            "target": {"@id": f"{k}",
-                                                        "@type": "EntryPoint",
-                                                        "contentType": f"{encoding}",
-                                                        "urlTemplate": f"{k}/data?id={prodKey}&time.min=(start)&time.max=(end)",
-                                                        "description": "Download dataset labeled by id in CSV format based on the requested start and end dates",
-                                                        "httpMethod": "GET"},
-                                            "query-input": [
-                                                {"@type": "PropertyValueSpecification",
-                                                "valueName": "start",
-                                                "description": f"A UTC ISO DateTime. {startSent}",
-                                                "valueRequired": False,
-                                                "valuePattern": f"{pattern}"},
-                                                {"@type": "PropertyValueSpecification",
-                                                "valueName": "end",
-                                                "description": f"A UTC ISO DateTime. {endSent}",
-                                                "valueRequired": False,
-                                                "valuePattern": f"{pattern}"}
-                                            ]
-                        })
+                                                    "valuePattern": f"{pattern}"}]
+                        entry["target"].pop("url")
+                        entry["target"]["urlTemplate"] = f"{k}/data?id={prodKey}&time.min={{start}}&time.max={{end}}"
+                        entry["target"]["description"] = "Download dataset labeled by id in CSV format based on the requested start and end dates"
+                        entry["target"]["httpMethod"] = "GET"
+                        entry["query-input"] = queryFormat
+                        # if not ftp link, include url as @id
+                        if 'ftp' not in k:
+                            entry["target"]["@id"] = k
+                            entry["target"]["identifier"] = k
                     # use GSFC CDAWeb portal to download CDF
                     else:
-                        # if ftp link, do not include @id
-                        if 'ftp' in k:
-                            potential_actionList.append({"@type": "SearchAction",
-                                                    "target": {"@type": "EntryPoint",
-                                                                "contentType": f"{encoding}",
-                                                                "url": f"{k}",
-                                                                "description": "Download dataset data as CDF or CSV file at this URL"}
-                                                    })
-                        else:
-                            potential_actionList.append({"@type": "SearchAction",
-                                                "target": {"@id": f"{k}",
-                                                            "@type": "EntryPoint",
-                                                            "contentType": f"{encoding}",
-                                                            "url": f"{k}",
-                                                            "description": "Download dataset data as CDF or CSV file at this URL"}
-                                                })
+                        entry["description"] = "Download dataset data as CDF or CSV file at this URL"
+                        # if not ftp link, include url as @id
+                        if 'ftp' not in k:
+                            entry["target"]["@id"] = k
+                            entry["target"]["identifier"] = k
+                    potential_actionList.append(entry)
         if len(potential_actionList) != 0:
             potential_action = potential_actionList
         else:
@@ -552,7 +532,7 @@ class SPASE(StrategyInterface):
         if start:
             if stop:
                 temporal_coverage = {"@type": "DateTime",
-                                    "temporalCoverage": f"{start}/{stop}"}
+                                    "temporalCoverage": f"{start.strip()}/{stop.strip()}"}
             else:
                 temporal_coverage = f"{start}/.."
         else:
@@ -571,24 +551,36 @@ class SPASE(StrategyInterface):
             SPASE_Location,
             namespaces=self.namespaces,
         ):
+            # Split string on '.'
+            prettyName = item.text.replace(".", " ")
+
             spatial_coverage.append(
                 {
                     "@type": "Place",
                     #"identifier": f"http://www.spase-group.org/data/schema/{item.text.replace('.', '_').upper()}",
-                    "alternateName": item.text
+                    "additionalProperty": {
+                        "@type": "PropertyValue",
+                        "valueReference": {
+                            "@type": "DefinedTerm",
+                            "inDefinedTermSet": {
+                                "@type": "DefinedTermSet",
+                                "name": "SPASE ObservedRegion"},
+                        "termCode": item.text}
+                    },
+                    "name": prettyName
                 }
             )
         if len(spatial_coverage) == 0:
             spatial_coverage = None
         return delete_null_values(spatial_coverage)
 
-    def get_creator(self) -> Union[List, None]:
+    def get_creator(self) -> Union[List[Dict], None]:
         # Mapping: schema:creator = spase:ResourceHeader/spase:PublicationInfo/spase:Authors 
         # OR schema:creator = spase:ResourceHeader/spase:Contact/spase:PersonID
         # Each item is:
         #   {@type: Role, roleName: Contact Role, creator: {@type: Person, name: Author Name, givenName: First Name, familyName: Last Name}}
         #   plus the additional properties if available: affiliation and identifier (ORCiD ID),
-        #       which are pulled from SMWG Person SPASE records and ROR API
+        #       which are pulled from SMWG Person SPASE records
         # Using schema:Creator as defined in: https://schema.org/creator
         author, authorRole, pubDate, pub, contributor, dataset, backups, contactsList = get_authors(self.metadata)
         authorStr = str(author).replace("[", "").replace("]","")
@@ -609,10 +601,9 @@ class SPASE(StrategyInterface):
                         index = 0
                     # split text from Contact into properly formatted name fields
                     authorStr, givenName, familyName = nameSplitter(person)
-                    orcidID, affiliation = get_ORCiD_and_Affiliation(person, self.file)
-                    ror = get_ROR(affiliation)
+                    orcidID, affiliation, ror = get_ORCiD_and_Affiliation(person, self.file)
                     # create the dictionary entry for that person and append to list
-                    creatorEntry = creatorFormat(authorRole[index], authorStr, givenName, familyName, affiliation, orcidID, ror)
+                    creatorEntry = personFormat("creator", authorRole[index], authorStr, givenName, familyName, affiliation, orcidID, ror)
                     creator.append(creatorEntry)
             # if all creators were found in PublicationInfo/Authors
             else:
@@ -630,11 +621,10 @@ class SPASE(StrategyInterface):
                         for key, val in contactsList.items():
                             if person == val:
                                 matchingContact = True
-                                orcidID, affiliation = get_ORCiD_and_Affiliation(key, self.file)
-                                ror = get_ROR(affiliation)
-                                creatorEntry = creatorFormat(authorRole[index], person, givenName, familyName, affiliation, orcidID, ror)
+                                orcidID, affiliation, ror = get_ORCiD_and_Affiliation(key, self.file)
+                                creatorEntry = personFormat("creator", authorRole[index], person, givenName, familyName, affiliation, orcidID, ror)
                         if not matchingContact:
-                            creatorEntry = creatorFormat(authorRole[index], person, givenName, familyName)
+                            creatorEntry = personFormat("creator", authorRole[index], person, givenName, familyName)
                         creator.append(creatorEntry)
                 # if there is only one author listed
                 else:
@@ -645,27 +635,25 @@ class SPASE(StrategyInterface):
                     for key, val in contactsList.items():
                         if person == val:
                             matchingContact = True
-                            orcidID, affiliation = get_ORCiD_and_Affiliation(key, self.file)
-                            ror = get_ROR(affiliation)
-                            creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName, affiliation, orcidID, ror)
+                            orcidID, affiliation, ror = get_ORCiD_and_Affiliation(key, self.file)
+                            creatorEntry = personFormat("creator", authorRole[0], person, givenName, familyName, affiliation, orcidID, ror)
                     if not matchingContact:
-                        creatorEntry = creatorFormat(authorRole[0], person, givenName, familyName)
+                        creatorEntry = personFormat("creator", authorRole[0], person, givenName, familyName)
                     creator.append(creatorEntry)
+        # preserve order of elements
+        if len(creator) != 0:
+            if len(creator) > 1:
+                creator = {"@list": creator}
         else:
-            # preserve order of elements
-            if len(creator) != 0:
-                if len(creator) > 1:
-                    creator = {"@list": creator}
-            else:
-                creator = None
+            creator = None
         return delete_null_values(creator)
 
-    def get_contributor(self) -> Union[List, None]:
+    def get_contributor(self) -> Union[List[Dict], None]:
         # Mapping: schema:contributor = spase:ResourceHeader/spase:Contact/spase:PersonID
         # Each item is:
         #   {@type: Role, roleName: Contributor or curator role, contributor: {@type: Person, name: Author Name, givenName: First Name, familyName: Last Name}}
         #   plus the additional properties if available: affiliation and identifier (ORCiD ID),
-        #       which are pulled from SMWG Person SPASE records and ROR API
+        #       which are pulled from SMWG Person SPASE records
         # Using schema:Person as defined in: https://schema.org/Person
         author, authorRole, pubDate, pub, contributors, dataset, backups, contactsList = get_authors(self.metadata)
         contributor = []
@@ -677,12 +665,11 @@ class SPASE(StrategyInterface):
             if "." not in val:
                 # add call to get ORCiD and affiliation
                 contributorStr, givenName, familyName = nameSplitter(key)
-                orcidID, affiliation = get_ORCiD_and_Affiliation(key, self.file)
-                ror = get_ROR(affiliation)
+                orcidID, affiliation, ror = get_ORCiD_and_Affiliation(key, self.file)
                 if len(contactsList[key]) > 1:
-                    individual = contributorFormat(contactsList[key], contributorStr, givenName, familyName, affiliation, orcidID, ror)
+                    individual = personFormat("contributor", contactsList[key], contributorStr, givenName, familyName, affiliation, orcidID, ror)
                 else:
-                    individual = contributorFormat(contactsList[key][0], contributorStr, givenName, familyName, affiliation, orcidID, ror)
+                    individual = personFormat("contributor", contactsList[key][0], contributorStr, givenName, familyName, affiliation, orcidID, ror)
                 contributor.append(individual)
 
         # Step 2: check for non-author role contributors found in Contacts
@@ -690,9 +677,8 @@ class SPASE(StrategyInterface):
             for person in contributors:
                 # add call to get ORCiD and affiliation
                 contributorStr, givenName, familyName = nameSplitter(person)
-                orcidID, affiliation = get_ORCiD_and_Affiliation(person, self.file)
-                ror = get_ROR(affiliation)
-                individual = contributorFormat("Contributor", contributorStr, givenName, familyName, affiliation, orcidID, ror)
+                orcidID, affiliation, ror = get_ORCiD_and_Affiliation(person, self.file)
+                individual = personFormat("contributor", contributorStr, givenName, familyName, affiliation, orcidID, ror)
                 contributor.append(individual)
         # Step 3: if no non-author role contributor is found, use backups (editors/curators)
         else:
@@ -706,9 +692,8 @@ class SPASE(StrategyInterface):
                     for key in keys:
                         # add call to get ORCiD and affiliation
                         editorStr, givenName, familyName = nameSplitter(key)
-                        orcidID, affiliation = get_ORCiD_and_Affiliation(key, self.file)
-                        ror = get_ROR(affiliation)
-                        individual = contributorFormat(CuratorRoles[i], editorStr, givenName, familyName, affiliation, orcidID, ror)
+                        orcidID, affiliation, ror = get_ORCiD_and_Affiliation(key, self.file)
+                        individual = personFormat("contributor", CuratorRoles[i], editorStr, givenName, familyName, affiliation, orcidID, ror)
                         contributor.append(individual)
                         found = True
                 i += 1
@@ -728,31 +713,25 @@ class SPASE(StrategyInterface):
     def get_publisher(self) -> Union[Dict, None]:
         # Mapping: schema:publisher = spase:ResourceHeader/spase:Contacts
         # OR spase:ResourceHeader/spase:PublicationInfo/spase:PublishedBy
-        # OR spase:AccessInformation/spase:RepositoryID
         # Each item is:
-        #   {@type: Organization, name: PublishedBy OR Contact (if Role = Publisher) OR last part of RepositoryID}
+        #   {@type: Organization, name: PublishedBy OR Contact (if Role = Publisher)}
         # Using schema:Organization as defined in: https://schema.org/Organization
+        
         author, authorRole, pubDate, publisher, contributor, dataset, backups, contactsList = get_authors(self.metadata)
+        #ror = None
+
+        #ror = get_ROR(publisher)
+        """if ror:
+            publisher = {"@id": ror,
+                        "@type": "Organization",
+                        "name": publisher,
+                        "identifier": ror}
+        else:"""
         if publisher == "":
-            RepoID = get_repoID(self.metadata)
-            (before, sep, publisher) = RepoID.partition("Repository/")
-        if ("SDAC" in publisher) or ("Solar Data Analysis Center" in publisher):
-            publisher = {"@id": "https://ror.org/04rvfc379",
-                        "@type": "Organization",
-                        "name": publisher}
-        elif ("SPDF" in publisher) or ("Space Physics Data Facility" in publisher):
-            publisher = {"@id": "https://ror.org/00ryjtt64",
-                        "@type": "Organization",
-                        "name": publisher}
+            publisher = None
         else:
-            ror = get_ROR(publisher)
-            if ror:
-                publisher = {"@id": ror,
-                            "@type": "Organization",
-                            "name": publisher}
-            else:
-                publisher = {"@type": "Organization",
-                            "name": publisher}
+            publisher = {"@type": "Organization",
+                        "name": publisher}
         return delete_null_values(publisher)
 
     def get_funding(self) -> Union[List[Dict], None]:
@@ -766,6 +745,7 @@ class SPASE(StrategyInterface):
         agency = []
         project = []
         award = []
+        ror = None
         # iterate thru to find all info related to funding
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("Funding"):
@@ -780,37 +760,19 @@ class SPASE(StrategyInterface):
         # if funding info was found
         if agency:
             i = 0
-            ror = get_ROR(agency)
+            #ror = get_ROR(agency)
             for funder in agency:
-                if award and ror:
-                    funding.append({"@type": "MonetaryGrant",
-                                    "funder": {"@id": ror,
-                                                "@type": "Organization",
-                                                "name": f"{funder}"},
-                                    "identifier": f"{award[i]}",
-                                    "name": f"{project[i]}"
-                                    })
-                elif award:
-                    funding.append({"@type": "MonetaryGrant",
-                                    "funder": {"@type": "Organization",
-                                                "name": f"{funder}"},
-                                    "identifier": f"{award[i]}",
-                                    "name": f"{project[i]}"
-                                    })
-                elif ror:
-                    funding.append({"@type": "MonetaryGrant",
-                                    "funder": {"@id": ror,
-                                                "@type": "Organization",
-                                                "name": f"{funder}"},
-                                    "name": f"{project[i]}"
-                                })
-                # if ror and award number were not found
-                else:
-                    funding.append({"@type": "MonetaryGrant",
-                                    "funder": {"@type": "Organization",
-                                                "name": f"{funder}"},
-                                    "name": f"{project[i]}"
-                                })
+                # basic format for funding item
+                entry = {"@type": "MonetaryGrant",
+                        "funder": {"@type": "Organization",
+                                    "name": funder},
+                        "name": project[i]}
+                if award:
+                    entry["identifier"] = award[i]
+                    """if ror:
+                    entry["funder"]["@id"] = ror
+                    entry["funder"]["identifier"] = ror"""
+                funding.append(entry)
                 i += 1
         if len(funding) != 0:
             if len(funding) == 1:
@@ -836,13 +798,14 @@ class SPASE(StrategyInterface):
             license_url = None
         elif len(license_url) == 1:
             license_url = license_url[0]
-        return license_url
+        return delete_null_values(license_url)
 
     def get_was_revision_of(self) -> Union[List[Dict], Dict, None]:
         # Mapping: prov:wasRevisionOf = spase:Association/spase:AssociationID
         #   (if spase:AssociationType is "RevisionOf")
         # prov:wasRevisionOf found at https://www.w3.org/TR/prov-o/#wasRevisionOf
-        relations = []
+        was_revision_of = get_relation(self.desiredRoot, ["RevisionOf"], self.file)
+        """relations = []
 
         # traverse xml to extract needed info
         for child in self.desiredRoot.iter(tag=etree.Element):
@@ -895,7 +858,7 @@ class SPASE(StrategyInterface):
                     was_revision_of = {"@type": "ScholarlyArticle",
                                         "@id": relations[0]}
                 else:
-                    was_revision_of = {"@id": relations[0]}
+                    was_revision_of = {"@id": relations[0]}"""
         return delete_null_values(was_revision_of)
 
     def get_was_derived_from(self) -> Union[Dict, None]:
@@ -911,7 +874,8 @@ class SPASE(StrategyInterface):
         # Mapping: schema:isBasedOn = spase:Association/spase:AssociationID
         #   (if spase:AssociationType is "DerivedFrom" or "ChildEventOf")
         # schema:isBasedOn found at https://schema.org/isBasedOn
-        is_based_on = []
+        is_based_on = get_relation(self.desiredRoot, ["ChildEventOf", "DerivedFrom"], self.file)
+        """is_based_on = []
         derivations = []
 
         # traverse xml to extract needed info
@@ -965,7 +929,7 @@ class SPASE(StrategyInterface):
                     is_based_on = {"@type": "ScholarlyArticle",
                                         "@id": derivations[0]}
                 else:
-                    is_based_on = {"@id": derivations[0]}
+                    is_based_on = {"@id": derivations[0]}"""
         return delete_null_values(is_based_on)
 
     def get_was_generated_by(self) -> Union[List[Dict], None]:
@@ -1077,7 +1041,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                                     # preferred contributor
                                     elif child.text == "Contributor":
                                         contributor.append(PersonID)
-                                    # backup publisher
+                                    # backup publisher (none found in SPASE currently)
                                     elif child.text == "Publisher":
                                         pub = child.text
                                     else:
@@ -1120,8 +1084,8 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
     :returns: The AccessURLs found in the SPASE record, separated into two dictionaries,
                 dataDownloads and potentialActions, depending on if they are a direct 
                 link to data or not. These dictionaries are setup to have the keys as
-                the url and the values to be a list containing their data format(s)
-                (and product key if applicable).
+                the url and the values to be a list containing their data format(s),
+                name, and product key (if applicable).
     """
     # needed local vars
     dataDownloads = {}
@@ -1151,27 +1115,30 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
             for child in targetChild:
                 if child.tag.endswith("AccessURL"):
                     targetChild = child
+                    name = ""
                     # iterate thru children to locate URL
                     for child in targetChild:
                         if child.tag.endswith("URL"):
                             url = child.text
                             # provide "NULL" value in case no keys are found
-                            AccessURLs[url] = []
+                            AccessURLs[url] = {"keys": [], "name": name}
                             # append an encoder for each URL
                             encoder.append(encoding[j])
                         # check if URL has a product key
                         elif child.tag.endswith("ProductKey"):
                             prodKey = child.text
                             # if only one prodKey exists
-                            if AccessURLs[url] == []:
-                                AccessURLs[url] = [prodKey]
+                            if AccessURLs[url]["keys"] == []:
+                                AccessURLs[url]["keys"] = [prodKey]
                             # if multiple prodKeys exist
                             else:
-                                AccessURLs[url] += [prodKey]
+                                AccessURLs[url]["keys"] += [prodKey]
+                        elif child.tag.endswith("Name"):
+                            name = child.text
             j += 1
     for k, v in AccessURLs.items():
         # if URL has no access key
-        if not v:
+        if not v["keys"]:
             NonDataFileExt = ['html', 'com', 'gov', 'edu', 'org', 'eu', 'int']
             DataFileExt = ['csv', 'cdf', 'fits', 'txt', 'nc', 'jpeg',
                             'png', 'gif', 'tar', 'netcdf3', 'netcdf4', 'hdf5',
@@ -1186,9 +1153,12 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
                 downloadable = True
             # if URL is direct link to download data, add to the dataDownloads dictionary
             if downloadable:
-                dataDownloads[k] = [encoder[i]]
+                if v["name"]:
+                    dataDownloads[k] = [encoder[i], v["name"]]
+                else:
+                    dataDownloads[k] = [encoder[i]]
             else:
-                potentialActions[k] = [encoder[i], "None"]
+                potentialActions[k] = [encoder[i], v]
         # if URL has access key, add to the potentialActions dictionary
         else:
             potentialActions[k] = [encoder[i], v]
@@ -1249,29 +1219,9 @@ def get_dates(metadata: etree.ElementTree) -> tuple:
                     continue
     return ReleaseDate, RevisionHistory
 
-def get_repoID(metadata: etree.ElementTree) -> str:
+def personFormat(type:str, roleName:str, name:str, givenName:str, familyName:str, affiliation="", orcidID="", ror="") -> Dict:
     """
-    :param metadata: The SPASE metadata object as an XML tree.
-
-    :returns: The RepositoryID found in the last AccessInformation section
-    """
-    root = metadata.getroot()
-    repoID = None
-    for elt in root.iter(tag=etree.Element):
-        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
-            desiredRoot = elt
-    # traverse xml to extract needed info
-    for child in desiredRoot.iter(tag=etree.Element):
-        if child.tag.endswith("AccessInformation"):
-            targetChild = child
-            # iterate thru children to locate RepositoryID
-            for child in targetChild:
-                if child.tag.endswith("RepositoryID"):
-                    repoID = child.text
-    return repoID
-
-def contributorFormat(roleName:str, name:str, givenName:str, familyName:str, affiliation="", orcidID="", ror="") -> Dict:
-    """
+    :param type: The type of person being formatted. Values can be either: Contributor or Creator.
     :param roleName: The value found in the Role field associated with this Contact
     :param name: The full name of the Contact, as formatted in the SPASE record
     :param givenName: The first name/initial and middle name/initial of the Contact
@@ -1280,154 +1230,37 @@ def contributorFormat(roleName:str, name:str, givenName:str, familyName:str, aff
     :param orcidID: The ORCiD identifier for this Contact
     :param ror: The ROR ID for the associated affiliation
 
-    :returns: The entry in the correct format to append to the contributor dictionary
+    :returns: The entry in the correct format to append to the contributor or creator dictionary
     """
     
     domain, sep, orcidVal = orcidID.rpartition("/")
-
-    if orcidID and affiliation and ror:
-        contact = {"@type": "Role", 
-                    "roleName": roleName,
-                    "contributor": {"@id": f"https://orcid.org/{orcidID}",
-                                    "@type": "Person",
-                                    "name": name,
-                                    "givenName": givenName,
-                                    "familyName": familyName,
-                                    "affiliation": {"@id": ror,
-                                                    "@type": "Organization",
-                                                    "name": affiliation},
-                                    "identifier": {"@id": f"https://orcid.org/{orcidID}",
-                                                    "@type": "PropertyValue",
-                                                    "propertyID": "https://registry.identifiers.org/registry/orcid",
-                                                    "url": f"https://orcid.org/{orcidID}",
-                                                    "value": f"orcid:{orcidVal}"}}
-                    }
-    elif orcidID and affiliation:
-        contact = {"@type": "Role", 
-                    "roleName": roleName,
-                    "contributor": {"@id": f"https://orcid.org/{orcidID}",
-                                    "@type": "Person",
-                                    "name": name,
-                                    "givenName": givenName,
-                                    "familyName": familyName,
-                                    "affiliation": {"@type": "Organization",
-                                                    "name": affiliation},
-                                    "identifier": {"@id": f"https://orcid.org/{orcidID}",
-                                                    "@type": "PropertyValue",
-                                                    "propertyID": "https://registry.identifiers.org/registry/orcid",
-                                                    "url": f"https://orcid.org/{orcidID}",
-                                                    "value": f"orcid:{orcidVal}"}}
-                    }
-    elif affiliation and ror:
-        contact = {"@type": "Role", 
-                "roleName": roleName,
-                "contributor": {"@type": "Person",
-                                "name": name,
-                                "givenName": givenName,
-                                "familyName": familyName,
-                                "affiliation": {"@id": ror,
+    # most basic format for contributor item
+    entry = {"@type": "Role", 
+            "roleName": roleName,
+            f"{type}": {"@type": "Person",
+                            "name": name,
+                            "givenName": givenName,
+                            "familyName": familyName}
+            }
+    if orcidID:
+        entry[f"{type}"]["identifier"] = {"@id": f"https://orcid.org/{orcidID}",
+                                                "@type": "PropertyValue",
+                                                "propertyID": "https://registry.identifiers.org/registry/orcid",
+                                                "url": f"https://orcid.org/{orcidID}",
+                                                "value": f"orcid:{orcidVal}"}
+        entry[f"{type}"]["@id"] = f"https://orcid.org/{orcidID}"
+    if affiliation:
+        if ror:
+            entry[f"{type}"]["affiliation"] = {"@id": ror,
                                                 "@type": "Organization",
-                                                "name": affiliation}}
-                }
-    elif affiliation:
-        contact = {"@type": "Role", 
-                "roleName": roleName,
-                "contributor": {"@type": "Person",
-                                "name": name,
-                                "givenName": givenName,
-                                "familyName": familyName,
-                                "affiliation": {"@type": "Organization",
-                                                "name": affiliation}}
-                }
-    else:
-        contact = {"@type": "Role", 
-                "roleName": roleName,
-                "contributor": {"@type": "Person",
-                                "name": name,
-                                "givenName": givenName,
-                                "familyName": familyName}
-                }        
+                                                "name": affiliation,
+                                                "identifier": ror}
+        else:
+            entry[f"{type}"]["affiliation"] = {"@type": "Organization",
+                                                    "name": affiliation}
+    contact = entry       
 
     return contact
-
-def creatorFormat(roleName:str, name:str, givenName:str, familyName:str, affiliation="", orcidID="", ror="") -> Dict:
-    """
-    :param roleName: The value found in the Role field associated with this Contact
-    :param name: The full name of the Contact, as formatted in the SPASE record
-    :param givenName: The first name/initial and middle name/initial of the Contact
-    :param familyName: The last name of the Contact
-    :param affiliation: The organization this Contact is affiliated with.
-    :param orcidID: The ORCiD identifier for this Contact
-    :param ror: The ROR ID for the associated affiliation
-
-    :returns: The entry in the correct format to append to the creator dictionary
-    """
-
-    domain, sep, orcidVal = orcidID.rpartition("/")
-
-    if orcidID and affiliation and ror:
-        creator = {"@type": "Role", 
-                    "roleName": roleName,
-                    "creator": {"@id": f"https://orcid.org/{orcidID}",
-                                "@type": "Person",
-                                "name": name,
-                                "givenName": givenName,
-                                "familyName": familyName,
-                                "affiliation": {"@id": ror,
-                                                "@type": "Organization",
-                                                "name": affiliation},
-                                "identifier": {"@id": f"https://orcid.org/{orcidID}",
-                                                "@type": "PropertyValue",
-                                                "propertyID": "https://registry.identifiers.org/registry/orcid",
-                                                "url": f"https://orcid.org/{orcidID}",
-                                                "value": f"orcid:{orcidVal}"}}
-                        }
-    elif orcidID and affiliation:
-        creator = {"@id": f"https://orcid.org/{orcidID}",
-                   "@type": "Role", 
-                    "roleName": roleName,
-                    "creator": {"@type": "Person",
-                                "name": name,
-                                "givenName": givenName,
-                                "familyName": familyName,
-                                "affiliation": {"@type": "Organization",
-                                                "name": affiliation},
-                                "identifier": {"@id": f"https://orcid.org/{orcidID}",
-                                                "@type": "PropertyValue",
-                                                "propertyID": "https://registry.identifiers.org/registry/orcid",
-                                                "url": f"https://orcid.org/{orcidID}",
-                                                "value": f"orcid:{orcidVal}"}}
-                        }
-    elif affiliation and ror:
-        creator = {"@type": "Role", 
-                    "roleName": roleName,
-                    "creator": {"@type": "Person",
-                                "name": name,
-                                "givenName": givenName,
-                                "familyName": familyName,
-                                "affiliation": {"@id": ror,
-                                                "@type": "Organization",
-                                                "name": affiliation}}
-                    }
-    elif affiliation:
-        creator = {"@type": "Role", 
-                    "roleName": roleName,
-                    "creator": {"@type": "Person",
-                                "name": name,
-                                "givenName": givenName,
-                                "familyName": familyName,
-                                "affiliation": {"@type": "Organization",
-                                                "name": affiliation}}
-                    }
-    else:
-        creator = {"@type": "Role", 
-                    "roleName": roleName,
-                    "creator": {"@type": "Person",
-                                "name": name,
-                                "givenName": givenName,
-                                "familyName": familyName}
-                    }
-    return creator
 
 def nameSplitter(person:str) -> tuple:
     """
@@ -1540,13 +1373,15 @@ def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], 
                 root = testSpase.metadata.getroot()
                 instrumentIDs[item]["name"] = testSpase.get_name()
                 instrumentIDs[item]["URL"] = testSpase.get_url()
-            #else:
-                #raise ValueError("Could not access associated SPASE record.")
+            else:
+                #print(f"Could not access associated SPASE record: {item}")
+                continue
         for k in instrumentIDs.keys():
             if instrumentIDs[k]["URL"]:
                 instrument.append({"@id": instrumentIDs[k]["URL"],
                                                 "@type": ["IndividualProduct", "prov:Entity", "sosa:System"],
-                                                "identifier": {"@type": "PropertyValue",
+                                                "identifier": {"@id": instrumentIDs[k]["URL"],
+                                                                "@type": "PropertyValue",
                                                                 "propertyID": "SPASE Resource ID",
                                                                 "value": k},
                                                 "name": instrumentIDs[k]["name"],
@@ -1580,6 +1415,8 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
         for item in instrumentIDs:
             if "soso-spase" in path:
                 absPath, sep, after = path.partition("soso-spase")
+            elif "ESA/" in path:
+                absPath, sep, after = path.partition("ESA/")
             else:
                 absPath, sep, after = path.partition("NASA/")
             record = absPath + item.replace("spase://","") + ".xml"
@@ -1623,26 +1460,28 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                                     observatory.append({"@type": ["ResearchProject", "prov:Entity", "sosa:Platform"],
                                                         "@id": groupURL,
                                                         "name": groupName,
-                                                        "identifier": {"@type": "PropertyValue",
+                                                        "identifier": {"@id": groupURL,
+                                                                        "@type": "PropertyValue",
                                                                         "propertyID": "SPASE Resource ID",
                                                                         "value": observatoryGroupID},
                                                         "url": groupURL})
                                     recordedIDs.append(observatoryGroupID)
-                        #else:
-                            #raise ValueError("Could not access associated SPASE record.")
+                        else:
+                            #print(f"Could not access associated SPASE record: {observatoryGroupID}")
+                            continue
                     if url and (observatoryID not in recordedIDs):
                         observatory.append({"@type": ["ResearchProject", "prov:Entity", "sosa:Platform"],
                                             "@id": url,
                                             "name": name,
-                                            "identifier": {"@type": "PropertyValue",
-                                                                        "propertyID": "SPASE Resource ID",
-                                                                        "value": observatoryID},
+                                            "identifier": {"@id": url,
+                                                            "@type": "PropertyValue",
+                                                            "propertyID": "SPASE Resource ID",
+                                                            "value": observatoryID},
                                             "url": url})
                         recordedIDs.append(observatoryID)
-                #else:
-                    #raise ValueError("Could not access associated SPASE record.")
-            #else:
-                #raise ValueError("Could not access associated SPASE record.")
+                else:
+                    #print(f"Could not access associated SPASE record: {observatoryID}")
+                    continue
     else:
         observatory = None
     return observatory
@@ -1717,6 +1556,7 @@ def get_cadenceContext(cadence:str) -> str:
 def get_mentions(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dict, None]:
     """
     :param metadata: The SPASE metadata object as an XML tree.
+    :param path: The absolute path of the xml file being scraped.
 
     :returns: The ID's of other SPASE records related to this one in some way.
     """
@@ -1727,7 +1567,9 @@ def get_mentions(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dic
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desiredRoot = elt
-    relations = []
+    mentions = get_relation(desiredRoot, ["Other"], path)
+    
+    """relations = []
     # iterate thru xml to find desired info
     for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("Association"):
@@ -1779,12 +1621,13 @@ def get_mentions(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dic
                 mentions = {"@type": "ScholarlyArticle",
                                     "@id": relations[0]}
             else:
-                mentions = {"@id": relations[0]}
+                mentions = {"@id": relations[0]}"""
     return mentions
 
 def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dict, None]:
     """
     :param metadata: The SPASE metadata object as an XML tree.
+    :param path: The absolute path of the xml file being scraped.
 
     :returns: The ID(s) of the larger resource this SPASE record is a portion of, as a dictionary.
     """
@@ -1795,7 +1638,9 @@ def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[List[Dict], D
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desiredRoot = elt
-    relations = []
+    is_part_of = get_relation(desiredRoot, ["PartOf"], path)
+    
+    """relations = []
     # iterate thru xml to find desired info
     for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("Association"):
@@ -1847,7 +1692,7 @@ def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[List[Dict], D
                 is_part_of = {"@type": "ScholarlyArticle",
                                     "@id": relations[0]}
             else:
-                is_part_of = {"@id": relations[0]}
+                is_part_of = {"@id": relations[0]}"""
     return is_part_of
 
 def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple:
@@ -1855,11 +1700,12 @@ def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple:
     :param PersonID: The SPASE ID linking the page with the Person's info.
     :param file: The absolute path of the original xml file scraped.
 
-    :returns: The ORCiD ID and organization name this Contact is affiliated with, as strings.
+    :returns: The ORCiD ID and organization name (with its ROR ID, if found) this Contact is affiliated with, as strings.
     """
     # takes PersonID and follows its link to get ORCIdentifier and OrganizationName
     orcidID = ""
     affiliation = ""
+    ror = ""
     if "soso-spase" in file:
         absPath, sep, after = file.partition("soso-spase")
     else:
@@ -1878,53 +1724,11 @@ def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple:
                 orcidID = child.text
             elif child.tag.endswith("OrganizationName"):
                 affiliation = child.text
+            elif child.tag.endswith("RORIdentifier"):
+                ror = child.text
     else:
         raise ValueError("Could not access associated SPASE record.")
-    return orcidID, affiliation
-
-def get_ROR(orgName:str) -> Union[str, None]:
-    """
-    :param orgName: The name of the organization you wish to retrieve the ROR ID for.
-    
-    :returns: The ROR ID of the given organization, as a string.
-    """
-
-    # Request ROR ID's for a given org name
-    # https://api.ror.org/v2/organizations?affiliation=<URL-encoded string>
-
-    # Request entire Datacite DOI info
-    # "https://api.datacite.org/dois/10.48322%2F6cfb-rq65?affiliation=true&publisher=true"
-
-    ror = None
-    # if want to get ROR ID's via REST API (faster than Data Dump)
-    url = "https://api.ror.org/v2/organizations"
-    response = requests.get(url, params={"affiliation": orgName})
-    dict = json.loads(response.text)
-    for item in dict["items"]:
-        if (item["chosen"] == True) and (item["matching_type"] == "EXACT"):
-            ror = item["organization"]["id"]
-
-    # downloads ROR Data Dump file for use in script
-    """response = requests.get("https://zenodo.org/api/communities/ror-data/records?q=&sort=newest")
-    RORrecords = json.loads(response.text)
-    downloadURL = RORrecords["hits"]["hits"][0]["files"][0]["links"]["self"]
-    response = requests.get(downloadURL)
-    with open('ROR_DataDump.zip', 'wb') as f:
-        f.write(response.content)"""
-
-    # find ROR ID's by searching Data Dump file (slower)
-    """with zipfile.ZipFile("ROR_DataDump.zip") as z:    
-        for filename in z.namelist():
-            # find most up-to-date json
-            if not os.path.isdir(filename) and "v2.json" in filename:
-                # search the file for orgName
-                with open(filename, 'r') as file:
-                    dataDump = json.load(file)
-                    for item in dataDump:
-                        for name in item["names"]:
-                            if name["value"] == orgName:
-                                ror = item["id"]"""
-    return ror
+    return orcidID, affiliation, ror
 
 def get_temporal(metadata: etree.ElementTree, namespaces: Dict) -> Union[List, None]:
     """
@@ -2143,3 +1947,107 @@ def get_ResourceID(metadata: etree.ElementTree, namespaces: Dict):
         SPASE_Location, namespaces=namespaces
     )
     return dataset_id
+
+def get_measurementMethod(metadata: etree.ElementTree, namespaces: Dict) -> Union[List, None]:
+    """
+    :param metadata: The SPASE metadata object as an XML tree.
+    :param namespaces: The SPASE namespaces used in the form of a dictionary.
+
+    :returns: The MeasurementType(s) for the SPASE record.
+    """
+    # Mapping: schema:measurementMethod = spase:MeasurementType
+    # schema:measurementMethod found at https://schema.org/measurementMethod
+    measurementMethod = []
+    root = metadata.getroot()
+    for elt in root.iter(tag=etree.Element):
+        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+            desiredRoot = elt
+    desiredTag = desiredRoot.tag.split("}")
+    SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:MeasurementType"
+    for item in metadata.findall(
+        SPASE_Location,
+        namespaces=namespaces,
+    ):
+        # Split string on uppercase characters
+        res = re.split(r'(?=[A-Z])', item.text)
+        # Remove empty strings and join with space
+        prettyName = ' '.join(filter(None, res))
+
+        measurementMethod.append(
+            {"@type": "DefinedTerm",
+            "inDefinedTermSet": {
+                "@type": "DefinedTermSet",
+                "name": "SPASE MeasurementType"},
+            "name": prettyName,
+            "termCode": item.text
+            }
+        )
+    if len(measurementMethod) == 0:
+        measurementMethod = None
+    elif len(measurementMethod) == 1:
+        measurementMethod = measurementMethod[0]
+    return measurementMethod
+
+def get_relation(desiredRoot: etree.Element, association: list[str], path: str) -> Union[List[Dict], Dict, None]:
+    """
+    :param desiredRoot: The element in the SPASE metadata object we are searching from.
+    :param association: The AssociationType(s) we are searching for in the SPASE record.
+    :param path: The absolute path of the xml file being scraped.
+
+    :returns: The ID's of other SPASE records related to this one in some way.
+    """
+    relations = []
+    # iterate thru xml to find desired info
+    for child in desiredRoot.iter(tag=etree.Element):
+        if child.tag.endswith("Association"):
+            targetChild = child
+            for child in targetChild:
+                if child.tag.endswith("AssociationID"):
+                    A_ID = child.text
+                elif child.tag.endswith("AssociationType"):
+                    type = child.text
+            for each in association:
+                if type == each:
+                    relations.append(A_ID)
+    if relations == []:
+        relation = None
+    else:
+        i = 0
+        # try and get DOI instead of SPASE ID
+        for record in relations:
+            if "soso-spase" in path:
+                absPath, sep, after = path.partition("soso-spase")
+            else:
+                absPath, sep, after = path.partition("NASA/")
+            record = absPath + record.replace("spase://","") + ".xml"
+            record = record.replace("'","")
+            if os.path.isfile(record):
+                testSpase = SPASE(record)
+                relations[i] = testSpase.get_url()
+            else:
+                raise ValueError("Could not access associated SPASE record.")
+            i += 1
+        # add correct type
+        if len(relations) > 1:
+            relation = []
+            for each in relations:
+                # most basic entry into relation
+                entry = {"@id": each,
+                            "identifier": each}
+                isDataset, isArticle = verifyType(each)
+                if isDataset:
+                    entry["@type"] = "Dataset"
+                elif isArticle:
+                    entry["@type"] = "ScholarlyArticle"
+                relation.append(entry)
+        else:
+            # most basic entry into relation
+            entry = {"@id": relations[0],
+                        "identifier": relations[0]}
+            isDataset, isArticle = verifyType(relations[0])
+            if isDataset:
+                entry["@type"] = "Dataset"
+            elif isArticle:
+                entry["@type"] = "ScholarlyArticle"
+            relation = entry
+    return relation

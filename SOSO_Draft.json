@@ -6,6 +6,7 @@
    },
    "@id": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
    "@type": "Dataset",
+   "alternateName": "MMS4_HPCA_BRST_L2_ION",
    "citation": [
       {
          "@id": "https://mms.gsfc.nasa.gov/",
@@ -178,16 +179,54 @@
          "value": "spase://NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S"
       }
    ],
+   "inLanguage": "en",
    "isBasedOn": {
       "@id": "https://doi.org/10.48322/cb14-a164",
       "@type": "Dataset",
       "identifier": "https://doi.org/10.48322/cb14-a164"
+   },
+   "isPartOf": {
+      "@id": "https://doi.org/10.48322/s9mg-he04",
+      "@type": "Dataset",
+      "identifier": "https://doi.org/10.48322/s9mg-he04"
    },
    "keywords": [
       "MMS",
       "Magnetic Reconnection"
    ],
    "license": "https://spdx.org/licenses/CC0-1.0.html",
+   "measurementMethod": [
+      {
+         "@type": "DefinedTerm",
+         "inDefinedTermSet": {
+            "@type": "DefinedTermSet",
+            "name": "SPASE MeasurementType"
+         },
+         "name": "Energetic Particles",
+         "termCode": "EnergeticParticles"
+      },
+      {
+         "@type": "DefinedTerm",
+         "inDefinedTermSet": {
+            "@type": "DefinedTermSet",
+            "name": "SPASE MeasurementType"
+         },
+         "name": "Magnetic Field",
+         "termCode": "MagneticField"
+      }
+   ],
+   "mentions": [
+      {
+         "@id": "https://doi.org/10.48322/xhe6-5a16",
+         "@type": "Dataset",
+         "identifier": "https://doi.org/10.48322/xhe6-5a16"
+      },
+      {
+         "@id": "https://doi.org/10.48322/2ry9-3s59",
+         "@type": "Dataset",
+         "identifier": "https://doi.org/10.48322/2ry9-3s59"
+      }
+   ],
    "name": "MMS 4 Hot Plasma Composition Analyzer (HPCA) Ions, Level 2 (L2), Burst Mode, 0.625 s Data",
    "potentialAction": [
       {
@@ -503,6 +542,10 @@
       "license": "https://spdx.org/licenses/CC0-1.0.html",
       "name": "SPASE metadata for dataset"
    },
+   "temporal": [
+      "The time series is periodic with a 0.625 second cadence",
+      "PT0.625S"
+   ],
    "temporalCoverage": "2015-09-01T12:11:00/..",
    "url": "https://doi.org/10.48322/6cfb-rq65",
    "variableMeasured": [
