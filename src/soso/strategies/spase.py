@@ -11,6 +11,8 @@ from datetime import datetime, timedelta
 import json
 import os
 import requests
+from pathlib import Path
+import time
 
 # pylint: disable=duplicate-code
 
@@ -65,9 +67,7 @@ class SPASE(StrategyInterface):
     def get_id(self) -> str:
         # Mapping: schema:identifier = hpde.io landing page for the SPASE record
         ResourceID = get_ResourceID(self.metadata, self.namespaces)
-        before, sep, after = ResourceID.partition("/NASA")
-        #before, sep, after = ResourceID.partition("/SMWG")
-        hpdeURL = f"https://hpde.io{sep}{after}"
+        hpdeURL = ResourceID.replace("spase://", "https://hpde.io/")
 
         return delete_null_values(hpdeURL)
 
@@ -100,11 +100,7 @@ class SPASE(StrategyInterface):
             namespaces=self.namespaces,
         )
         if delete_null_values(url) is None:
-            desiredTag = self.desiredRoot.tag.split("}")
-            SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ResourceID"
-            url = self.metadata.findtext(
-                SPASE_Location, namespaces=self.namespaces
-            ).replace("spase://", "https://hpde.io/")
+            url = self.get_id()
         return delete_null_values(url)
 
     def get_same_as(self) -> Union[List, None]:
@@ -219,8 +215,8 @@ class SPASE(StrategyInterface):
         #   {"@type": schema:PropertyValue, "name": Name, "description": Description, "unitText": Units, "alternateName": ParameterKey}
         # Following schema:PropertyValue found at: https://schema.org/PropertyValue
         variable_measured = []
-        minVal = ""
-        maxVal = ""
+        #minVal = ""
+        #maxVal = ""
         paramDesc = ""
         unitsFound = []
         key = ""
@@ -379,6 +375,7 @@ class SPASE(StrategyInterface):
             prodKeys = v[1]["keys"]
             name = v[1]["name"]
             encoding = v[0]
+            # regex pattern for DateTime objects
             pattern = "(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?"
 
             # most basic format for a potentialAction item
@@ -533,6 +530,7 @@ class SPASE(StrategyInterface):
             if stop:
                 temporal_coverage = {"@type": "DateTime",
                                     "temporalCoverage": f"{start.strip()}/{stop.strip()}"}
+            # in case there is a RelativeStopDate
             else:
                 temporal_coverage = f"{start}/.."
         else:
@@ -541,9 +539,6 @@ class SPASE(StrategyInterface):
 
     def get_spatial_coverage(self) -> Union[List[Dict], None]:
         # Mapping: schema:spatial_coverage = list of spase:NumericalData/spase:ObservedRegion
-        # Each object is:
-        #   {"@type": schema:Place, "alternateName": ObservedRegion (removed: "@id": URI)}
-        # Using URIs, as defined in: https://github.com/polyneme/topst-spase-rdf-tools/blob/main/data/spase.owl
         spatial_coverage = []
         desiredTag = self.desiredRoot.tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ObservedRegion"
@@ -601,6 +596,7 @@ class SPASE(StrategyInterface):
                         index = 0
                     # split text from Contact into properly formatted name fields
                     authorStr, givenName, familyName = nameSplitter(person)
+                    # get additional info if any
                     orcidID, affiliation, ror = get_ORCiD_and_Affiliation(person, self.file)
                     # create the dictionary entry for that person and append to list
                     creatorEntry = personFormat("creator", authorRole[index], authorStr, givenName, familyName, affiliation, orcidID, ror)
@@ -663,9 +659,11 @@ class SPASE(StrategyInterface):
         # Step 1: check for ppl w author roles that were not found in PubInfo
         for key, val in contactsList.items():
             if "." not in val:
-                # add call to get ORCiD and affiliation
+                # split contact into name, first name, and last name
                 contributorStr, givenName, familyName = nameSplitter(key)
+                # attempt to get ORCiD and affiliation
                 orcidID, affiliation, ror = get_ORCiD_and_Affiliation(key, self.file)
+                # if contact has more than 1 role
                 if len(contactsList[key]) > 1:
                     individual = personFormat("contributor", contactsList[key], contributorStr, givenName, familyName, affiliation, orcidID, ror)
                 else:
@@ -675,8 +673,9 @@ class SPASE(StrategyInterface):
         # Step 2: check for non-author role contributors found in Contacts
         if contributors:
             for person in contributors:
-                # add call to get ORCiD and affiliation
+                # split contact into name, first name, and last name
                 contributorStr, givenName, familyName = nameSplitter(person)
+                # add call to get ORCiD and affiliation
                 orcidID, affiliation, ror = get_ORCiD_and_Affiliation(person, self.file)
                 individual = personFormat("contributor", contributorStr, givenName, familyName, affiliation, orcidID, ror)
                 contributor.append(individual)
@@ -690,8 +689,9 @@ class SPASE(StrategyInterface):
                 keys = [key for key, val in backups.items() if CuratorRoles[i] in val]
                 if keys != []:
                     for key in keys:
-                        # add call to get ORCiD and affiliation
+                        # split contact into name, first name, and last name
                         editorStr, givenName, familyName = nameSplitter(key)
+                        # add call to get ORCiD and affiliation
                         orcidID, affiliation, ror = get_ORCiD_and_Affiliation(key, self.file)
                         individual = personFormat("contributor", CuratorRoles[i], editorStr, givenName, familyName, affiliation, orcidID, ror)
                         contributor.append(individual)
@@ -720,6 +720,7 @@ class SPASE(StrategyInterface):
         author, authorRole, pubDate, publisher, contributor, dataset, backups, contactsList = get_authors(self.metadata)
         #ror = None
 
+        # commented out ROR for now until capability added in SPASE
         #ror = get_ROR(publisher)
         """if ror:
             publisher = {"@id": ror,
@@ -739,7 +740,7 @@ class SPASE(StrategyInterface):
         # AND spase:ResourceHeader/spase:Funding/spase:Project
         # AND spase:ResourceHeader/spase:Funding/spase:AwardNumber
         # Each item is:
-        #   {@type: MonetaryGrant, funder: {@type: Organization, name: Agency}, identifier: AwardNumber, name: Project}
+        #   {@type: MonetaryGrant, funder: {@type: Organization, name: Agency}, name: Project}
         # Using schema:MonetaryGrant as defined in: https://schema.org/MonetaryGrant
         funding = []
         agency = []
@@ -805,60 +806,6 @@ class SPASE(StrategyInterface):
         #   (if spase:AssociationType is "RevisionOf")
         # prov:wasRevisionOf found at https://www.w3.org/TR/prov-o/#wasRevisionOf
         was_revision_of = get_relation(self.desiredRoot, ["RevisionOf"], self.file)
-        """relations = []
-
-        # traverse xml to extract needed info
-        for child in self.desiredRoot.iter(tag=etree.Element):
-            if child.tag.endswith("Association"):
-                targetChild = child
-                for child in targetChild:
-                    if child.tag.endswith("AssociationID"):
-                        A_ID = child.text
-                    elif child.tag.endswith("AssociationType"):
-                        type = child.text
-                if type == "RevisionOf":
-                    relations.append(A_ID)
-        if relations == []:
-            was_revision_of = None
-        else:
-            i = 0
-            # try and get DOI instead of SPASE ID
-            for record in relations:
-                if "soso-spase" in self.file:
-                    absPath, sep, after = self.file.partition("soso-spase")
-                else:
-                    absPath, sep, after = self.file.partition("NASA/")
-                record = absPath + record.replace("spase://","") + ".xml"
-                record = record.replace("'","")
-                if os.path.isfile(record):
-                    testSpase = SPASE(record)
-                    relations[i] = testSpase.get_url()
-                else:
-                    raise ValueError("Could not access associated SPASE record.")
-                i += 1
-            # add correct type
-            if len(relations) > 1:
-                was_revision_of = []
-                for relation in relations:
-                    isDataset, isArticle = verifyType(relation)
-                    if isDataset:
-                        was_revision_of.append({"@type": "Dataset",
-                                            "@id": relation})
-                    elif isArticle:
-                        was_revision_of.append({"@type": "ScholarlyArticle",
-                                            "@id": relation})
-                    else:
-                        was_revision_of.append({"@id": relation})
-            else:
-                isDataset, isArticle = verifyType(relations[0])
-                if isDataset:
-                    was_revision_of = {"@type": "Dataset",
-                                        "@id": relations[0]}
-                elif isArticle:
-                    was_revision_of = {"@type": "ScholarlyArticle",
-                                        "@id": relations[0]}
-                else:
-                    was_revision_of = {"@id": relations[0]}"""
         return delete_null_values(was_revision_of)
 
     def get_was_derived_from(self) -> Union[Dict, None]:
@@ -875,61 +822,6 @@ class SPASE(StrategyInterface):
         #   (if spase:AssociationType is "DerivedFrom" or "ChildEventOf")
         # schema:isBasedOn found at https://schema.org/isBasedOn
         is_based_on = get_relation(self.desiredRoot, ["ChildEventOf", "DerivedFrom"], self.file)
-        """is_based_on = []
-        derivations = []
-
-        # traverse xml to extract needed info
-        for child in self.desiredRoot.iter(tag=etree.Element):
-            if child.tag.endswith("Association"):
-                targetChild = child
-                for child in targetChild:
-                    if child.tag.endswith("AssociationID"):
-                        A_ID = child.text
-                    elif child.tag.endswith("AssociationType"):
-                        type = child.text
-                if type == "DerivedFrom" or type == "ChildEventOf":
-                    derivations.append(A_ID)
-        if derivations == []:
-            is_based_on = None
-        else:
-            i = 0
-            # try and get DOI instead of SPASE ID
-            for record in derivations:
-                if "soso-spase" in self.file:
-                    absPath, sep, after = self.file.partition("soso-spase")
-                else:
-                    absPath, sep, after = self.file.partition("NASA/")
-                record = absPath + record.replace("spase://","") + ".xml"
-                record = record.replace("'","")
-                if os.path.isfile(record):
-                    testSpase = SPASE(record)
-                    derivations[i] = testSpase.get_url()
-                else:
-                    raise ValueError("Could not access associated SPASE record.")
-                i += 1
-            # add correct type
-            if len(derivations) > 1:
-                is_based_on = []
-                for derivation in derivations:
-                    isDataset, isArticle = verifyType(derivation)
-                    if isDataset:
-                        is_based_on.append({"@type": "Dataset",
-                                            "@id": derivation})
-                    elif isArticle:
-                        is_based_on.append({"@type": "ScholarlyArticle",
-                                            "@id": derivation})
-                    else:
-                        is_based_on.append({"@id": derivation})
-            else:
-                isDataset, isArticle = verifyType(derivations[0])
-                if isDataset:
-                    is_based_on = {"@type": "Dataset",
-                                        "@id": derivations[0]}
-                elif isArticle:
-                    is_based_on = {"@type": "ScholarlyArticle",
-                                        "@id": derivations[0]}
-                else:
-                    is_based_on = {"@id": derivations[0]}"""
         return delete_null_values(is_based_on)
 
     def get_was_generated_by(self) -> Union[List[Dict], None]:
@@ -973,7 +865,7 @@ def get_schema_version(metadata: etree.ElementTree) -> str:
     )
     return schema_version
 
-def get_authors(metadata: etree.ElementTree) -> tuple:
+def get_authors(metadata: etree.ElementTree) -> tuple[List, List, str, str, List, str, Dict, Dict]:
     """
     Takes an XML tree and scrapes the desired authors (with their roles), publication date,
     publisher, contributors, and publication title. Also scraped are the names and roles of
@@ -982,13 +874,11 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
     except for the backups which is a dictionary.
 
     :param metadata: The SPASE metadata object as an XML tree.
-    :type entry: etree.ElementTree object
     :returns: The highest priority authors found within the SPASE record as a list
                 as well as a list of their roles, the publication date, publisher,
                 contributors, and the title of the publication. It also returns any contacts found,
                 along with their role(s) in two separate dictionaries: ones that are not considered
                 for the author role and ones that are.
-    :rtype: tuple
     """
     # local vars needed
     author = []
@@ -1023,7 +913,7 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                                 # find PersonID
                                 if child.tag.endswith("PersonID"):
                                     # store PersonID
-                                    PersonID = child.text
+                                    PersonID = child.text.strip()
                                     backups[PersonID] = []
                                     contactsList[PersonID] = []
                                 # find Role
@@ -1032,22 +922,22 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
                                     if ("PrincipalInvestigator" in child.text) or ("PI" in child.text) or ("CoInvestigator" in child.text):
                                         if PersonID not in author:
                                             author.append(PersonID)
-                                            authorRole.append(child.text)
+                                            authorRole.append(child.text.strip())
                                         else:
                                             index = author.index(PersonID)
-                                            authorRole[index] = [authorRole[index], child.text]
+                                            authorRole[index] = [authorRole[index], child.text.strip()]
                                         # store author roles found here in case PubInfo present
-                                        contactsList[PersonID] += [child.text]
+                                        contactsList[PersonID] += [child.text.strip()]
                                     # preferred contributor
                                     elif child.text == "Contributor":
                                         contributor.append(PersonID)
                                     # backup publisher (none found in SPASE currently)
                                     elif child.text == "Publisher":
-                                        pub = child.text
+                                        pub = child.text.strip()
                                     else:
                                         # use list for values in case one person has multiple roles
                                         # store contacts w non-author roles for use in contributors
-                                        backups[PersonID] += [child.text]
+                                        backups[PersonID] += [child.text.strip()]
                             except AttributeError as err:
                                 continue
                 except AttributeError as err:
@@ -1056,16 +946,17 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
         for child in PI_child.iter(tag=etree.Element):
             # collect preferred author
             if child.tag.endswith("Authors"):
-                author = [child.text]
+                author = [child.text.strip()]
                 authorRole = ["Author"]
+            # collect preferred publication date
             elif child.tag.endswith("PublicationDate"):
-                pubDate = child.text
+                pubDate = child.text.strip()
             # collect preferred publisher
             elif child.tag.endswith("PublishedBy"):
-                pub = child.text
+                pub = child.text.strip()
             # collect preferred dataset
             elif child.tag.endswith("Title"):
-                dataset = child.text
+                dataset = child.text.strip()
 
     # remove contacts w/o role values
     contactsCopy = {}
@@ -1075,10 +966,14 @@ def get_authors(metadata: etree.ElementTree) -> tuple:
     # compare author and contactsList to add author roles from contactsList for matching people found in PubInfo
     # also formats the author list correctly for use in get_creator
     author, authorRole, contactsList = process_authors(author, authorRole, contactsCopy)
+
     return author, authorRole, pubDate, pub, contributor, dataset, backups, contactsList
 
-def get_accessURLs(metadata: etree.ElementTree) -> tuple:
+def get_accessURLs(metadata: etree.ElementTree) -> tuple[Dict, Dict]:
     """
+    Splits the SPASE AccessURLs present in the record into either the distribution
+    or potentialAction schema.org properties.
+
     :param metadata: The SPASE metadata object as an XML tree.
     
     :returns: The AccessURLs found in the SPASE record, separated into two dictionaries,
@@ -1165,8 +1060,11 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple:
         i += 1
     return dataDownloads, potentialActions
 
-def get_dates(metadata: etree.ElementTree) -> tuple:
+def get_dates(metadata: etree.ElementTree) -> tuple[str, List]:
     """
+    Scrapes the ReleaseDate and RevisionHistory:ReleaseDate(s) SPASE properties for use 
+    in the dateModified, dateCreated, and datePublished schema.org properties.
+
     :param metadata: The SPASE metadata object as an XML tree.
 
     :returns: The ReleaseDate and a list of all the dates found in RevisionHistory
@@ -1221,6 +1119,9 @@ def get_dates(metadata: etree.ElementTree) -> tuple:
 
 def personFormat(type:str, roleName:str, name:str, givenName:str, familyName:str, affiliation="", orcidID="", ror="") -> Dict:
     """
+    Groups up all available metadata associated with a given contact
+    into a dictionary following the SOSO guidelines.
+
     :param type: The type of person being formatted. Values can be either: Contributor or Creator.
     :param roleName: The value found in the Role field associated with this Contact
     :param name: The full name of the Contact, as formatted in the SPASE record
@@ -1262,11 +1163,15 @@ def personFormat(type:str, roleName:str, name:str, givenName:str, familyName:str
 
     return contact
 
-def nameSplitter(person:str) -> tuple:
+def nameSplitter(person:str) -> tuple[str, str, str]:
     """
+    Splits the given PersonID found in the SPASE Contacts container into
+    three separate strings holding their full name, first name (and middle initial),
+    and last name.
+
     :param person: The string found in the Contacts field as is formatted in the SPASE record.
 
-    :returns: The string containing only the full name of the Contact, the string containing the first name/initial of the Contact,
+    :returns: The string containing the full name of the Contact, the string containing the first name/initial of the Contact,
                 and the string containing the last name of the Contact
     """
     if person:
@@ -1286,6 +1191,9 @@ def nameSplitter(person:str) -> tuple:
 
 def get_information_url(metadata: etree.ElementTree) -> Union[List[Dict], None]:
     """
+    Returns all relevant information from the SPASE informationURL(s) property for use
+    within the schema.org citation property.
+
     :param metadata: The SPASE metadata object as an XML tree.
 
     :returns: The name, description, and url(s) for all InformationURL sections found in the ResourceHeader,
@@ -1334,6 +1242,9 @@ def get_information_url(metadata: etree.ElementTree) -> Union[List[Dict], None]:
 
 def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], None]:
     """
+    Attempts to retrieve all relevant information associated with all InstrumentID fields
+    found in the SPASE record in order to be used in the prov-o wasGeneratedBy property.
+
     :param metadata: The SPASE metadata object as an XML tree.
     :param path: The absolute file path of the XML file the user wishes to pull info from.
 
@@ -1359,23 +1270,44 @@ def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], 
     else:
         # follow link provided by instrumentID to instrument page
         # from there grab name and url
-        for item in instrumentIDs:
+        for item in instrumentIDs.keys():
+            retrying = True
+            tries = 1
             instrumentIDs[item]["name"] = ""
             instrumentIDs[item]["URL"] = ""
-            if "soso-spase" in path:
-                absPath, sep, after = path.partition("soso-spase")
-            else:
-                absPath, sep, after = path.partition("NASA/")
+
+            # get home directory
+            homeDir = str(Path.home())
+            homeDir = homeDir.replace("\\","/")
+            # get current working directory
+            cwd = str(Path.cwd()).replace("\\","/")
+            # split path into needed substrings
+            before, absPath, after = path.partition(f"{homeDir}/")
+            repoName, sep, after = after.partition("/")
+            # add original SPASE repo to log file that holds name of repos needed
+            updateLog(cwd, repoName)
+            # add SPASE repo that contains instruments also
+            repoName, sep, after = item.replace("spase://", "").partition("/")
+            updateLog(cwd, repoName)
+            # format record
             record = absPath + item.replace("spase://","") + ".xml"
             record = record.replace("'","")
-            if os.path.isfile(record):
-                testSpase = SPASE(record)
-                root = testSpase.metadata.getroot()
-                instrumentIDs[item]["name"] = testSpase.get_name()
-                instrumentIDs[item]["URL"] = testSpase.get_url()
-            else:
-                #print(f"Could not access associated SPASE record: {item}")
-                continue
+            # try to access record at most twice
+            while retrying:
+                if os.path.isfile(record):
+                    retrying = False
+                    testSpase = SPASE(record)
+                    root = testSpase.metadata.getroot()
+                    instrumentIDs[item]["name"] = testSpase.get_name()
+                    instrumentIDs[item]["URL"] = testSpase.get_url()
+                else:
+                    # if retry attempt fails as well, skip the record and let user know
+                    if tries == 2:
+                        print("Retry attempt failed, skipping this record/link. The metadata quality will be negatively affected.")
+                        time.sleep(2)
+                        retrying = False
+                    else:
+                        retrying, tries = retryLinks(item, tries)
         for k in instrumentIDs.keys():
             if instrumentIDs[k]["URL"]:
                 instrument.append({"@id": instrumentIDs[k]["URL"],
@@ -1390,6 +1322,11 @@ def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], 
 
 def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict], None]:
     """
+    Uses the get_instrument function to attempt to retrieve all relevant information 
+    associated with any ObservatoryID (and ObservatoryGroupID) fields
+    found in their related SPASE records in order to be used in the prov-o
+    wasGeneratedBy property.
+
     :param metadata: The SPASE metadata object as an XML tree.
     :param path: The absolute file path of the XML file the user wishes to pull info from.
 
@@ -1413,12 +1350,16 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
         for each in instrument:
             instrumentIDs.append(each["identifier"]["value"])
         for item in instrumentIDs:
-            if "soso-spase" in path:
-                absPath, sep, after = path.partition("soso-spase")
-            elif "ESA/" in path:
-                absPath, sep, after = path.partition("ESA/")
-            else:
-                absPath, sep, after = path.partition("NASA/")
+            # get home directory
+            homeDir = str(Path.home())
+            homeDir = homeDir.replace("\\","/")
+            # get current working directory
+            cwd = str(Path.cwd()).replace("\\","/")
+            # split path into needed substrings
+            before, absPath, after = path.partition(f"{homeDir}/")
+            repoName, sep, after = after.partition("/")
+            # add original SPASE repo to log file that holds name of repos needed
+            updateLog(cwd, repoName)
             record = absPath + item.replace("spase://","") + ".xml"
             record = record.replace("'","")
             # follow link provided by instrument to instrument page, from there grab ObservatoryID
@@ -1431,57 +1372,84 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                 for child in desiredRoot.iter(tag=etree.Element):
                     if child.tag.endswith("ObservatoryID"):
                         observatoryID = child.text
+                # add SPASE repo that contains observatories to log file also
+                repoName, sep, after = observatoryID.replace("spase://", "").partition("/")
+                updateLog(cwd, repoName)
                 # use observatoryID as record to get observatoryGroupID and other info              
                 record = absPath + observatoryID.replace("spase://","") + ".xml"
-                record = record.replace("'","")                
-                if os.path.isfile(record):
-                    url = ""
-                    testSpase = SPASE(record)
-                    root = testSpase.metadata.getroot()
-                    for elt in root.iter(tag=etree.Element):
-                        if elt.tag.endswith("Observatory"):
-                            desiredRoot = elt
-                    for child in desiredRoot.iter(tag=etree.Element):
-                        if child.tag.endswith("ObservatoryGroupID"):
-                            observatoryGroupID = child.text
-                    name = testSpase.get_name()
-                    url = testSpase.get_url()
-                    # finally, follow that link to grab name and url from there
-                    if observatoryGroupID:
-                        record = absPath + observatoryGroupID.replace("spase://","") + ".xml"
-                        record = record.replace("'","") 
-                        if os.path.isfile(record):
-                            groupURL = ""
-                            testSpase = SPASE(record)
-                            groupName = testSpase.get_name()
-                            groupURL = testSpase.get_url()
-                            if groupURL:
-                                if observatoryGroupID not in recordedIDs:
-                                    observatory.append({"@type": ["ResearchProject", "prov:Entity", "sosa:Platform"],
-                                                        "@id": groupURL,
-                                                        "name": groupName,
-                                                        "identifier": {"@id": groupURL,
-                                                                        "@type": "PropertyValue",
-                                                                        "propertyID": "SPASE Resource ID",
-                                                                        "value": observatoryGroupID},
-                                                        "url": groupURL})
-                                    recordedIDs.append(observatoryGroupID)
+                record = record.replace("'","")
+                # try to access record at most twice
+                retryingObs = True
+                triesObs = 1
+                while retryingObs:               
+                    if os.path.isfile(record):
+                        retryingObs = False
+                        url = ""
+                        testSpase = SPASE(record)
+                        root = testSpase.metadata.getroot()
+                        for elt in root.iter(tag=etree.Element):
+                            if elt.tag.endswith("Observatory"):
+                                desiredRoot = elt
+                        for child in desiredRoot.iter(tag=etree.Element):
+                            if child.tag.endswith("ObservatoryGroupID"):
+                                observatoryGroupID = child.text
+                        name = testSpase.get_name()
+                        url = testSpase.get_url()
+                        # finally, follow that link to grab name and url from there
+                        if observatoryGroupID:
+                            retryingObsGrp = True
+                            triesObsGrp = 1
+                            # add SPASE repo that contains observatory group to log file also
+                            repoName, sep, after = observatoryGroupID.replace("spase://", "").partition("/")
+                            updateLog(cwd, repoName)
+                            # format record
+                            record = absPath + observatoryGroupID.replace("spase://","") + ".xml"
+                            record = record.replace("'","")
+                            # try to access record at most twice
+                            while retryingObsGrp:
+                                if os.path.isfile(record):
+                                    retryingObsGrp = False
+                                    groupURL = ""
+                                    testSpase = SPASE(record)
+                                    groupName = testSpase.get_name()
+                                    groupURL = testSpase.get_url()
+                                    if groupURL:
+                                        if observatoryGroupID not in recordedIDs:
+                                            observatory.append({"@type": ["ResearchProject", "prov:Entity", "sosa:Platform"],
+                                                                "@id": groupURL,
+                                                                "name": groupName,
+                                                                "identifier": {"@id": groupURL,
+                                                                                "@type": "PropertyValue",
+                                                                                "propertyID": "SPASE Resource ID",
+                                                                                "value": observatoryGroupID},
+                                                                "url": groupURL})
+                                            recordedIDs.append(observatoryGroupID)
+                                else:
+                                    # if retry attempt fails as well, skip the record and let user know
+                                    if triesObsGrp == 2:
+                                        print("Retry attempt failed, skipping this record/link. The metadata quality will be negatively affected.")
+                                        time.sleep(2)
+                                        retryingObsGrp = False
+                                    else:
+                                        retryingObsGrp, triesObsGrp = retryLinks(observatoryGroupID, triesObsGrp)
+                        if url and (observatoryID not in recordedIDs):
+                            observatory.append({"@type": ["ResearchProject", "prov:Entity", "sosa:Platform"],
+                                                "@id": url,
+                                                "name": name,
+                                                "identifier": {"@id": url,
+                                                                "@type": "PropertyValue",
+                                                                "propertyID": "SPASE Resource ID",
+                                                                "value": observatoryID},
+                                                "url": url})
+                            recordedIDs.append(observatoryID)
+                    else:
+                        # if retry attempt fails as well, skip the record and let user know
+                        if triesObs == 2:
+                            print("Retry attempt failed, skipping this record/link. The metadata quality will be negatively affected.")
+                            time.sleep(2)
+                            retryingObs = False
                         else:
-                            #print(f"Could not access associated SPASE record: {observatoryGroupID}")
-                            continue
-                    if url and (observatoryID not in recordedIDs):
-                        observatory.append({"@type": ["ResearchProject", "prov:Entity", "sosa:Platform"],
-                                            "@id": url,
-                                            "name": name,
-                                            "identifier": {"@id": url,
-                                                            "@type": "PropertyValue",
-                                                            "propertyID": "SPASE Resource ID",
-                                                            "value": observatoryID},
-                                            "url": url})
-                        recordedIDs.append(observatoryID)
-                else:
-                    #print(f"Could not access associated SPASE record: {observatoryID}")
-                    continue
+                            retryingObs, triesObs = retryLinks(observatoryID, triesObs)
     else:
         observatory = None
     return observatory
@@ -1511,6 +1479,9 @@ def get_alternate_name(metadata: etree.ElementTree) -> Union[str, None]:
 
 def get_cadenceContext(cadence:str) -> str:
     """
+    Returns a more human friendly explanation of the ISO 8601 formatted value
+    found in the TemporalDescription:Cadence field in SPASE.
+
     :param cadence: The value found in the Cadence field of the TemporalDescription section
 
     :returns: A string description of what this value represents/means.
@@ -1555,6 +1526,9 @@ def get_cadenceContext(cadence:str) -> str:
 
 def get_mentions(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dict, None]:
     """
+    Scrapes any AssociationIDs with the AssociationType "Other" and formats them
+    as dictionaries using the get_relation function.
+
     :param metadata: The SPASE metadata object as an XML tree.
     :param path: The absolute path of the xml file being scraped.
 
@@ -1568,64 +1542,13 @@ def get_mentions(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dic
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desiredRoot = elt
     mentions = get_relation(desiredRoot, ["Other"], path)
-    
-    """relations = []
-    # iterate thru xml to find desired info
-    for child in desiredRoot.iter(tag=etree.Element):
-        if child.tag.endswith("Association"):
-            targetChild = child
-            for child in targetChild:
-                if child.tag.endswith("AssociationID"):
-                    A_ID = child.text
-                elif child.tag.endswith("AssociationType"):
-                    type = child.text
-            if type == "Other":
-                relations.append(A_ID)
-    if relations == []:
-        mentions = None
-    else:
-        i = 0
-        # try and get DOI instead of SPASE ID
-        for record in relations:
-            if "soso-spase" in path:
-                absPath, sep, after = path.partition("soso-spase")
-            else:
-                absPath, sep, after = path.partition("NASA/")
-            record = absPath + record.replace("spase://","") + ".xml"
-            record = record.replace("'","")
-            if os.path.isfile(record):
-                testSpase = SPASE(record)
-                relations[i] = testSpase.get_url()
-            else:
-                raise ValueError("Could not access associated SPASE record.")
-            i += 1
-        # add correct type
-        if len(relations) > 1:
-            mentions = []
-            for relation in relations:
-                isDataset, isArticle = verifyType(relation)
-                if isDataset:
-                    mentions.append({"@type": "Dataset",
-                                        "@id": relation})
-                elif isArticle:
-                    mentions.append({"@type": "ScholarlyArticle",
-                                        "@id": relation})
-                else:
-                    mentions.append({"@id": relation})
-        else:
-            isDataset, isArticle = verifyType(relations[0])
-            if isDataset:
-                mentions = {"@type": "Dataset",
-                                    "@id": relations[0]}
-            elif isArticle:
-                mentions = {"@type": "ScholarlyArticle",
-                                    "@id": relations[0]}
-            else:
-                mentions = {"@id": relations[0]}"""
     return mentions
 
 def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dict, None]:
     """
+    Scrapes any AssociationIDs with the AssociationType "PartOf" and formats them
+    as dictionaries using the get_relation function.
+
     :param metadata: The SPASE metadata object as an XML tree.
     :param path: The absolute path of the xml file being scraped.
 
@@ -1639,64 +1562,13 @@ def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[List[Dict], D
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desiredRoot = elt
     is_part_of = get_relation(desiredRoot, ["PartOf"], path)
-    
-    """relations = []
-    # iterate thru xml to find desired info
-    for child in desiredRoot.iter(tag=etree.Element):
-        if child.tag.endswith("Association"):
-            targetChild = child
-            for child in targetChild:
-                if child.tag.endswith("AssociationID"):
-                    A_ID = child.text
-                elif child.tag.endswith("AssociationType"):
-                    type = child.text
-            if type == "PartOf":
-                relations.append(A_ID)
-    if relations == []:
-        is_part_of = None
-    else:
-        i = 0
-        # try and get DOI instead of SPASE ID
-        for record in relations:
-            if "soso-spase" in path:
-                absPath, sep, after = path.partition("soso-spase")
-            else:
-                absPath, sep, after = path.partition("NASA/")
-            record = absPath + record.replace("spase://","") + ".xml"
-            record = record.replace("'","")
-            if os.path.isfile(record):
-                testSpase = SPASE(record)
-                relations[i] = testSpase.get_url()
-            else:
-                raise ValueError("Could not access associated SPASE record.")
-            i += 1
-        # add correct type
-        if len(relations) > 1:
-            is_part_of = []
-            for relation in relations:
-                isDataset, isArticle = verifyType(relation)
-                if isDataset:
-                    is_part_of.append({"@type": "Dataset",
-                                        "@id": relation})
-                elif isArticle:
-                    is_part_of.append({"@type": "ScholarlyArticle",
-                                        "@id": relation})
-                else:
-                    is_part_of.append({"@id": relation})
-        else:
-            isDataset, isArticle = verifyType(relations[0])
-            if isDataset:
-                is_part_of = {"@type": "Dataset",
-                                    "@id": relations[0]}
-            elif isArticle:
-                is_part_of = {"@type": "ScholarlyArticle",
-                                    "@id": relations[0]}
-            else:
-                is_part_of = {"@id": relations[0]}"""
     return is_part_of
 
-def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple:
+def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple[str, str, str]:
     """
+    Uses the given PersonID to scrape the ORCiD and affiliation (and its ROR ID if provided)
+    associated with this contact.
+
     :param PersonID: The SPASE ID linking the page with the Person's info.
     :param file: The absolute path of the original xml file scraped.
 
@@ -1706,32 +1578,56 @@ def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple:
     orcidID = ""
     affiliation = ""
     ror = ""
-    if "soso-spase" in file:
-        absPath, sep, after = file.partition("soso-spase")
-    else:
-        absPath, sep, after = file.partition("NASA/")
-    record = absPath + PersonID.replace("spase://","") + ".xml"
+    # get home directory
+    homeDir = str(Path.home())
+    homeDir = homeDir.replace("\\","/")
+    # get current working directory
+    cwd = str(Path.cwd()).replace("\\","/")
+    # split record into needed substrings
+    before, absPath, after = file.partition(f"{homeDir}/")
+    repoName, sep, after = after.partition("/")
+    # add original SPASE repo to log file that holds name of repos needed
+    updateLog(cwd, repoName)
+    # add SPASE repo that contains Person descriptions to log file also
+    repoName, sep, after = PersonID.replace("spase://", "").partition("/")
+    updateLog(cwd, repoName)
+    # format record name
+    record = absPath + PersonID.replace("spase://", "") + ".xml"
     record = record.replace("'","")
-    if os.path.isfile(record):
-        testSpase = SPASE(record)
-        root = testSpase.metadata.getroot()
-        # iterate thru xml to get desired info
-        for elt in root.iter(tag=etree.Element):
-            if elt.tag.endswith("Person"):
-                desiredRoot = elt
-        for child in desiredRoot.iter(tag=etree.Element):
-            if child.tag.endswith("ORCIdentifier"):
-                orcidID = child.text
-            elif child.tag.endswith("OrganizationName"):
-                affiliation = child.text
-            elif child.tag.endswith("RORIdentifier"):
-                ror = child.text
-    else:
-        raise ValueError("Could not access associated SPASE record.")
+    # try to access record at most twice
+    retrying = True
+    tries = 1
+    while retrying:
+        if os.path.isfile(record):
+            retrying = False
+            testSpase = SPASE(record)
+            root = testSpase.metadata.getroot()
+            # iterate thru xml to get desired info
+            for elt in root.iter(tag=etree.Element):
+                if elt.tag.endswith("Person"):
+                    desiredRoot = elt
+            for child in desiredRoot.iter(tag=etree.Element):
+                if child.tag.endswith("ORCIdentifier"):
+                    orcidID = child.text
+                elif child.tag.endswith("OrganizationName"):
+                    affiliation = child.text
+                elif child.tag.endswith("RORIdentifier"):
+                    ror = child.text
+        else:
+            # if retry attempt fails as well, skip the record and let user know
+            if tries == 2:
+                print("Retry attempt failed, skipping this record/link. The metadata quality will be negatively affected.")
+                time.sleep(2)
+                retrying = False
+            else:
+                retrying, tries = retryLinks(PersonID, tries)
     return orcidID, affiliation, ror
 
 def get_temporal(metadata: etree.ElementTree, namespaces: Dict) -> Union[List, None]:
     """
+    Scrapes the TemporalDescription:Cadence field in SPASE for use in the
+    schema.org temporal property.
+
     :param metadata: The SPASE metadata object as an XML tree.
     :param namespaces: The SPASE namespaces used in the form of a dictionary.
 
@@ -1778,8 +1674,14 @@ def get_metadata_license(metadata: etree.ElementTree) -> str:
             metadata_license = val
     return metadata_license
 
-def process_authors(author:List, authorRole:List, contactsList:Dict) -> tuple:
+def process_authors(author:List, authorRole:List, contactsList:Dict) -> tuple[List, List, Dict]:
     """
+    Groups any contact names from the SPASE Contacts container with their matching names, if
+    found, in PubInfo:Authors, and adds any additional author roles (such as PI) to their
+    corresponding entry in the authorRoles list. Any contact with an author role not
+    listed in PubInfo:Authors is added to the contactsList with the rest of the
+    non-matching contacts for use in get_contributors.
+
     :param author: The list of names found in SPASE record to be used in get_creator
     :param authorRole: The list of roles associated with each person found in author list
     :param contactsList: The dictionary containing the names of people considered to 
@@ -1890,8 +1792,10 @@ def process_authors(author:List, authorRole:List, contactsList:Dict) -> tuple:
                 author[0] = (f'{familyName}, {givenName}').strip()
     return author, authorRole, contactsList
 
-def verifyType(url:str) -> tuple:
+def verifyType(url:str) -> tuple[bool, bool]:
     """
+    Verifies that the link found in AssociationID is to a dataset or journal article.
+
     :param url: The link provided as an Associated work/reference for the SPASE record
 
     :returns: Boolean values signifying if the link is a Dataset or a ScholarlyArticle
@@ -1950,6 +1854,9 @@ def get_ResourceID(metadata: etree.ElementTree, namespaces: Dict):
 
 def get_measurementMethod(metadata: etree.ElementTree, namespaces: Dict) -> Union[List, None]:
     """
+    Scrapes all measurementType fields found in the SPASE record and maps them to
+    the schema.org property measurementMethod.
+
     :param metadata: The SPASE metadata object as an XML tree.
     :param namespaces: The SPASE namespaces used in the form of a dictionary.
 
@@ -1990,7 +1897,11 @@ def get_measurementMethod(metadata: etree.ElementTree, namespaces: Dict) -> Unio
 
 def get_relation(desiredRoot: etree.Element, association: list[str], path: str) -> Union[List[Dict], Dict, None]:
     """
-    :param desiredRoot: The element in the SPASE metadata object we are searching from.
+    Scrapes through the SPASE record and returns the AssociationIDs which have the
+    given AssociationType. These are formatted as dictionaries and use the verifyType
+    function to add the correct type to each entry.
+
+    :param desiredRoot: The element in the SPASE metadata tree object we are searching from.
     :param association: The AssociationType(s) we are searching for in the SPASE record.
     :param path: The absolute path of the xml file being scraped.
 
@@ -2015,18 +1926,33 @@ def get_relation(desiredRoot: etree.Element, association: list[str], path: str) 
         i = 0
         # try and get DOI instead of SPASE ID
         for record in relations:
-            if "soso-spase" in path:
-                absPath, sep, after = path.partition("soso-spase")
-            else:
-                absPath, sep, after = path.partition("NASA/")
-            record = absPath + record.replace("spase://","") + ".xml"
+            # try to access record at most twice
+            retrying = True
+            tries = 1
+            # get home directory
+            homeDir = str(Path.home())
+            homeDir = homeDir.replace("\\","/")
+            # get current working directory
+            cwd = str(Path.cwd()).replace("\\","/")
+            # add SPASE repo that contains related SPASE record to log file
+            repoName, sep, after = record.replace("spase://", "").partition("/")
+            updateLog(cwd, repoName)
+            record = homeDir + '/' + record.replace("spase://", "") + ".xml"
             record = record.replace("'","")
-            if os.path.isfile(record):
-                testSpase = SPASE(record)
-                relations[i] = testSpase.get_url()
-            else:
-                raise ValueError("Could not access associated SPASE record.")
-            i += 1
+            while retrying:
+                if os.path.isfile(record):
+                    retrying = False
+                    testSpase = SPASE(record)
+                    relations[i] = testSpase.get_url()
+                else:
+                    # if retry attempt fails as well, skip the record and let user know
+                    if tries == 2:
+                        print("Retry attempt failed, skipping this record/link. The metadata quality will be negatively affected.")
+                        time.sleep(2)
+                        retrying = False
+                    else:
+                        retrying, tries = retryLinks(record, tries)
+                i += 1
         # add correct type
         if len(relations) > 1:
             relation = []
@@ -2051,3 +1977,49 @@ def get_relation(desiredRoot: etree.Element, association: list[str], path: str) 
                 entry["@type"] = "ScholarlyArticle"
             relation = entry
     return relation
+
+def updateLog(cwd:str, repoName:str) -> None:
+    """
+    Creates a log file containing the SPASE repositories needed for the
+    metadata conversion to work as intended.
+
+    :param cwd: The current working directory of your workstation.
+    :param repoName: The name of the repository needed to access the SPASE record.
+    """
+
+    with open(f"{cwd}/requiredRepos.txt", "r") as f:
+        text = f.read()
+    if repoName not in text:
+        with open(f"{cwd}/requiredRepos.txt", "a") as f:
+            f.write(f"\n{repoName}")
+
+def retryLinks(item:str, tries:int) -> tuple[bool, int]:
+    """
+    Attempts to access the given file. The user
+    may answer 'skip' if a known broken link/record appears or
+    answer 'done' to retry accessing the file after confirming all necessary
+    SPASE repositories are cloned in their local home directory.
+
+    :param item: The SPASE record you are trying to access.
+    :param tries: The number of times the script has tried to access the file.
+    """
+    
+    incorrectInput = True
+    while incorrectInput:
+        answer = input(f"'{item}' not found, likely because the SPASE repository " \
+        "was not downloaded. If this error repeats, please run findRequirements to " \
+        "determine what SPASE repositories need to be downloaded, download those " \
+        "repositories to the same home directory, and continue this script by " \
+        "responding 'done' or respond 'skip' to skip to the next. ")
+        if (answer.lower() == 'done'):
+            incorrectInput = False
+            tries += 1
+            retrying = True
+        elif (answer.lower() == 'skip'):
+            incorrectInput = False
+            retrying = False
+            print("Skipping this record/link. The metadata quality will be negatively affected.")
+            time.sleep(2)
+        else:
+            print("Please enter 'done' or 'skip'.")
+    return retrying, tries
