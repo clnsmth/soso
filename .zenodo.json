@@ -1,0 +1,57 @@
+{
+  "creators": [
+    {
+      "name": "Smith, Colin",
+      "orcid": "0000-0003-2261-9931",
+      "affiliation": "Environmental Data Initiative"
+    },
+    {
+      "name": "Boquet, Zach",
+      "orcid": "0009-0005-1686-262X",
+      "affiliation": "Heliophysics Data and Modeling Consortium"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Ringuette, Rebecca",
+      "orcid": "0000-0003-0875-2023",
+      "affiliation": "Heliophysics Data and Modeling Consortium"
+    },
+    {
+      "name": "Cecconi, Baptiste",
+      "orcid": "0000-0001-7915-5571",
+      "affiliation": "Observatoire de Paris, Université de Recherche Paris Sciences et Lettres"
+    },
+    {
+      "name": "Helvey, Tressa",
+      "affiliation": "Heliophysics Data and Modeling Consortium"
+    },
+    {
+      "name": "Koval, Andriy",
+      "affiliation": "Heliophysics Data and Modeling Consortium"
+    },
+    {
+      "name": "Byrd, Catherine",
+      "affiliation": "Heliophysics Data and Modeling Consortium"
+    }
+  ],
+  "title": "soso",
+  "version": "0.5.0",
+  "access_right": "open",
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/ESIPFed/science-on-schema.org/",
+      "relation": "isSupplementTo",
+      "resource_type": "software"
+    }
+  ],
+  "keywords": [
+    "Science-on-Schema.org",
+    "Schema.org",
+    "metadata",
+    "sssom"
+  ],
+  "license": "mit",
+  "upload_type": "software",
+  "language": "eng"
+}
