@@ -110,7 +110,7 @@ class SPASE(StrategyInterface):
         # traverse xml to extract needed info
         for child in self.desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("PriorID"):
-                same_as.append(child.text)
+                same_as.append(child.text.replace("spase://", "https://hpde.io/"))
         if same_as == []:
             same_as = None
         elif len(same_as) == 1:
@@ -169,17 +169,18 @@ class SPASE(StrategyInterface):
         if "doi" in url:
             temp = url.split("/")
             value = "doi:" + "/".join(temp[3:])
-            identifier = [{"@id": url,
+            identifier = {"@list": [{"@id": url,
                             "@type" : "PropertyValue",
                             "propertyID": "https://registry.identifiers.org/registry/doi",
                             "value": value,
-                            "url": url},
+                            "url": url,
+                            "name": value.replace("doi:", "DOI: ")},
                         {"@id": hpdeURL,
                             "@type": "PropertyValue",
                             "propertyID": "SPASE",
                             "value": ID,
-                            "url": hpdeURL}
-                        ]
+                            "url": hpdeURL,}
+                        ]}
         # if SPASE record only has landing page instead
         else:
             identifier = {"@id": url,
@@ -298,7 +299,7 @@ class SPASE(StrategyInterface):
             entry = {"@id": contentURL,
                     "@type": "DataDownload",
                     "name": "SPASE metadata for dataset",
-                    "description": "SPASE metadata describing the dataset",
+                    "description": "The SPASE metadata describing the indicated dataset.",
                     "license": licenseURL,
                     "encodingFormat": "application/xml",
                     "contentUrl": contentURL,
@@ -542,29 +543,28 @@ class SPASE(StrategyInterface):
         spatial_coverage = []
         desiredTag = self.desiredRoot.tag.split("}")
         SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:ObservedRegion"
-        for item in self.metadata.findall(
-            SPASE_Location,
-            namespaces=self.namespaces,
-        ):
+        allRegions = self.metadata.findall(SPASE_Location, namespaces=self.namespaces)
+        for item in allRegions:
             # Split string on '.'
             prettyName = item.text.replace(".", " ")
 
-            spatial_coverage.append(
-                {
-                    "@type": "Place",
-                    #"identifier": f"http://www.spase-group.org/data/schema/{item.text.replace('.', '_').upper()}",
-                    "additionalProperty": {
-                        "@type": "PropertyValue",
-                        "valueReference": {
+            # most basic entry for spatialCoverage
+            entry = {"@type": "Place",
+                        "keywords": {
                             "@type": "DefinedTerm",
                             "inDefinedTermSet": {
-                                "@type": "DefinedTermSet",
-                                "name": "SPASE ObservedRegion"},
-                        "termCode": item.text}
-                    },
-                    "name": prettyName
-                }
-            )
+                                "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Region",
+                                "@type": "DefinedTermSet"},
+                            "termCode": item.text},
+                        "name": prettyName
+                    }
+
+            # if this is the first item added, add additional info for DefinedTermSet
+            if allRegions.index(item) == 0:
+                entry["keywords"]["inDefinedTermSet"]["name"] = "SPASE MeasurementType"
+                entry["keywords"]["inDefinedTermSet"]["url"] = "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Region"
+            spatial_coverage.append(entry)
+
         if len(spatial_coverage) == 0:
             spatial_coverage = None
         return delete_null_values(spatial_coverage)
@@ -805,7 +805,7 @@ class SPASE(StrategyInterface):
         # Mapping: prov:wasRevisionOf = spase:Association/spase:AssociationID
         #   (if spase:AssociationType is "RevisionOf")
         # prov:wasRevisionOf found at https://www.w3.org/TR/prov-o/#wasRevisionOf
-        was_revision_of = get_relation(self.desiredRoot, ["RevisionOf"], self.file)
+        was_revision_of = get_relation(self.desiredRoot, ["RevisionOf"])
         return delete_null_values(was_revision_of)
 
     def get_was_derived_from(self) -> Union[Dict, None]:
@@ -821,7 +821,7 @@ class SPASE(StrategyInterface):
         # Mapping: schema:isBasedOn = spase:Association/spase:AssociationID
         #   (if spase:AssociationType is "DerivedFrom" or "ChildEventOf")
         # schema:isBasedOn found at https://schema.org/isBasedOn
-        is_based_on = get_relation(self.desiredRoot, ["ChildEventOf", "DerivedFrom"], self.file)
+        is_based_on = get_relation(self.desiredRoot, ["ChildEventOf", "DerivedFrom"])
         return delete_null_values(is_based_on)
 
     def get_was_generated_by(self) -> Union[List[Dict], None]:
@@ -833,14 +833,15 @@ class SPASE(StrategyInterface):
         #   and spase:InstrumentID/spase:ObservatoryID/spase:ObservatoryGroupID/spase:ResourceHeader/spase:ResourceName
         # prov:wasGeneratedBy found at https://www.w3.org/TR/prov-o/#wasGeneratedBy
 
+        # commenting out observatories because of the email with Baptiste and Donny
         instruments = get_instrument(self.metadata, self.file)
-        observatories = get_observatory(self.metadata, self.file)
+        #observatories = get_observatory(self.metadata, self.file)
         was_generated_by = []
         
-        if observatories:
-            for each in observatories:
-                was_generated_by.append({"@type": ["ResearchProject", "prov:Activity"],
-                                            "prov:used": each})
+        #if observatories:
+            #for each in observatories:
+                #was_generated_by.append({"@type": ["ResearchProject", "prov:Activity"],
+                                            #"prov:used": each})
         if instruments:
             for each in instruments:
                 was_generated_by.append({"@type": ["ResearchProject", "prov:Activity"],
@@ -1122,7 +1123,7 @@ def personFormat(type:str, roleName:str, name:str, givenName:str, familyName:str
     Groups up all available metadata associated with a given contact
     into a dictionary following the SOSO guidelines.
 
-    :param type: The type of person being formatted. Values can be either: Contributor or Creator.
+    :param type: The type of person being formatted. Values can be either: contributor or creator.
     :param roleName: The value found in the Role field associated with this Contact
     :param name: The full name of the Contact, as formatted in the SPASE record
     :param givenName: The first name/initial and middle name/initial of the Contact
@@ -1135,14 +1136,16 @@ def personFormat(type:str, roleName:str, name:str, givenName:str, familyName:str
     """
     
     domain, sep, orcidVal = orcidID.rpartition("/")
-    # most basic format for contributor item
-    entry = {"@type": "Role", 
-            "roleName": roleName,
+    # most basic format for person item
+    entry = {"@type": "Role",
             f"{type}": {"@type": "Person",
                             "name": name,
                             "givenName": givenName,
                             "familyName": familyName}
             }
+    # add role only if contributor
+    if type == "contributor":
+        entry["roleName"] = roleName
     if orcidID:
         entry[f"{type}"]["identifier"] = {"@id": f"https://orcid.org/{orcidID}",
                                                 "@type": "PropertyValue",
@@ -1240,7 +1243,7 @@ def get_information_url(metadata: etree.ElementTree) -> Union[List[Dict], None]:
         information_url = None
     return information_url
 
-def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], None]:
+def get_instrument(metadata: etree.ElementTree, path: str, **kwargs:dict) -> Union[List[Dict], None]:
     """
     Attempts to retrieve all relevant information associated with all InstrumentID fields
     found in the SPASE record in order to be used in the prov-o wasGeneratedBy property.
@@ -1268,11 +1271,14 @@ def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], 
     if instrumentIDs == {}:
         instrument = None
     else:
+        # if called by testing function, only test first link
+        if kwargs:
+            for key, val in instrumentIDs.items():
+                if key == "spase://SMWG/Instrument/MMS/4/FIELDS/FGM":
+                    instrumentIDs = {key: val}
         # follow link provided by instrumentID to instrument page
         # from there grab name and url
         for item in instrumentIDs.keys():
-            retrying = True
-            tries = 1
             instrumentIDs[item]["name"] = ""
             instrumentIDs[item]["URL"] = ""
 
@@ -1290,24 +1296,21 @@ def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], 
             repoName, sep, after = item.replace("spase://", "").partition("/")
             updateLog(cwd, repoName)
             # format record
-            record = absPath + item.replace("spase://","") + ".xml"
+            if kwargs:
+                # being called by testing function = change directory to xml file in tests folder
+                before, sep, fileName = item.rpartition("/")
+                record = absPath + kwargs["testing"] + f"spase-{fileName}" + ".xml"
+            else:
+                record = absPath + item.replace("spase://","") + ".xml"
             record = record.replace("'","")
-            # try to access record at most twice
-            while retrying:
-                if os.path.isfile(record):
-                    retrying = False
-                    testSpase = SPASE(record)
-                    root = testSpase.metadata.getroot()
-                    instrumentIDs[item]["name"] = testSpase.get_name()
-                    instrumentIDs[item]["URL"] = testSpase.get_url()
-                else:
-                    # if retry attempt fails as well, skip the record and let user know
-                    if tries == 2:
-                        print("Retry attempt failed, skipping this record/link. The metadata quality will be negatively affected.")
-                        time.sleep(2)
-                        retrying = False
-                    else:
-                        retrying, tries = retryLinks(item, tries)
+            if os.path.isfile(record):
+                testSpase = SPASE(record)
+                root = testSpase.metadata.getroot()
+                instrumentIDs[item]["name"] = testSpase.get_name()
+                instrumentIDs[item]["URL"] = testSpase.get_url()
+            else:
+                # add file to log
+                pass
         for k in instrumentIDs.keys():
             if instrumentIDs[k]["URL"]:
                 instrument.append({"@id": instrumentIDs[k]["URL"],
@@ -1320,7 +1323,7 @@ def get_instrument(metadata: etree.ElementTree, path: str) -> Union[List[Dict], 
                                                 "url": instrumentIDs[k]["URL"]})
     return instrument
 
-def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict], None]:
+def get_observatory(metadata: etree.ElementTree, path: str, **kwargs:dict) -> Union[List[Dict], None]:
     """
     Uses the get_instrument function to attempt to retrieve all relevant information 
     associated with any ObservatoryID (and ObservatoryGroupID) fields
@@ -1360,7 +1363,12 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
             repoName, sep, after = after.partition("/")
             # add original SPASE repo to log file that holds name of repos needed
             updateLog(cwd, repoName)
-            record = absPath + item.replace("spase://","") + ".xml"
+            if kwargs:
+                # being called by testing function = change directory to xml file in tests folder
+                before, sep, fileName = item.rpartition("/")
+                record = absPath + kwargs["testing"] + f"spase-{fileName}" + ".xml"
+            else:
+                record = absPath + item.replace("spase://","") + ".xml"
             record = record.replace("'","")
             # follow link provided by instrument to instrument page, from there grab ObservatoryID
             if os.path.isfile(record):
@@ -1375,81 +1383,71 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                 # add SPASE repo that contains observatories to log file also
                 repoName, sep, after = observatoryID.replace("spase://", "").partition("/")
                 updateLog(cwd, repoName)
-                # use observatoryID as record to get observatoryGroupID and other info              
-                record = absPath + observatoryID.replace("spase://","") + ".xml"
+                # use observatoryID as record to get observatoryGroupID and other info  
+                if kwargs:
+                    # being called by testing function = change directory to xml file in tests folder
+                    before, sep, fileName = observatoryID.rpartition("/")
+                    record = absPath + kwargs["testing"] + f"spase-MMS-{fileName}" + ".xml"
+                else:            
+                    record = absPath + observatoryID.replace("spase://","") + ".xml"
                 record = record.replace("'","")
-                # try to access record at most twice
-                retryingObs = True
-                triesObs = 1
-                while retryingObs:               
-                    if os.path.isfile(record):
-                        retryingObs = False
-                        url = ""
-                        testSpase = SPASE(record)
-                        root = testSpase.metadata.getroot()
-                        for elt in root.iter(tag=etree.Element):
-                            if elt.tag.endswith("Observatory"):
-                                desiredRoot = elt
-                        for child in desiredRoot.iter(tag=etree.Element):
-                            if child.tag.endswith("ObservatoryGroupID"):
-                                observatoryGroupID = child.text
-                        name = testSpase.get_name()
-                        url = testSpase.get_url()
-                        # finally, follow that link to grab name and url from there
-                        if observatoryGroupID:
-                            retryingObsGrp = True
-                            triesObsGrp = 1
-                            # add SPASE repo that contains observatory group to log file also
-                            repoName, sep, after = observatoryGroupID.replace("spase://", "").partition("/")
-                            updateLog(cwd, repoName)
-                            # format record
-                            record = absPath + observatoryGroupID.replace("spase://","") + ".xml"
-                            record = record.replace("'","")
-                            # try to access record at most twice
-                            while retryingObsGrp:
-                                if os.path.isfile(record):
-                                    retryingObsGrp = False
-                                    groupURL = ""
-                                    testSpase = SPASE(record)
-                                    groupName = testSpase.get_name()
-                                    groupURL = testSpase.get_url()
-                                    if groupURL:
-                                        if observatoryGroupID not in recordedIDs:
-                                            observatory.append({"@type": ["ResearchProject", "prov:Entity", "sosa:Platform"],
-                                                                "@id": groupURL,
-                                                                "name": groupName,
-                                                                "identifier": {"@id": groupURL,
-                                                                                "@type": "PropertyValue",
-                                                                                "propertyID": "SPASE Resource ID",
-                                                                                "value": observatoryGroupID},
-                                                                "url": groupURL})
-                                            recordedIDs.append(observatoryGroupID)
-                                else:
-                                    # if retry attempt fails as well, skip the record and let user know
-                                    if triesObsGrp == 2:
-                                        print("Retry attempt failed, skipping this record/link. The metadata quality will be negatively affected.")
-                                        time.sleep(2)
-                                        retryingObsGrp = False
-                                    else:
-                                        retryingObsGrp, triesObsGrp = retryLinks(observatoryGroupID, triesObsGrp)
-                        if url and (observatoryID not in recordedIDs):
-                            observatory.append({"@type": ["ResearchProject", "prov:Entity", "sosa:Platform"],
-                                                "@id": url,
-                                                "name": name,
-                                                "identifier": {"@id": url,
-                                                                "@type": "PropertyValue",
-                                                                "propertyID": "SPASE Resource ID",
-                                                                "value": observatoryID},
-                                                "url": url})
-                            recordedIDs.append(observatoryID)
-                    else:
-                        # if retry attempt fails as well, skip the record and let user know
-                        if triesObs == 2:
-                            print("Retry attempt failed, skipping this record/link. The metadata quality will be negatively affected.")
-                            time.sleep(2)
-                            retryingObs = False
+                if os.path.isfile(record):
+                    url = ""
+                    testSpase = SPASE(record)
+                    root = testSpase.metadata.getroot()
+                    for elt in root.iter(tag=etree.Element):
+                        if elt.tag.endswith("Observatory"):
+                            desiredRoot = elt
+                    for child in desiredRoot.iter(tag=etree.Element):
+                        if child.tag.endswith("ObservatoryGroupID"):
+                            observatoryGroupID = child.text
+                    name = testSpase.get_name()
+                    url = testSpase.get_url()
+                    # finally, follow that link to grab name and url from there
+                    if observatoryGroupID:
+                        # add SPASE repo that contains observatory group to log file also
+                        repoName, sep, after = observatoryGroupID.replace("spase://", "").partition("/")
+                        updateLog(cwd, repoName)
+                        # format record
+                        if kwargs:
+                            # being called by testing function = change directory to xml file in tests folder
+                            before, sep, fileName = observatoryGroupID.rpartition("/")
+                            record = absPath + kwargs["testing"] + f"spase-{fileName}" + ".xml"
                         else:
-                            retryingObs, triesObs = retryLinks(observatoryID, triesObs)
+                            record = absPath + observatoryGroupID.replace("spase://","") + ".xml"
+                        record = record.replace("'","")
+                        if os.path.isfile(record):
+                            groupURL = ""
+                            testSpase = SPASE(record)
+                            groupName = testSpase.get_name()
+                            groupURL = testSpase.get_url()
+                            if groupURL:
+                                if observatoryGroupID not in recordedIDs:
+                                    observatory.append({"@type": ["ResearchProject", "prov:Entity", "sosa:Platform"],
+                                                        "@id": groupURL,
+                                                        "name": groupName,
+                                                        "identifier": {"@id": groupURL,
+                                                                        "@type": "PropertyValue",
+                                                                        "propertyID": "SPASE Resource ID",
+                                                                        "value": observatoryGroupID},
+                                                        "url": groupURL})
+                                    recordedIDs.append(observatoryGroupID)
+                        else:
+                            # add obsGrp to log file
+                            pass
+                    if url and (observatoryID not in recordedIDs):
+                        observatory.append({"@type": ["ResearchProject", "prov:Entity", "sosa:Platform"],
+                                            "@id": url,
+                                            "name": name,
+                                            "identifier": {"@id": url,
+                                                            "@type": "PropertyValue",
+                                                            "propertyID": "SPASE Resource ID",
+                                                            "value": observatoryID},
+                                            "url": url})
+                        recordedIDs.append(observatoryID)
+                else:
+                    # add obs to log file
+                    pass
     else:
         observatory = None
     return observatory
@@ -1524,13 +1522,13 @@ def get_cadenceContext(cadence:str) -> str:
         context = None
     return context
 
-def get_mentions(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dict, None]:
+def get_mentions(metadata: etree.ElementTree, **kwargs:dict) -> Union[List[Dict], Dict, None]:
     """
     Scrapes any AssociationIDs with the AssociationType "Other" and formats them
     as dictionaries using the get_relation function.
 
     :param metadata: The SPASE metadata object as an XML tree.
-    :param path: The absolute path of the xml file being scraped.
+    :param **kwargs: Allows for additional parameters to be passed (only to be used for testing).
 
     :returns: The ID's of other SPASE records related to this one in some way.
     """
@@ -1541,16 +1539,16 @@ def get_mentions(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dic
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desiredRoot = elt
-    mentions = get_relation(desiredRoot, ["Other"], path)
+    mentions = get_relation(desiredRoot, ["Other"], **kwargs)
     return mentions
 
-def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[List[Dict], Dict, None]:
+def get_is_part_of(metadata: etree.ElementTree, **kwargs:dict) -> Union[List[Dict], Dict, None]:
     """
     Scrapes any AssociationIDs with the AssociationType "PartOf" and formats them
     as dictionaries using the get_relation function.
 
     :param metadata: The SPASE metadata object as an XML tree.
-    :param path: The absolute path of the xml file being scraped.
+    :param **kwargs: Allows for additional parameters to be passed (only to be used for testing).
 
     :returns: The ID(s) of the larger resource this SPASE record is a portion of, as a dictionary.
     """
@@ -1561,10 +1559,10 @@ def get_is_part_of(metadata: etree.ElementTree, path:str) -> Union[List[Dict], D
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desiredRoot = elt
-    is_part_of = get_relation(desiredRoot, ["PartOf"], path)
+    is_part_of = get_relation(desiredRoot, ["PartOf"], **kwargs)
     return is_part_of
 
-def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple[str, str, str]:
+def get_ORCiD_and_Affiliation(PersonID: str, file: str, **kwargs:dict) -> tuple[str, str, str]:
     """
     Uses the given PersonID to scrape the ORCiD and affiliation (and its ROR ID if provided)
     associated with this contact.
@@ -1592,35 +1590,30 @@ def get_ORCiD_and_Affiliation(PersonID: str, file: str) -> tuple[str, str, str]:
     repoName, sep, after = PersonID.replace("spase://", "").partition("/")
     updateLog(cwd, repoName)
     # format record name
-    record = absPath + PersonID.replace("spase://", "") + ".xml"
+    if kwargs:
+        # being called by testing function = change directory to xml file in tests folder
+        before, sep, fileName = PersonID.rpartition("/")
+        record = absPath + kwargs["testing"] + f"spase-{fileName}" + ".xml"
+    else:
+        record = absPath + PersonID.replace("spase://", "") + ".xml"
     record = record.replace("'","")
-    # try to access record at most twice
-    retrying = True
-    tries = 1
-    while retrying:
-        if os.path.isfile(record):
-            retrying = False
-            testSpase = SPASE(record)
-            root = testSpase.metadata.getroot()
-            # iterate thru xml to get desired info
-            for elt in root.iter(tag=etree.Element):
-                if elt.tag.endswith("Person"):
-                    desiredRoot = elt
-            for child in desiredRoot.iter(tag=etree.Element):
-                if child.tag.endswith("ORCIdentifier"):
-                    orcidID = child.text
-                elif child.tag.endswith("OrganizationName"):
-                    affiliation = child.text
-                elif child.tag.endswith("RORIdentifier"):
-                    ror = child.text
-        else:
-            # if retry attempt fails as well, skip the record and let user know
-            if tries == 2:
-                print("Retry attempt failed, skipping this record/link. The metadata quality will be negatively affected.")
-                time.sleep(2)
-                retrying = False
-            else:
-                retrying, tries = retryLinks(PersonID, tries)
+    if os.path.isfile(record):
+        testSpase = SPASE(record)
+        root = testSpase.metadata.getroot()
+        # iterate thru xml to get desired info
+        for elt in root.iter(tag=etree.Element):
+            if elt.tag.endswith("Person"):
+                desiredRoot = elt
+        for child in desiredRoot.iter(tag=etree.Element):
+            if child.tag.endswith("ORCIdentifier"):
+                orcidID = child.text
+            elif child.tag.endswith("OrganizationName"):
+                affiliation = child.text
+            elif child.tag.endswith("RORIdentifier"):
+                ror = child.text
+    else:
+        # add file to log called 'problematic records/files'
+        pass
     return orcidID, affiliation, ror
 
 def get_temporal(metadata: etree.ElementTree, namespaces: Dict) -> Union[List, None]:
@@ -1792,19 +1785,23 @@ def process_authors(author:List, authorRole:List, contactsList:Dict) -> tuple[Li
                 author[0] = (f'{familyName}, {givenName}').strip()
     return author, authorRole, contactsList
 
-def verifyType(url:str) -> tuple[bool, bool]:
+def verifyType(url:str) -> tuple[bool, bool, bool, dict]:
     """
     Verifies that the link found in AssociationID is to a dataset or journal article.
 
     :param url: The link provided as an Associated work/reference for the SPASE record
 
-    :returns: Boolean values signifying if the link is a Dataset or a ScholarlyArticle
+    :returns: Boolean values signifying if the link is a Dataset/ScholarlyArticle and if it
+                it is a SPASE record or not.
     """
     # tests SPASE records to make sure they are datasets or a journal article
     isDataset = False
     isArticle = False
+    isSPASE = False
+    nonSPASE_Info = {}
 
     if "hpde.io" in url:
+        isSPASE = True
         if "Data" in url:
             isDataset = True
     # case where url provided is a DOI
@@ -1812,24 +1809,44 @@ def verifyType(url:str) -> tuple[bool, bool]:
         link = requests.head(url)
         # check to make sure doi resolved to an hpde.io page
         if "hpde.io" in link.headers['location']:
+            isSPASE = True
             if "Data" in link.headers['location']:
                 isDataset = True
         # if not, call DataCite API to check resourceTypeGeneral property associated w the record
         else:
             protocol, sep, doi = link.partition("doi.org/")
-            dataciteLink = f"https://api.datacite.org/dois/{doi}"
-            headers = {"accept": "application/vnd.api+json"}
-            response = requests.get(dataciteLink, headers=headers)
+            #dataciteLink = f"https://api.datacite.org/dois/{doi}"
+            #headers = {"accept": "application/vnd.api+json"}
+            #response = requests.get(dataciteLink, headers=headers)
+            response = requests.get(f"https://api.datacite.org/application/vnd.datacite.datacite+json/{doi}")
             dict = json.loads(response.text)
             for item in dict["data"]["types"]:
-                if (item["resourceTypeGeneral"] == "Dataset"):
-                    isDataset = True
-                elif (item["resourceTypeGeneral"] == "JournalArticle"):
-                    isArticle = True
+                if "resourceType" in item.keys():
+                    if (item["resourceType"] == "Dataset"):
+                        isDataset = True
+                    elif (item["resourceType"] == "JournalArticle"):
+                        isArticle = True
+                else:
+                    if (item["resourceTypeGeneral"] == "Dataset"):
+                        isDataset = True
+                    elif (item["resourceTypeGeneral"] == "JournalArticle"):
+                        isArticle = True
                 # if wish to add more checks, simply add more "elif" stmts like above
                 # and adjust provenance/relationship functions to include new type check
+            if isDataset:
+                # grab name, description, license, and creators
+                nonSPASE_Info["name"] = dict["titles"][0]["title"]
+                if dict["descriptions"]:
+                    nonSPASE_Info["description"] = dict["descriptions"][0]["description"]
+                else:
+                    nonSPASE_Info["description"] = f"No description currently available for {url}."
+                if dict["rightsList"]:
+                    nonSPASE_Info["license"] = []
+                    for each in dict["rightsList"]:
+                        nonSPASE_Info["license"].append(each["rightsUri"])
+                # creators?
 
-    return isDataset, isArticle
+    return isDataset, isArticle, isSPASE, nonSPASE_Info
 
 def get_ResourceID(metadata: etree.ElementTree, namespaces: Dict):
     """
@@ -1839,6 +1856,7 @@ def get_ResourceID(metadata: etree.ElementTree, namespaces: Dict):
     :returns: The ResourceID for the SPASE record.
     """
     root = metadata.getroot()
+    dataset_id = None
     for elt in root.iter(tag=etree.Element):
         if (elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData")
                 or elt.tag.endswith("Observatory") or elt.tag.endswith("Instrument")
@@ -1871,31 +1889,35 @@ def get_measurementMethod(metadata: etree.ElementTree, namespaces: Dict) -> Unio
             desiredRoot = elt
     desiredTag = desiredRoot.tag.split("}")
     SPASE_Location = ".//spase:" + f"{desiredTag[1]}/spase:MeasurementType"
-    for item in metadata.findall(
-        SPASE_Location,
-        namespaces=namespaces,
-    ):
+    allMeasures = metadata.findall(SPASE_Location, namespaces=namespaces)
+    for item in allMeasures:
         # Split string on uppercase characters
         res = re.split(r'(?=[A-Z])', item.text)
         # Remove empty strings and join with space
         prettyName = ' '.join(filter(None, res))
 
-        measurementMethod.append(
-            {"@type": "DefinedTerm",
+        # most basic entry for measurementMethod
+        entry = {"@type": "DefinedTerm",
             "inDefinedTermSet": {
-                "@type": "DefinedTermSet",
-                "name": "SPASE MeasurementType"},
+                "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#MeasurementType",
+                "@type": "DefinedTermSet"},
             "name": prettyName,
             "termCode": item.text
             }
-        )
+
+        # if this is the first item added, add additional info for DefinedTermSet
+        if allMeasures.index(item) == 0:
+            entry["inDefinedTermSet"]["name"] = "SPASE MeasurementType"
+            entry["inDefinedTermSet"]["url"] = "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#MeasurementType"
+        measurementMethod.append(entry)
+
     if len(measurementMethod) == 0:
         measurementMethod = None
     elif len(measurementMethod) == 1:
         measurementMethod = measurementMethod[0]
     return measurementMethod
 
-def get_relation(desiredRoot: etree.Element, association: list[str], path: str) -> Union[List[Dict], Dict, None]:
+def get_relation(desiredRoot: etree.Element, association: list[str], **kwargs:dict) -> Union[List[Dict], Dict, None]:
     """
     Scrapes through the SPASE record and returns the AssociationIDs which have the
     given AssociationType. These are formatted as dictionaries and use the verifyType
@@ -1903,11 +1925,12 @@ def get_relation(desiredRoot: etree.Element, association: list[str], path: str) 
 
     :param desiredRoot: The element in the SPASE metadata tree object we are searching from.
     :param association: The AssociationType(s) we are searching for in the SPASE record.
-    :param path: The absolute path of the xml file being scraped.
+    :param **kwargs: Allows for additional parameters to be passed (only to be used for testing).
 
     :returns: The ID's of other SPASE records related to this one in some way.
     """
     relations = []
+    relationalRecords = {}
     # iterate thru xml to find desired info
     for child in desiredRoot.iter(tag=etree.Element):
         if child.tag.endswith("Association"):
@@ -1924,11 +1947,11 @@ def get_relation(desiredRoot: etree.Element, association: list[str], path: str) 
         relation = None
     else:
         i = 0
+        # if called by testing function, only test first link
+        if kwargs:
+            relations = [relations[0]]
         # try and get DOI instead of SPASE ID
         for record in relations:
-            # try to access record at most twice
-            retrying = True
-            tries = 1
             # get home directory
             homeDir = str(Path.home())
             homeDir = homeDir.replace("\\","/")
@@ -1937,89 +1960,88 @@ def get_relation(desiredRoot: etree.Element, association: list[str], path: str) 
             # add SPASE repo that contains related SPASE record to log file
             repoName, sep, after = record.replace("spase://", "").partition("/")
             updateLog(cwd, repoName)
-            record = homeDir + '/' + record.replace("spase://", "") + ".xml"
+            # format record
+            if kwargs:
+                # being called by testing function = change directory to xml file in tests folder
+                before, sep, fileName = record.rpartition("/")
+                record = f"{homeDir}/" + kwargs["testing"] + f"spase-{fileName}" + ".xml"
+            else:
+                record = homeDir + '/' + record.replace("spase://", "") + ".xml"
             record = record.replace("'","")
-            while retrying:
-                if os.path.isfile(record):
-                    retrying = False
-                    testSpase = SPASE(record)
-                    relations[i] = testSpase.get_url()
-                else:
-                    # if retry attempt fails as well, skip the record and let user know
-                    if tries == 2:
-                        print("Retry attempt failed, skipping this record/link. The metadata quality will be negatively affected.")
-                        time.sleep(2)
-                        retrying = False
-                    else:
-                        retrying, tries = retryLinks(record, tries)
-                i += 1
+            if os.path.isfile(record):
+                testSpase = SPASE(record)
+                url = testSpase.get_url()
+                name = testSpase.get_name()
+                description = testSpase.get_description()
+                license = testSpase.get_license()
+                creators = testSpase.get_creator()
+                relationalRecords[url] = {"name": name,
+                                            "description": description,
+                                            "license": license,
+                                            "creators": creators}
+
+            else:
+                # add file to log called 'problematic records/files'
+                pass
+            i += 1
         # add correct type
         if len(relations) > 1:
             relation = []
-            for each in relations:
+            for each in relation:
                 # most basic entry into relation
                 entry = {"@id": each,
-                            "identifier": each}
-                isDataset, isArticle = verifyType(each)
+                            "identifier": each,
+                            "url": each}
+                isDataset, isArticle, isSPASE, nonSPASE_Info = verifyType(each)
                 if isDataset:
                     entry["@type"] = "Dataset"
+                    if isSPASE:
+                        entry["name"] = relationalRecords[each]["name"]
+                        entry["description"] = relationalRecords[each]["description"]
+                        entry["license"] = relationalRecords[each]["license"]
+                        entry["creators"] = relationalRecords[each]["creators"]
                 elif isArticle:
                     entry["@type"] = "ScholarlyArticle"
+                    entry["name"] = nonSPASE_Info["name"]
+                    entry["description"] = nonSPASE_Info["description"]
+                    if "license" in nonSPASE_Info.keys():
+                        entry["license"] = nonSPASE_Info["license"]
+                    #entry["creators"] = nonSPASE_Info["creators"]
                 relation.append(entry)
         else:
             # most basic entry into relation
             entry = {"@id": relations[0],
-                        "identifier": relations[0]}
-            isDataset, isArticle = verifyType(relations[0])
+                        "identifier": relations[0],
+                        "url": relations[0]}
+            isDataset, isArticle, isSPASE, nonSPASE_Info = verifyType(relations[0])
             if isDataset:
                 entry["@type"] = "Dataset"
+                if isSPASE:
+                    entry["name"] = relationalRecords[relations[0]]["name"]
+                    entry["description"] = relationalRecords[relations[0]]["description"]
+                    entry["license"] = relationalRecords[relations[0]]["license"]
+                    entry["creators"] = relationalRecords[relations[0]]["creators"]
             elif isArticle:
                 entry["@type"] = "ScholarlyArticle"
+                entry["name"] = nonSPASE_Info["name"]
+                entry["description"] = nonSPASE_Info["description"]
+                if "license" in nonSPASE_Info.keys():
+                    entry["license"] = nonSPASE_Info["license"]
+                #entry["creators"] = nonSPASE_Info["creators"]
             relation = entry
     return relation
 
 def updateLog(cwd:str, repoName:str) -> None:
     """
-    Creates a log file containing the SPASE repositories needed for the
+    Updates the log file containing the SPASE repositories needed for the
     metadata conversion to work as intended.
 
     :param cwd: The current working directory of your workstation.
     :param repoName: The name of the repository needed to access the SPASE record.
     """
-
-    with open(f"{cwd}/requiredRepos.txt", "r") as f:
-        text = f.read()
-    if repoName not in text:
-        with open(f"{cwd}/requiredRepos.txt", "a") as f:
-            f.write(f"\n{repoName}")
-
-def retryLinks(item:str, tries:int) -> tuple[bool, int]:
-    """
-    Attempts to access the given file. The user
-    may answer 'skip' if a known broken link/record appears or
-    answer 'done' to retry accessing the file after confirming all necessary
-    SPASE repositories are cloned in their local home directory.
-
-    :param item: The SPASE record you are trying to access.
-    :param tries: The number of times the script has tried to access the file.
-    """
-    
-    incorrectInput = True
-    while incorrectInput:
-        answer = input(f"'{item}' not found, likely because the SPASE repository " \
-        "was not downloaded. If this error repeats, please run findRequirements to " \
-        "determine what SPASE repositories need to be downloaded, download those " \
-        "repositories to the same home directory, and continue this script by " \
-        "responding 'done' or respond 'skip' to skip to the next. ")
-        if (answer.lower() == 'done'):
-            incorrectInput = False
-            tries += 1
-            retrying = True
-        elif (answer.lower() == 'skip'):
-            incorrectInput = False
-            retrying = False
-            print("Skipping this record/link. The metadata quality will be negatively affected.")
-            time.sleep(2)
-        else:
-            print("Please enter 'done' or 'skip'.")
-    return retrying, tries
+    if (cwd is not None) and (repoName is not None):
+        with open(f"{cwd}/requiredRepos.txt", "r") as f:
+            text = f.read()
+        if repoName not in text:
+            with open(f"{cwd}/requiredRepos.txt", "a") as f:
+                f.write(f"\n{repoName}")
