@@ -553,15 +553,15 @@ class SPASE(StrategyInterface):
                         "keywords": {
                             "@type": "DefinedTerm",
                             "inDefinedTermSet": {
-                                "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Region",
-                                "@type": "DefinedTermSet"},
+                                "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Region"},
                             "termCode": item.text},
                         "name": prettyName
                     }
 
             # if this is the first item added, add additional info for DefinedTermSet
             if allRegions.index(item) == 0:
-                entry["keywords"]["inDefinedTermSet"]["name"] = "SPASE MeasurementType"
+                entry["keywords"]["inDefinedTermSet"]["@type"] = "DefinedTermSet"
+                entry["keywords"]["inDefinedTermSet"]["name"] = "SPASE Region"
                 entry["keywords"]["inDefinedTermSet"]["url"] = "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Region"
             spatial_coverage.append(entry)
 
@@ -569,7 +569,7 @@ class SPASE(StrategyInterface):
             spatial_coverage = None
         return delete_null_values(spatial_coverage)
 
-    def get_creator(self) -> Union[List[Dict], None]:
+    def get_creator(self, **kwargs) -> Union[List[Dict], None]:
         # Mapping: schema:creator = spase:ResourceHeader/spase:PublicationInfo/spase:Authors 
         # OR schema:creator = spase:ResourceHeader/spase:Contact/spase:PersonID
         # Each item is:
@@ -601,7 +601,7 @@ class SPASE(StrategyInterface):
                     # create the dictionary entry for that person and append to list
                     creatorEntry = personFormat("creator", authorRole[index], authorStr, givenName, familyName, affiliation, orcidID, ror)
                     creator.append(creatorEntry)
-            # if all creators were found in PublicationInfo/Authors
+            # if creators were found in PublicationInfo/Authors
             else:
                 # if there are multiple authors
                 if len(author) > 1:
@@ -611,14 +611,20 @@ class SPASE(StrategyInterface):
                             author[num] = each.replace("\'","")
                     # iterate over each person in author string
                     for person in author:
+                        matchingContact = False
                         index = author.index(person)
                         familyName, sep, givenName = person.partition(", ")
                         # find matching person in contacts, if any, to retrieve affiliation and ORCiD
                         for key, val in contactsList.items():
-                            if person == val:
-                                matchingContact = True
-                                orcidID, affiliation, ror = get_ORCiD_and_Affiliation(key, self.file)
-                                creatorEntry = personFormat("creator", authorRole[index], person, givenName, familyName, affiliation, orcidID, ror)
+                            if not matchingContact:
+                                if person == val:
+                                    matchingContact = True
+                                    # only if creating draft JSON, use SPASE record that includes ROR
+                                    if kwargs and (person == 'Young, David T.'):
+                                        orcidID, affiliation, ror = get_ORCiD_and_Affiliation(key, self.file, **kwargs)
+                                    else:
+                                        orcidID, affiliation, ror = get_ORCiD_and_Affiliation(key, self.file)
+                                    creatorEntry = personFormat("creator", authorRole[index], person, givenName, familyName, affiliation, orcidID, ror)
                         if not matchingContact:
                             creatorEntry = personFormat("creator", authorRole[index], person, givenName, familyName)
                         creator.append(creatorEntry)
@@ -626,13 +632,15 @@ class SPASE(StrategyInterface):
                 else:
                     # get rid of extra quotations
                     person = authorStr.replace("\"","")
+                    person = authorStr.replace("'","")
                     familyName, sep, givenName = person.partition(",")
                     # find matching person in contacts, if any, to retrieve affiliation and ORCiD
                     for key, val in contactsList.items():
-                        if person == val:
-                            matchingContact = True
-                            orcidID, affiliation, ror = get_ORCiD_and_Affiliation(key, self.file)
-                            creatorEntry = personFormat("creator", authorRole[0], person, givenName, familyName, affiliation, orcidID, ror)
+                        if not matchingContact:
+                            if person == val:
+                                matchingContact = True
+                                orcidID, affiliation, ror = get_ORCiD_and_Affiliation(key, self.file)
+                                creatorEntry = personFormat("creator", authorRole[0], person, givenName, familyName, affiliation, orcidID, ror)
                     if not matchingContact:
                         creatorEntry = personFormat("creator", authorRole[0], person, givenName, familyName)
                     creator.append(creatorEntry)
@@ -644,7 +652,7 @@ class SPASE(StrategyInterface):
             creator = None
         return delete_null_values(creator)
 
-    def get_contributor(self) -> Union[List[Dict], None]:
+    def get_contributor(self, **kwargs) -> Union[List[Dict], None]:
         # Mapping: schema:contributor = spase:ResourceHeader/spase:Contact/spase:PersonID
         # Each item is:
         #   {@type: Role, roleName: Contributor or curator role, contributor: {@type: Person, name: Author Name, givenName: First Name, familyName: Last Name}}
@@ -653,38 +661,52 @@ class SPASE(StrategyInterface):
         # Using schema:Person as defined in: https://schema.org/Person
         author, authorRole, pubDate, pub, contributors, dataset, backups, contactsList = get_authors(self.metadata)
         contributor = []
+        firstContrib = True
         # holds role values that are not initially considered for contributor var
         CuratorRoles = ["HostContact", "GeneralContact", "DataProducer", "MetadataContact", "TechnicalContact"]
         
         # Step 1: check for ppl w author roles that were not found in PubInfo
         for key, val in contactsList.items():
+            # used so that DefinedTermSet info not repeated in output
+            if contributor != []:
+                firstContrib = False
             if "." not in val:
                 # split contact into name, first name, and last name
                 contributorStr, givenName, familyName = nameSplitter(key)
                 # attempt to get ORCiD and affiliation
-                orcidID, affiliation, ror = get_ORCiD_and_Affiliation(key, self.file)
+                # only if creating draft JSON, use SPASE record that includes ROR
+                if kwargs and ("Jolene.S.Pickett" in key):
+                    orcidID, affiliation, ror = get_ORCiD_and_Affiliation(key, self.file, **kwargs)
+                else:
+                    orcidID, affiliation, ror = get_ORCiD_and_Affiliation(key, self.file)
                 # if contact has more than 1 role
                 if len(contactsList[key]) > 1:
-                    individual = personFormat("contributor", contactsList[key], contributorStr, givenName, familyName, affiliation, orcidID, ror)
+                    individual = personFormat("contributor", contactsList[key], contributorStr, givenName, familyName, affiliation, orcidID, ror, firstContrib)
                 else:
-                    individual = personFormat("contributor", contactsList[key][0], contributorStr, givenName, familyName, affiliation, orcidID, ror)
+                    individual = personFormat("contributor", contactsList[key][0], contributorStr, givenName, familyName, affiliation, orcidID, ror, firstContrib)
                 contributor.append(individual)
 
-        # Step 2: check for non-author role contributors found in Contacts
+        # Step 2a: check for non-author role contributors found in Contacts
         if contributors:
             for person in contributors:
+                # used so that DefinedTermSet info not repeated in output
+                if contributor != []:
+                    firstContrib = False
                 # split contact into name, first name, and last name
                 contributorStr, givenName, familyName = nameSplitter(person)
                 # add call to get ORCiD and affiliation
                 orcidID, affiliation, ror = get_ORCiD_and_Affiliation(person, self.file)
-                individual = personFormat("contributor", contributorStr, givenName, familyName, affiliation, orcidID, ror)
+                individual = personFormat("contributor", contributorStr, givenName, familyName, affiliation, orcidID, ror, firstContrib)
                 contributor.append(individual)
-        # Step 3: if no non-author role contributor is found, use backups (editors/curators)
+        # Step 2b: if no non-author role contributor is found, use backups (editors/curators)
         else:
             found = False
             i = 0
             # while a curator is not found
             while not found and i < len(CuratorRoles):
+                # used so that DefinedTermSet info not repeated in output
+                if contributor != []:
+                    firstContrib = False
                 # search for roles in backups that match CuratorRoles (in order of priority)
                 keys = [key for key, val in backups.items() if CuratorRoles[i] in val]
                 if keys != []:
@@ -693,7 +715,7 @@ class SPASE(StrategyInterface):
                         editorStr, givenName, familyName = nameSplitter(key)
                         # add call to get ORCiD and affiliation
                         orcidID, affiliation, ror = get_ORCiD_and_Affiliation(key, self.file)
-                        individual = personFormat("contributor", CuratorRoles[i], editorStr, givenName, familyName, affiliation, orcidID, ror)
+                        individual = personFormat("contributor", CuratorRoles[i], editorStr, givenName, familyName, affiliation, orcidID, ror, firstContrib)
                         contributor.append(individual)
                         found = True
                 i += 1
@@ -721,8 +743,13 @@ class SPASE(StrategyInterface):
         #ror = None
 
         # commented out ROR for now until capability added in SPASE
-        #ror = get_ROR(publisher)
-        """if ror:
+        """if 'spase://' in publisher:
+            ORCiD, affil, ror = get_ORCiD_and_Affiliation(publisher)
+        else:
+            # add full SPASE path to publisher name
+            # how to do that???
+            ORCiD, affil, ror = get_ORCiD_and_Affiliation(publisher)
+        if ror:
             publisher = {"@id": ror,
                         "@type": "Organization",
                         "name": publisher,
@@ -1118,7 +1145,7 @@ def get_dates(metadata: etree.ElementTree) -> tuple[str, List]:
                     continue
     return ReleaseDate, RevisionHistory
 
-def personFormat(type:str, roleName:str, name:str, givenName:str, familyName:str, affiliation="", orcidID="", ror="") -> Dict:
+def personFormat(type:str, roleName:Union[str, List], name:str, givenName:str, familyName:str, affiliation="", orcidID="", ror="", firstEntry=False) -> Dict:
     """
     Groups up all available metadata associated with a given contact
     into a dictionary following the SOSO guidelines.
@@ -1131,40 +1158,89 @@ def personFormat(type:str, roleName:str, name:str, givenName:str, familyName:str
     :param affiliation: The organization this Contact is affiliated with.
     :param orcidID: The ORCiD identifier for this Contact
     :param ror: The ROR ID for the associated affiliation
+    :param firstEntry: Boolean signifying if this person is the first entry into its respective property result.
 
     :returns: The entry in the correct format to append to the contributor or creator dictionary
     """
     
     domain, sep, orcidVal = orcidID.rpartition("/")
-    # most basic format for person item
-    entry = {"@type": "Role",
-            f"{type}": {"@type": "Person",
+
+    # most basic format for creator item
+    if type == "creator":
+        entry = {"@type": "Person",
+                "name": name,
+                "givenName": givenName,
+                "familyName": familyName}
+    elif type == "contributor":
+        # Split string on uppercase characters
+        res = re.split(r'(?=[A-Z])', roleName)
+        # Remove empty strings and join with space or hypen depending on roleName
+        if "Co" in roleName:
+            pattern = r'{}(?=[A-Z])'.format(re.escape("Co"))
+            if bool(re.search(pattern, roleName)):
+                prettyName = '-'.join(filter(None, res))
+            else:
+                prettyName = ' '.join(filter(None, res))
+        else:
+            prettyName = ' '.join(filter(None, res))
+        # most basic format for contributor item
+        entry = {"@type": ["Role", "DefinedTerm"],
+                f"{type}": {"@type": "Person",
                             "name": name,
                             "givenName": givenName,
-                            "familyName": familyName}
-            }
-    # add role only if contributor
-    if type == "contributor":
-        entry["roleName"] = roleName
+                            "familyName": familyName},
+                "inDefinedTermSet": {
+                    "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Role"},            
+                "roleName": prettyName,
+                "termCode": roleName}
+
+        if firstEntry:
+                entry["inDefinedTermSet"]["@type"] = "DefinedTermSet"
+                entry["inDefinedTermSet"]["name"] = "SPASE Role"
+                entry["inDefinedTermSet"]["url"] = "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Role"
+
     if orcidID:
-        entry[f"{type}"]["identifier"] = {"@id": f"https://orcid.org/{orcidID}",
+        if type == "contributor":
+            entry[f"{type}"]["identifier"] = {"@id": f"https://orcid.org/{orcidID}",
                                                 "@type": "PropertyValue",
                                                 "propertyID": "https://registry.identifiers.org/registry/orcid",
                                                 "url": f"https://orcid.org/{orcidID}",
                                                 "value": f"orcid:{orcidVal}"}
-        entry[f"{type}"]["@id"] = f"https://orcid.org/{orcidID}"
-    if affiliation:
-        if ror:
-            entry[f"{type}"]["affiliation"] = {"@id": ror,
-                                                "@type": "Organization",
-                                                "name": affiliation,
-                                                "identifier": ror}
+            entry[f"{type}"]["@id"] = f"https://orcid.org/{orcidID}"
         else:
-            entry[f"{type}"]["affiliation"] = {"@type": "Organization",
+            entry["identifier"] = {"@id": f"https://orcid.org/{orcidID}",
+                                    "@type": "PropertyValue",
+                                    "propertyID": "https://registry.identifiers.org/registry/orcid",
+                                    "url": f"https://orcid.org/{orcidID}",
+                                    "value": f"orcid:{orcidVal}"}
+            entry["@id"] = f"https://orcid.org/{orcidID}"
+    if affiliation:
+        if type == 'contributor':
+            if ror:
+                entry[f"{type}"]["affiliation"] = {"@type": "Organization",
+                                                    "name": affiliation,
+                                                    "identifier": {"@id": f"https://ror.org/{ror}",
+                                                                    "@type": "PropertyValue",
+                                                                    "propertyID": "https://registry.identifiers.org/registry/ror",
+                                                                    "url": f"https://ror.org/{ror}",
+                                                                    "value": f"ror:{ror}"}}
+            else:
+                entry[f"{type}"]["affiliation"] = {"@type": "Organization",
                                                     "name": affiliation}
-    contact = entry       
+        else:
+            if ror:
+                entry["affiliation"] = {"@type": "Organization",
+                                        "name": affiliation,
+                                        "identifier": {"@id": f"https://ror.org/{ror}",
+                                                        "@type": "PropertyValue",
+                                                        "propertyID": "https://registry.identifiers.org/registry/ror",
+                                                        "url": f"https://ror.org/{ror}",
+                                                        "value": f"ror:{ror}"}}
+            else:
+                entry["affiliation"] = {"@type": "Organization",
+                                        "name": affiliation}     
 
-    return contact
+    return entry
 
 def nameSplitter(person:str) -> tuple[str, str, str]:
     """
@@ -1181,13 +1257,17 @@ def nameSplitter(person:str) -> tuple[str, str, str]:
         path, sep, nameStr = person.partition("Person/")
         # get rid of extra quotations
         nameStr = nameStr.replace("'","")
-        givenName, sep, familyName = nameStr.partition(".")
-        # if name has initial(s)
-        if ("." in familyName):
-            initial, sep, familyName = familyName.partition(".")
-            givenName = givenName + ' ' + initial + '.'
-        nameStr = givenName + " " + familyName
-        nameStr = nameStr.replace("\"", "")
+        if "." in nameStr:
+            givenName, sep, familyName = nameStr.partition(".")
+            # if name has initial(s)
+            if ("." in familyName):
+                initial, sep, familyName = familyName.partition(".")
+                givenName = givenName + ' ' + initial + '.'
+            nameStr = givenName + " " + familyName
+            nameStr = nameStr.replace("\"", "")
+        else:
+            givenName = ""
+            familyName = ""
     else:
         raise ValueError("This function only takes a nonempty string as an argument. Try again.")
     return nameStr, givenName, familyName
@@ -1291,10 +1371,10 @@ def get_instrument(metadata: etree.ElementTree, path: str, **kwargs:dict) -> Uni
             before, absPath, after = path.partition(f"{homeDir}/")
             repoName, sep, after = after.partition("/")
             # add original SPASE repo to log file that holds name of repos needed
-            updateLog(cwd, repoName)
+            updateLog(cwd, repoName, "requiredRepos")
             # add SPASE repo that contains instruments also
             repoName, sep, after = item.replace("spase://", "").partition("/")
-            updateLog(cwd, repoName)
+            updateLog(cwd, repoName, "requiredRepos")
             # format record
             if kwargs:
                 # being called by testing function = change directory to xml file in tests folder
@@ -1309,8 +1389,12 @@ def get_instrument(metadata: etree.ElementTree, path: str, **kwargs:dict) -> Uni
                 instrumentIDs[item]["name"] = testSpase.get_name()
                 instrumentIDs[item]["URL"] = testSpase.get_url()
             else:
-                # add file to log
-                pass
+                # add file to log 'problematic records/files'
+                if not os.path.exists(f"{cwd}/problematicRecords.txt"):
+                    with open(f"{cwd}/problematicRecords.txt", "w") as f:
+                        f.write(f"{record}")
+                else:
+                    updateLog(cwd, record, "problematicRecords")
         for k in instrumentIDs.keys():
             if instrumentIDs[k]["URL"]:
                 instrument.append({"@id": instrumentIDs[k]["URL"],
@@ -1362,7 +1446,7 @@ def get_observatory(metadata: etree.ElementTree, path: str, **kwargs:dict) -> Un
             before, absPath, after = path.partition(f"{homeDir}/")
             repoName, sep, after = after.partition("/")
             # add original SPASE repo to log file that holds name of repos needed
-            updateLog(cwd, repoName)
+            updateLog(cwd, repoName, "requiredRepos")
             if kwargs:
                 # being called by testing function = change directory to xml file in tests folder
                 before, sep, fileName = item.rpartition("/")
@@ -1382,7 +1466,7 @@ def get_observatory(metadata: etree.ElementTree, path: str, **kwargs:dict) -> Un
                         observatoryID = child.text
                 # add SPASE repo that contains observatories to log file also
                 repoName, sep, after = observatoryID.replace("spase://", "").partition("/")
-                updateLog(cwd, repoName)
+                updateLog(cwd, repoName, "requiredRepos")
                 # use observatoryID as record to get observatoryGroupID and other info  
                 if kwargs:
                     # being called by testing function = change directory to xml file in tests folder
@@ -1407,7 +1491,7 @@ def get_observatory(metadata: etree.ElementTree, path: str, **kwargs:dict) -> Un
                     if observatoryGroupID:
                         # add SPASE repo that contains observatory group to log file also
                         repoName, sep, after = observatoryGroupID.replace("spase://", "").partition("/")
-                        updateLog(cwd, repoName)
+                        updateLog(cwd, repoName, "requiredRepos")
                         # format record
                         if kwargs:
                             # being called by testing function = change directory to xml file in tests folder
@@ -1433,8 +1517,12 @@ def get_observatory(metadata: etree.ElementTree, path: str, **kwargs:dict) -> Un
                                                         "url": groupURL})
                                     recordedIDs.append(observatoryGroupID)
                         else:
-                            # add obsGrp to log file
-                            pass
+                            # add obsGrp to log file 'problematic records/files'
+                            if not os.path.exists(f"{cwd}/problematicRecords.txt"):
+                                with open(f"{cwd}/problematicRecords.txt", "w") as f:
+                                    f.write(f"{record}")
+                            else:
+                                updateLog(cwd, record, "problematicRecords")
                     if url and (observatoryID not in recordedIDs):
                         observatory.append({"@type": ["ResearchProject", "prov:Entity", "sosa:Platform"],
                                             "@id": url,
@@ -1446,8 +1534,12 @@ def get_observatory(metadata: etree.ElementTree, path: str, **kwargs:dict) -> Un
                                             "url": url})
                         recordedIDs.append(observatoryID)
                 else:
-                    # add obs to log file
-                    pass
+                    # add obs to log file 'problematic records/files'
+                    if not os.path.exists(f"{cwd}/problematicRecords.txt"):
+                        with open(f"{cwd}/problematicRecords.txt", "w") as f:
+                            f.write(f"{record}")
+                    else:
+                        updateLog(cwd, record, "problematicRecords")
     else:
         observatory = None
     return observatory
@@ -1562,17 +1654,17 @@ def get_is_part_of(metadata: etree.ElementTree, **kwargs:dict) -> Union[List[Dic
     is_part_of = get_relation(desiredRoot, ["PartOf"], **kwargs)
     return is_part_of
 
-def get_ORCiD_and_Affiliation(PersonID: str, file: str, **kwargs:dict) -> tuple[str, str, str]:
+def get_ORCiD_and_Affiliation(SPASE_ID: str, file: str, **kwargs:dict) -> tuple[str, str, str]:
     """
     Uses the given PersonID to scrape the ORCiD and affiliation (and its ROR ID if provided)
     associated with this contact.
 
-    :param PersonID: The SPASE ID linking the page with the Person's info.
+    :param SPASE_ID: The SPASE ID linking the page with the Person's or Repository's info.
     :param file: The absolute path of the original xml file scraped.
 
     :returns: The ORCiD ID and organization name (with its ROR ID, if found) this Contact is affiliated with, as strings.
     """
-    # takes PersonID and follows its link to get ORCIdentifier and OrganizationName
+    # takes SPASE_ID and follows its link to get ORCIdentifier, OrganizationName, and RORIdentifier
     orcidID = ""
     affiliation = ""
     ror = ""
@@ -1585,24 +1677,24 @@ def get_ORCiD_and_Affiliation(PersonID: str, file: str, **kwargs:dict) -> tuple[
     before, absPath, after = file.partition(f"{homeDir}/")
     repoName, sep, after = after.partition("/")
     # add original SPASE repo to log file that holds name of repos needed
-    updateLog(cwd, repoName)
+    updateLog(cwd, repoName, "requiredRepos")
     # add SPASE repo that contains Person descriptions to log file also
-    repoName, sep, after = PersonID.replace("spase://", "").partition("/")
-    updateLog(cwd, repoName)
+    repoName, sep, after = SPASE_ID.replace("spase://", "").partition("/")
+    updateLog(cwd, repoName, "requiredRepos")
     # format record name
     if kwargs:
         # being called by testing function = change directory to xml file in tests folder
-        before, sep, fileName = PersonID.rpartition("/")
+        before, sep, fileName = SPASE_ID.rpartition("/")
         record = absPath + kwargs["testing"] + f"spase-{fileName}" + ".xml"
     else:
-        record = absPath + PersonID.replace("spase://", "") + ".xml"
+        record = absPath + SPASE_ID.replace("spase://", "") + ".xml"
     record = record.replace("'","")
     if os.path.isfile(record):
         testSpase = SPASE(record)
         root = testSpase.metadata.getroot()
         # iterate thru xml to get desired info
         for elt in root.iter(tag=etree.Element):
-            if elt.tag.endswith("Person"):
+            if elt.tag.endswith("Person") or elt.tag.endswith("Repository"):
                 desiredRoot = elt
         for child in desiredRoot.iter(tag=etree.Element):
             if child.tag.endswith("ORCIdentifier"):
@@ -1613,7 +1705,11 @@ def get_ORCiD_and_Affiliation(PersonID: str, file: str, **kwargs:dict) -> tuple[
                 ror = child.text
     else:
         # add file to log called 'problematic records/files'
-        pass
+        if not os.path.exists(f"{cwd}/problematicRecords.txt"):
+            with open(f"{cwd}/problematicRecords.txt", "w") as f:
+                f.write(f"{record}")
+        else:
+            updateLog(cwd, record, "problematicRecords")
     return orcidID, affiliation, ror
 
 def get_temporal(metadata: etree.ElementTree, namespaces: Dict) -> Union[List, None]:
@@ -1742,25 +1838,43 @@ def process_authors(author:List, authorRole:List, contactsList:Dict) -> tuple[Li
                 # iterate thru contacts to find one that matches the current person
                 for contact in contactsList.keys():
                     if matchingContact is None:
+                        initial = None
                         firstName, sep, lastName = contact.rpartition(".")
                         firstName, sep, initial = firstName.partition(".")
                         path, sep, firstName = firstName.rpartition("/")
+                        if len(firstName) == 1:
+                            firstName = firstName[0] + "."
                         # Assumption: if first name initial, middle initial, and last name match = same person
-                        # remove <f"{firstName[0]}."> in the line below if this assumption is no longer accurate
-                        if ((f"{firstName[0]}." in person) or (firstName in person)) and (f"{initial}." in person) and (lastName in person):
-                            matchingContact = contact
+                        # remove <f"{firstName[0]}."> in the lines below if this assumption is no longer accurate
+                        # if no middle name
+                        if not initial:
+                            if ((f"{firstName[0]}." in person) or (firstName in person)) and (lastName in person):
+                                matchingContact = contact
+                        # if middle name is not initialized, check whole string
+                        elif len(initial) > 1:
+                            if ((f"{firstName[0]}." in person) or (firstName in person)) and (initial in person) and (lastName in person):
+                                matchingContact = contact
+                        else:
+                            if ((f"{firstName[0]}." in person) or (firstName in person)) and (f"{initial}." in person) and (lastName in person):
+                                matchingContact = contact
                 # if match is found, add role to authorRole and replace role with formatted person name in contactsList
                 if matchingContact is not None:
                     authorRole[index] = [authorRole[index]] + contactsList[matchingContact]
-                    contactsList[matchingContact] = f"{lastName}, {firstName} {initial}."
+                    if not initial:
+                        contactsList[matchingContact] = f"{lastName}, {firstName}"
+                    elif len(initial) > 1:
+                        contactsList[matchingContact] = f"{lastName}, {firstName} {initial}"
+                    else:
+                        contactsList[matchingContact] = f"{lastName}, {firstName} {initial}."
                 author[index] = (f'{familyName}, {givenName}').strip()
         # if there is only one author listed
         else:
             matchingContact = None
             # get rid of extra quotations
             person = authorStr.replace("\"","")
+            person = authorStr.replace("'","")
             if authorRole == ["Author"]:
-                familyName, sep, givenName = person.partition(",")
+                familyName, sep, givenName = person.partition(", ")
                 # handle case when name is not formatted correctly
                 if givenName == "":
                     givenName, sep, familyName = familyName.partition(". ")
@@ -1771,37 +1885,54 @@ def process_authors(author:List, authorRole:List, contactsList:Dict) -> tuple[Li
                 # iterate thru contacts to find one that matches the current person
                 for contact in contactsList.keys():
                     if matchingContact is None:
+                        initial = None
                         firstName, sep, lastName = contact.rpartition(".")
                         firstName, sep, initial = firstName.partition(".")
                         path, sep, firstName = firstName.rpartition("/")
+                        if len(firstName) == 1:
+                            firstName = firstName[0] + "."
                         # Assumption: if first name initial, middle initial, and last name match = same person
-                        # remove <f"{firstName[0]}."> in the line below if this assumption is no longer accurate
-                        if ((f"{firstName[0]}." in person) or (firstName in person)) and (f"{initial}." in person) and (lastName in person):
-                            matchingContact = contact
+                        # remove <f"{firstName[0]}."> in the lines below if this assumption is no longer accurate
+                        # if no middle name
+                        if not initial:
+                            if ((f"{firstName[0]}." in person) or (firstName in person)) and (lastName in person):
+                                matchingContact = contact
+                        # if middle name is not initialized, check whole string
+                        elif len(initial) > 1:
+                            if ((f"{firstName[0]}." in person) or (firstName in person)) and (initial in person) and (lastName in person):
+                                matchingContact = contact
+                        else:
+                            if ((f"{firstName[0]}." in person) or (firstName in person)) and (f"{initial}." in person) and (lastName in person):
+                                matchingContact = contact
                 # if match is found, add role to authorRole and replace role with formatted person name in contactsList
                 if matchingContact is not None:
                     authorRole[0] = [authorRole[0]] + contactsList[matchingContact]
-                    contactsList[matchingContact] = f"{lastName}, {firstName} {initial}."
+                    if not initial:
+                        contactsList[matchingContact] = f"{lastName}, {firstName}"
+                    elif len(initial) > 1:
+                        contactsList[matchingContact] = f"{lastName}, {firstName} {initial}"
+                    else:
+                        contactsList[matchingContact] = f"{lastName}, {firstName} {initial}."
                 author[0] = (f'{familyName}, {givenName}').strip()
     return author, authorRole, contactsList
 
-def verifyType(url:str) -> tuple[bool, bool, bool, dict]:
+def verifyType(url:str) -> tuple[bool, bool, dict]:
     """
-    Verifies that the link found in AssociationID is to a dataset or journal article.
+    Verifies that the link found in AssociationID is to a dataset or journal article and acquires
+    more information if a dataset is not hosted by NASA.
 
     :param url: The link provided as an Associated work/reference for the SPASE record
 
-    :returns: Boolean values signifying if the link is a Dataset/ScholarlyArticle and if it
-                it is a SPASE record or not.
+    :returns: Boolean values signifying if the link is a Dataset/ScholarlyArticle.
+                Also a dictionary with additional info about the related Dataset
+                acquired from DataCite API if it is not hosted by NASA.
     """
     # tests SPASE records to make sure they are datasets or a journal article
     isDataset = False
     isArticle = False
-    isSPASE = False
     nonSPASE_Info = {}
 
     if "hpde.io" in url:
-        isSPASE = True
         if "Data" in url:
             isDataset = True
     # case where url provided is a DOI
@@ -1809,7 +1940,6 @@ def verifyType(url:str) -> tuple[bool, bool, bool, dict]:
         link = requests.head(url)
         # check to make sure doi resolved to an hpde.io page
         if "hpde.io" in link.headers['location']:
-            isSPASE = True
             if "Data" in link.headers['location']:
                 isDataset = True
         # if not, call DataCite API to check resourceTypeGeneral property associated w the record
@@ -1844,9 +1974,22 @@ def verifyType(url:str) -> tuple[bool, bool, bool, dict]:
                     nonSPASE_Info["license"] = []
                     for each in dict["rightsList"]:
                         nonSPASE_Info["license"].append(each["rightsUri"])
-                # creators?
+                for creator in dict["creators"]:
+                    if ", " in creator["name"]:
+                        familyName, sep, givenName = creator["name"].partition(", ")
+                    else:
+                        familyName = ""
+                        givenName = ""
+                    # adjust DataCite format to conform to schema.org format
+                    if creator["affiliation"]:
+                        nonSPASE_Info["creators"] = personFormat(
+                            "creator", "", creator["name"], givenName, familyName,
+                            creator["affiliation"]["name"])
+                    else:
+                        nonSPASE_Info["creators"] = personFormat(
+                            "creator", "", creator["name"], givenName, familyName)
 
-    return isDataset, isArticle, isSPASE, nonSPASE_Info
+    return isDataset, isArticle, nonSPASE_Info
 
 def get_ResourceID(metadata: etree.ElementTree, namespaces: Dict):
     """
@@ -1899,14 +2042,14 @@ def get_measurementMethod(metadata: etree.ElementTree, namespaces: Dict) -> Unio
         # most basic entry for measurementMethod
         entry = {"@type": "DefinedTerm",
             "inDefinedTermSet": {
-                "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#MeasurementType",
-                "@type": "DefinedTermSet"},
+                "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#MeasurementType"},
             "name": prettyName,
             "termCode": item.text
             }
 
         # if this is the first item added, add additional info for DefinedTermSet
         if allMeasures.index(item) == 0:
+            entry["inDefinedTermSet"]["@type"] = "DefinedTermSet"
             entry["inDefinedTermSet"]["name"] = "SPASE MeasurementType"
             entry["inDefinedTermSet"]["url"] = "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#MeasurementType"
         measurementMethod.append(entry)
@@ -1959,7 +2102,7 @@ def get_relation(desiredRoot: etree.Element, association: list[str], **kwargs:di
             cwd = str(Path.cwd()).replace("\\","/")
             # add SPASE repo that contains related SPASE record to log file
             repoName, sep, after = record.replace("spase://", "").partition("/")
-            updateLog(cwd, repoName)
+            updateLog(cwd, repoName, "requiredRepos")
             # format record
             if kwargs:
                 # being called by testing function = change directory to xml file in tests folder
@@ -1975,73 +2118,82 @@ def get_relation(desiredRoot: etree.Element, association: list[str], **kwargs:di
                 description = testSpase.get_description()
                 license = testSpase.get_license()
                 creators = testSpase.get_creator()
+                if creators is None:
+                    creators = "No creators were found. View record for contacts."
                 relationalRecords[url] = {"name": name,
                                             "description": description,
-                                            "license": license,
                                             "creators": creators}
+                if license is not None:
+                    relationalRecords[url]["license"] = license
 
             else:
                 # add file to log called 'problematic records/files'
-                pass
+                if not os.path.exists(f"{cwd}/problematicRecords.txt"):
+                    with open(f"{cwd}/problematicRecords.txt", "w") as f:
+                        f.write(f"{record}")
+                else:
+                    updateLog(cwd, record, "problematicRecords")
             i += 1
         # add correct type
         if len(relations) > 1:
             relation = []
-            for each in relation:
+        # not SPASE records
+        if relationalRecords == {}:
+            for each in relations:
                 # most basic entry into relation
                 entry = {"@id": each,
                             "identifier": each,
                             "url": each}
-                isDataset, isArticle, isSPASE, nonSPASE_Info = verifyType(each)
+                isDataset, isArticle, nonSPASE_Info = verifyType(each)
                 if isDataset:
                     entry["@type"] = "Dataset"
-                    if isSPASE:
-                        entry["name"] = relationalRecords[each]["name"]
-                        entry["description"] = relationalRecords[each]["description"]
-                        entry["license"] = relationalRecords[each]["license"]
-                        entry["creators"] = relationalRecords[each]["creators"]
-                elif isArticle:
-                    entry["@type"] = "ScholarlyArticle"
                     entry["name"] = nonSPASE_Info["name"]
                     entry["description"] = nonSPASE_Info["description"]
                     if "license" in nonSPASE_Info.keys():
                         entry["license"] = nonSPASE_Info["license"]
-                    #entry["creators"] = nonSPASE_Info["creators"]
-                relation.append(entry)
+                    entry["creator"] = nonSPASE_Info["creators"]
+                elif isArticle:
+                    entry["@type"] = "ScholarlyArticle"
+                if len(relations) > 1:
+                    relation.append(entry)
+                else:
+                    relation = entry
         else:
-            # most basic entry into relation
-            entry = {"@id": relations[0],
-                        "identifier": relations[0],
-                        "url": relations[0]}
-            isDataset, isArticle, isSPASE, nonSPASE_Info = verifyType(relations[0])
-            if isDataset:
-                entry["@type"] = "Dataset"
-                if isSPASE:
-                    entry["name"] = relationalRecords[relations[0]]["name"]
-                    entry["description"] = relationalRecords[relations[0]]["description"]
-                    entry["license"] = relationalRecords[relations[0]]["license"]
-                    entry["creators"] = relationalRecords[relations[0]]["creators"]
-            elif isArticle:
-                entry["@type"] = "ScholarlyArticle"
-                entry["name"] = nonSPASE_Info["name"]
-                entry["description"] = nonSPASE_Info["description"]
-                if "license" in nonSPASE_Info.keys():
-                    entry["license"] = nonSPASE_Info["license"]
-                #entry["creators"] = nonSPASE_Info["creators"]
-            relation = entry
+            for each in relationalRecords.keys():
+                # most basic entry into relation
+                entry = {"@id": each,
+                            "identifier": each,
+                            "url": each}
+                isDataset, isArticle, nonSPASE_Info = verifyType(each)
+                if isDataset:
+                    entry["@type"] = "Dataset"
+                    entry["name"] = relationalRecords[each]["name"]
+                    entry["description"] = relationalRecords[each]["description"]
+                    if "license" in relationalRecords[each].keys():
+                        entry["license"] = relationalRecords[each]["license"]
+                    entry["creator"] = relationalRecords[each]["creators"]
+                elif isArticle:
+                    entry["@type"] = "ScholarlyArticle"
+                if len(relations) > 1:
+                    relation.append(entry)
+                else:
+                    relation = entry
     return relation
 
-def updateLog(cwd:str, repoName:str) -> None:
+def updateLog(cwd:str, addition:str, logFileName:str) -> None:
     """
-    Updates the log file containing the SPASE repositories needed for the
-    metadata conversion to work as intended.
+    Updates a log file with the given addition. Log files currently updated
+    using this method are one containing the SPASE repositories needed for the
+    metadata conversion to work as intended and another containing all of the
+    SPASE records that could not be accessed.
 
     :param cwd: The current working directory of your workstation.
-    :param repoName: The name of the repository needed to access the SPASE record.
+    :param addition: The addition to the log file, such as the name of the repository
+    needed to access the SPASE record or the SPASE record itself.
     """
-    if (cwd is not None) and (repoName is not None):
-        with open(f"{cwd}/requiredRepos.txt", "r") as f:
+    if (cwd is not None) and (addition is not None):
+        with open(f"{cwd}/{logFileName}.txt", "r") as f:
             text = f.read()
-        if repoName not in text:
-            with open(f"{cwd}/requiredRepos.txt", "a") as f:
-                f.write(f"\n{repoName}")
+        if addition not in text:
+            with open(f"{cwd}/{logFileName}.txt", "a") as f:
+                f.write(f"\n{addition}")

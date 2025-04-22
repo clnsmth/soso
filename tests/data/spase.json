@@ -27,119 +27,121 @@
    "contributor": {
       "@list": [
          {
-            "@type": "Role",
+            "@type": [
+               "Role",
+               "DefinedTerm"
+            ],
             "contributor": {
                "@type": "Person",
                "affiliation": {
                   "@type": "Organization",
+                  "identifier": {
+                     "@id": "https://ror.org/036jqmy94",
+                     "@type": "PropertyValue",
+                     "propertyID": "https://registry.identifiers.org/registry/ror",
+                     "url": "https://ror.org/036jqmy94",
+                     "value": "ror:036jqmy94"
+                  },
                   "name": "University of Iowa"
                },
                "familyName": "Pickett",
                "givenName": "Jolene S.",
                "name": "Jolene S. Pickett"
             },
-            "roleName": "PrincipalInvestigator"
+            "inDefinedTermSet": {
+               "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Role",
+               "@type": "DefinedTermSet",
+               "name": "SPASE Role",
+               "url": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Role"
+            },
+            "roleName": "Principal Investigator",
+            "termCode": "PrincipalInvestigator"
          },
          {
-            "@type": "Role",
+            "@type": [
+               "Role",
+               "DefinedTerm"
+            ],
             "contributor": {
                "@type": "Person",
                "affiliation": {
                   "@type": "Organization",
                   "name": "Magnetospheric Multiscale (MMS) Science Operations Center (SOC)"
                },
-               "givenName": "MMS_SDC_POC",
-               "name": "MMS_SDC_POC "
+               "name": "MMS_SDC_POC"
             },
-            "roleName": "HostContact"
+            "inDefinedTermSet": {
+               "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Role"
+            },
+            "roleName": "Host Contact",
+            "termCode": "HostContact"
          }
       ]
    },
    "creator": {
       "@list": [
          {
-            "@type": "Role",
-            "creator": {
-               "@type": "Person",
-               "affiliation": {
-                  "@type": "Organization",
-                  "name": "Southwest Research Institute, also affiliated with the University of Texas at San Antonio"
-               },
-               "familyName": "Fuselier",
-               "givenName": "Stephen A.",
-               "name": "Fuselier, Stephen A."
+            "@type": "Person",
+            "affiliation": {
+               "@type": "Organization",
+               "name": "Southwest Research Institute, also affiliated with the University of Texas at San Antonio"
             },
-            "roleName": [
-               "Author",
-               "CoInvestigator"
-            ]
+            "familyName": "Fuselier",
+            "givenName": "Stephen A.",
+            "name": "Fuselier, Stephen A."
          },
          {
-            "@type": "Role",
-            "creator": {
+            "@id": "https://orcid.org/0000-0001-9473-7000",
+            "@type": "Person",
+            "affiliation": {
+               "@type": "Organization",
+               "name": "Southwest Research Institute"
+            },
+            "familyName": "Young",
+            "givenName": "David T.",
+            "identifier": {
                "@id": "https://orcid.org/0000-0001-9473-7000",
-               "@type": "Person",
-               "affiliation": {
-                  "@type": "Organization",
-                  "name": "Southwest Research Institute"
-               },
-               "familyName": "Young",
-               "givenName": "David T.",
-               "identifier": {
-                  "@id": "https://orcid.org/0000-0001-9473-7000",
-                  "@type": "PropertyValue",
-                  "propertyID": "https://registry.identifiers.org/registry/orcid",
-                  "url": "https://orcid.org/0000-0001-9473-7000",
-                  "value": "orcid:0000-0001-9473-7000"
-               },
-               "name": "Young, David T."
+               "@type": "PropertyValue",
+               "propertyID": "https://registry.identifiers.org/registry/orcid",
+               "url": "https://orcid.org/0000-0001-9473-7000",
+               "value": "orcid:0000-0001-9473-7000"
             },
-            "roleName": [
-               "Author",
-               "CoInvestigator"
-            ]
+            "name": "Young, David T."
          },
          {
-            "@type": "Role",
-            "creator": {
+            "@id": "https://orcid.org/0000-0001-7888-668X",
+            "@type": "Person",
+            "affiliation": {
+               "@type": "Organization",
+               "name": "Southwest Research Institute"
+            },
+            "familyName": "Gomez",
+            "givenName": "Roman G.",
+            "identifier": {
                "@id": "https://orcid.org/0000-0001-7888-668X",
-               "@type": "Person",
-               "affiliation": {
-                  "@type": "Organization",
-                  "name": "Southwest Research Institute"
-               },
-               "familyName": "Gomez",
-               "givenName": "Roman G.",
-               "identifier": {
-                  "@id": "https://orcid.org/0000-0001-7888-668X",
-                  "@type": "PropertyValue",
-                  "propertyID": "https://registry.identifiers.org/registry/orcid",
-                  "url": "https://orcid.org/0000-0001-7888-668X",
-                  "value": "orcid:0000-0001-7888-668X"
-               },
-               "name": "Gomez, Roman G."
+               "@type": "PropertyValue",
+               "propertyID": "https://registry.identifiers.org/registry/orcid",
+               "url": "https://orcid.org/0000-0001-7888-668X",
+               "value": "orcid:0000-0001-7888-668X"
             },
-            "roleName": [
-               "Author",
-               "CoInvestigator"
-            ]
+            "name": "Gomez, Roman G."
          },
          {
-            "@type": "Role",
-            "creator": {
-               "@type": "Person",
-               "affiliation": {
-                  "@type": "Organization",
-                  "name": "Southwest Research Institute"
+            "@type": "Person",
+            "affiliation": {
+               "@type": "Organization",
+               "identifier": {
+                  "@id": "https://ror.org/03tghng59",
+                  "@type": "PropertyValue",
+                  "propertyID": "https://registry.identifiers.org/registry/ror",
+                  "url": "https://ror.org/03tghng59",
+                  "value": "ror:03tghng59"
                },
-               "familyName": "Burch",
-               "givenName": "James L.",
-               "name": "Burch, James L."
+               "name": "Southwest Research Institute"
             },
-            "roleName": [
-               "Author",
-               "PrincipalInvestigator"
-            ]
+            "familyName": "Burch",
+            "givenName": "James L.",
+            "name": "Burch, James L."
          }
       ]
    },
@@ -162,26 +164,51 @@
       "identifier": "NNG19PQ28C",
       "name": "Explorer Program"
    },
-   "identifier": [
-      {
-         "@id": "https://doi.org/10.48322/6cfb-rq65",
-         "@type": "PropertyValue",
-         "propertyID": "https://registry.identifiers.org/registry/doi",
-         "url": "https://doi.org/10.48322/6cfb-rq65",
-         "value": "doi:10.48322/6cfb-rq65"
-      },
-      {
-         "@id": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
-         "@type": "PropertyValue",
-         "propertyID": "SPASE",
-         "url": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
-         "value": "spase://NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S"
-      }
-   ],
+   "identifier": {
+      "@list": [
+         {
+            "@id": "https://doi.org/10.48322/6cfb-rq65",
+            "@type": "PropertyValue",
+            "name": "DOI: 10.48322/6cfb-rq65",
+            "propertyID": "https://registry.identifiers.org/registry/doi",
+            "url": "https://doi.org/10.48322/6cfb-rq65",
+            "value": "doi:10.48322/6cfb-rq65"
+         },
+         {
+            "@id": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
+            "@type": "PropertyValue",
+            "propertyID": "SPASE",
+            "url": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
+            "value": "spase://NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S"
+         }
+      ]
+   },
    "isBasedOn": {
       "@id": "https://doi.org/10.48322/cb14-a164",
       "@type": "Dataset",
-      "identifier": "https://doi.org/10.48322/cb14-a164"
+      "creator": [
+         {
+            "@type": "Person",
+            "affiliation": {
+               "@type": "Organization",
+               "identifier": {
+                  "@id": "https://ror.org/036jqmy94",
+                  "@type": "PropertyValue",
+                  "propertyID": "https://registry.identifiers.org/registry/ror",
+                  "url": "https://ror.org/036jqmy94",
+                  "value": "ror:036jqmy94"
+               },
+               "name": "University of Iowa"
+            },
+            "familyName": "Gurnett",
+            "givenName": " Donald A.",
+            "name": "Gurnett, Donald A."
+         }
+      ],
+      "description": "Two Dynamics Explorer (DE) spacecraft were launched August 3, 1981, and placed into coplanar polar orbits with DE-1 in a highly elliptical orbit and DE-2 in a lower more circular orbit. The primary objective of the DE program was to investigate magnetosphere-ionosphere-atmosphere coupling processes. The DE mission provided a wealth of new information on a wide variety of magnetospheric plasma wave phenomena including auroral kilometric radiation, auroral hiss, Z mode radiation, narrow-band electromagnetic emissions associated with equatorial upper hybrid waves, whistler mode emissions, wave-particle interactions stimulated by ground VLF transmitters, equatorial ion cyclotron emissions, ion Bernstein mode emissions, and electric field turbulence along the auroral field lines. These files contain calibrated, full resolution, data from the DE-1 Plasma Wave Instrument (PWI). This instrument was designed and built by the plasma wave group at The University of Iowa, Department of Physics and Astronomy, in collaboration with investigators at Stanford University's STAR Laboratory. It measured plasma wave phenomena and quasi-static electric fields using paired combinations of five PWI sensors: a 200m tip-to-tip long wire electric antenna deployed in the spacecraft spin plane, a 9m tip-to-tip tubular electric antenna deployed along the spacecraft spin axis, a short 0.6m electric antenna, mounted on the boom and oriented parallel to the long wire antenna, a magnetic loop antenna mounted on the boom and oriented to measure the component of the magnetic field parallel to the long wire antenna, and a magnetic search coil antenna, also mounted on a boom and oriented to measure the magnetic field parallel to the spacecraft spin axis. The PWI main electronics unit consisted of a Step Frequency Correlator (SFC), a Low Frequency Correlator (LFC), a Wideband Analog Receiver (WBR) and a Linear Wave Receiver (LWR). Only the SFC data are included in these files. The LFC data were provided in a companion fileset. A dataset containing available high rate WBR LWR data may be provided in the future. The SFC consisted of two Step Frequency Receivers (SFR-A and SFR-B) which provided amplitude measurements of the electric and magnetic fields from 100 Hz to 400 kHz and in-phase and quadrature-phase correlations of signals from any selected antenna pair. Phase data are not provided in these datasets.",
+      "identifier": "https://doi.org/10.48322/cb14-a164",
+      "name": "DE 1 Plasma Wave Instrument (PWI) Step Frequency Correlator Electric and Magnetic Field Spectral Density",
+      "url": "https://doi.org/10.48322/cb14-a164"
    },
    "keywords": [
       "MMS",
@@ -268,53 +295,31 @@
    "prov:wasDerivedFrom": {
       "@id": "https://doi.org/10.48322/cb14-a164",
       "@type": "Dataset",
-      "identifier": "https://doi.org/10.48322/cb14-a164"
+      "creator": [
+         {
+            "@type": "Person",
+            "affiliation": {
+               "@type": "Organization",
+               "identifier": {
+                  "@id": "https://ror.org/036jqmy94",
+                  "@type": "PropertyValue",
+                  "propertyID": "https://registry.identifiers.org/registry/ror",
+                  "url": "https://ror.org/036jqmy94",
+                  "value": "ror:036jqmy94"
+               },
+               "name": "University of Iowa"
+            },
+            "familyName": "Gurnett",
+            "givenName": " Donald A.",
+            "name": "Gurnett, Donald A."
+         }
+      ],
+      "description": "Two Dynamics Explorer (DE) spacecraft were launched August 3, 1981, and placed into coplanar polar orbits with DE-1 in a highly elliptical orbit and DE-2 in a lower more circular orbit. The primary objective of the DE program was to investigate magnetosphere-ionosphere-atmosphere coupling processes. The DE mission provided a wealth of new information on a wide variety of magnetospheric plasma wave phenomena including auroral kilometric radiation, auroral hiss, Z mode radiation, narrow-band electromagnetic emissions associated with equatorial upper hybrid waves, whistler mode emissions, wave-particle interactions stimulated by ground VLF transmitters, equatorial ion cyclotron emissions, ion Bernstein mode emissions, and electric field turbulence along the auroral field lines. These files contain calibrated, full resolution, data from the DE-1 Plasma Wave Instrument (PWI). This instrument was designed and built by the plasma wave group at The University of Iowa, Department of Physics and Astronomy, in collaboration with investigators at Stanford University's STAR Laboratory. It measured plasma wave phenomena and quasi-static electric fields using paired combinations of five PWI sensors: a 200m tip-to-tip long wire electric antenna deployed in the spacecraft spin plane, a 9m tip-to-tip tubular electric antenna deployed along the spacecraft spin axis, a short 0.6m electric antenna, mounted on the boom and oriented parallel to the long wire antenna, a magnetic loop antenna mounted on the boom and oriented to measure the component of the magnetic field parallel to the long wire antenna, and a magnetic search coil antenna, also mounted on a boom and oriented to measure the magnetic field parallel to the spacecraft spin axis. The PWI main electronics unit consisted of a Step Frequency Correlator (SFC), a Low Frequency Correlator (LFC), a Wideband Analog Receiver (WBR) and a Linear Wave Receiver (LWR). Only the SFC data are included in these files. The LFC data were provided in a companion fileset. A dataset containing available high rate WBR LWR data may be provided in the future. The SFC consisted of two Step Frequency Receivers (SFR-A and SFR-B) which provided amplitude measurements of the electric and magnetic fields from 100 Hz to 400 kHz and in-phase and quadrature-phase correlations of signals from any selected antenna pair. Phase data are not provided in these datasets.",
+      "identifier": "https://doi.org/10.48322/cb14-a164",
+      "name": "DE 1 Plasma Wave Instrument (PWI) Step Frequency Correlator Electric and Magnetic Field Spectral Density",
+      "url": "https://doi.org/10.48322/cb14-a164"
    },
    "prov:wasGeneratedBy": [
-      {
-         "@type": [
-            "ResearchProject",
-            "prov:Activity"
-         ],
-         "prov:used": {
-            "@id": "https://hpde.io/SMWG/Observatory/MMS",
-            "@type": [
-               "ResearchProject",
-               "prov:Entity",
-               "sosa:Platform"
-            ],
-            "identifier": {
-               "@id": "https://hpde.io/SMWG/Observatory/MMS",
-               "@type": "PropertyValue",
-               "propertyID": "SPASE Resource ID",
-               "value": "spase://SMWG/Observatory/MMS"
-            },
-            "name": "MMS",
-            "url": "https://hpde.io/SMWG/Observatory/MMS"
-         }
-      },
-      {
-         "@type": [
-            "ResearchProject",
-            "prov:Activity"
-         ],
-         "prov:used": {
-            "@id": "https://hpde.io/SMWG/Observatory/MMS/4",
-            "@type": [
-               "ResearchProject",
-               "prov:Entity",
-               "sosa:Platform"
-            ],
-            "identifier": {
-               "@id": "https://hpde.io/SMWG/Observatory/MMS/4",
-               "@type": "PropertyValue",
-               "propertyID": "SPASE Resource ID",
-               "value": "spase://SMWG/Observatory/MMS/4"
-            },
-            "name": "MMS-4",
-            "url": "https://hpde.io/SMWG/Observatory/MMS/4"
-         }
-      },
       {
          "@type": [
             "ResearchProject",
@@ -363,131 +368,124 @@
    "prov:wasRevisionOf": {
       "@id": "https://doi.org/10.48322/hx4p-3v35",
       "@type": "Dataset",
-      "identifier": "https://doi.org/10.48322/hx4p-3v35"
+      "creator": [
+         {
+            "@type": "Person",
+            "affiliation": {
+               "@type": "Organization",
+               "identifier": {
+                  "@id": "https://ror.org/036jqmy94",
+                  "@type": "PropertyValue",
+                  "propertyID": "https://registry.identifiers.org/registry/ror",
+                  "url": "https://ror.org/036jqmy94",
+                  "value": "ror:036jqmy94"
+               },
+               "name": "University of Iowa"
+            },
+            "familyName": "Gurnett",
+            "givenName": " Donald A.",
+            "name": "Gurnett, Donald A."
+         }
+      ],
+      "description": "Two Dynamics Explorer (DE) spacecraft were launched August 3, 1981, and placed into coplanar polar orbits with DE-1 in a highly elliptical orbit and DE-2 in a lower more circular orbit. The primary objective of the DE program was to investigate magnetosphere-ionosphere-atmosphere coupling processes. The DE mission provided a wealth of new information on a wide variety of magnetospheric plasma wave phenomena including auroral kilometric radiation, auroral hiss, Z mode radiation, narrow-band electromagnetic emissions associated with equatorial upper hybrid waves, whistler mode emissions, wave-particle interactions stimulated by ground VLF transmitters, equatorial ion cyclotron emissions, ion Bernstein mode emissions, and electric field turbulence along the auroral field lines. These files contain calibrated, full resolution, data from the DE-1 Plasma Wave Instrument (PWI). This instrument was designed and built by the plasma wave group at The University of Iowa, Department of Physics and Astronomy, in collaboration with investigators at Stanford University's STAR Laboratory. It measured plasma wave phenomena and quasi-static electric fields using paired combinations of five PWI sensors: a 200m tip-to-tip long wire electric antenna deployed in the spacecraft spin plane, a 9m tip-to-tip tubular electric antenna deployed along the spacecraft spin axis, a short 0.6m electric antenna, mounted on the boom and oriented parallel to the long wire antenna, a magnetic loop antenna mounted on the boom and oriented to measure the component of the magnetic field parallel to the long wire antenna, and a magnetic search coil antenna, also mounted on a boom and oriented to measure the magnetic field parallel to the spacecraft spin axis. The PWI main electronics unit consisted of a Step Frequency Correlator (SFC), a Low Frequency Correlator (LFC), a Wideband Analog Receiver (WBR) and a Linear Wave Receiver (LWR). Only the LFC data are included in these files. The SFC data were provided in a companion fileset. A dataset containing available high rate WBR LWR data may be provided in future archive products. The LFC consisted of two receivers (LFR-A and LFR-B) with 8 analog channels each. The analog channels were centered at 1.78, 3.12, 5.62, 10.0, 17.8, 31.2, 56.2 and 100 Hz. Each channel's band-edge was at +/-15% of the center value. Each LFR in the LFC could be connected to either the Ex, Es, Ez, or H antenna during an 8 second major frame. In addition, the Low Frequency Correlator provided in-phase and quadrature-phase correlations of signals from any selected antenna pair. Phase data are not provided in this file set.",
+      "identifier": "https://doi.org/10.48322/hx4p-3v35",
+      "name": "DE 1 Plasma Wave Instrument (PWI) Low Frequency Correlator Electric and Magnetic Field Spectral Density",
+      "url": "https://doi.org/10.48322/hx4p-3v35"
    },
    "publisher": {
       "@type": "Organization",
       "name": "Space Physics Data Facility"
    },
-   "sameAs": "spase://VSPO/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
+   "sameAs": "https://hpde.io/VSPO/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
    "spatialCoverage": [
       {
          "@type": "Place",
-         "additionalProperty": {
-            "@type": "PropertyValue",
-            "valueReference": {
-               "@type": "DefinedTerm",
-               "inDefinedTermSet": {
-                  "@type": "DefinedTermSet",
-                  "name": "SPASE ObservedRegion"
-               },
-               "termCode": "Earth.Magnetosheath"
-            }
+         "keywords": {
+            "@type": "DefinedTerm",
+            "inDefinedTermSet": {
+               "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Region",
+               "@type": "DefinedTermSet",
+               "name": "SPASE Region",
+               "url": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Region"
+            },
+            "termCode": "Earth.Magnetosheath"
          },
          "name": "Earth Magnetosheath"
       },
       {
          "@type": "Place",
-         "additionalProperty": {
-            "@type": "PropertyValue",
-            "valueReference": {
-               "@type": "DefinedTerm",
-               "inDefinedTermSet": {
-                  "@type": "DefinedTermSet",
-                  "name": "SPASE ObservedRegion"
-               },
-               "termCode": "Earth.Magnetosphere"
-            }
+         "keywords": {
+            "@type": "DefinedTerm",
+            "inDefinedTermSet": {
+               "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Region"
+            },
+            "termCode": "Earth.Magnetosphere"
          },
          "name": "Earth Magnetosphere"
       },
       {
          "@type": "Place",
-         "additionalProperty": {
-            "@type": "PropertyValue",
-            "valueReference": {
-               "@type": "DefinedTerm",
-               "inDefinedTermSet": {
-                  "@type": "DefinedTermSet",
-                  "name": "SPASE ObservedRegion"
-               },
-               "termCode": "Earth.Magnetosphere.Magnetotail"
-            }
+         "keywords": {
+            "@type": "DefinedTerm",
+            "inDefinedTermSet": {
+               "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Region"
+            },
+            "termCode": "Earth.Magnetosphere.Magnetotail"
          },
          "name": "Earth Magnetosphere Magnetotail"
       },
       {
          "@type": "Place",
-         "additionalProperty": {
-            "@type": "PropertyValue",
-            "valueReference": {
-               "@type": "DefinedTerm",
-               "inDefinedTermSet": {
-                  "@type": "DefinedTermSet",
-                  "name": "SPASE ObservedRegion"
-               },
-               "termCode": "Earth.Magnetosphere.Main"
-            }
+         "keywords": {
+            "@type": "DefinedTerm",
+            "inDefinedTermSet": {
+               "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Region"
+            },
+            "termCode": "Earth.Magnetosphere.Main"
          },
          "name": "Earth Magnetosphere Main"
       },
       {
          "@type": "Place",
-         "additionalProperty": {
-            "@type": "PropertyValue",
-            "valueReference": {
-               "@type": "DefinedTerm",
-               "inDefinedTermSet": {
-                  "@type": "DefinedTermSet",
-                  "name": "SPASE ObservedRegion"
-               },
-               "termCode": "Earth.Magnetosphere.RadiationBelt"
-            }
+         "keywords": {
+            "@type": "DefinedTerm",
+            "inDefinedTermSet": {
+               "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Region"
+            },
+            "termCode": "Earth.Magnetosphere.RadiationBelt"
          },
          "name": "Earth Magnetosphere RadiationBelt"
       },
       {
          "@type": "Place",
-         "additionalProperty": {
-            "@type": "PropertyValue",
-            "valueReference": {
-               "@type": "DefinedTerm",
-               "inDefinedTermSet": {
-                  "@type": "DefinedTermSet",
-                  "name": "SPASE ObservedRegion"
-               },
-               "termCode": "Earth.NearSurface.EquatorialRegion"
-            }
+         "keywords": {
+            "@type": "DefinedTerm",
+            "inDefinedTermSet": {
+               "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Region"
+            },
+            "termCode": "Earth.NearSurface.EquatorialRegion"
          },
          "name": "Earth NearSurface EquatorialRegion"
       },
       {
          "@type": "Place",
-         "additionalProperty": {
-            "@type": "PropertyValue",
-            "valueReference": {
-               "@type": "DefinedTerm",
-               "inDefinedTermSet": {
-                  "@type": "DefinedTermSet",
-                  "name": "SPASE ObservedRegion"
-               },
-               "termCode": "Earth.NearSurface.Plasmasphere"
-            }
+         "keywords": {
+            "@type": "DefinedTerm",
+            "inDefinedTermSet": {
+               "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Region"
+            },
+            "termCode": "Earth.NearSurface.Plasmasphere"
          },
          "name": "Earth NearSurface Plasmasphere"
       },
       {
          "@type": "Place",
-         "additionalProperty": {
-            "@type": "PropertyValue",
-            "valueReference": {
-               "@type": "DefinedTerm",
-               "inDefinedTermSet": {
-                  "@type": "DefinedTermSet",
-                  "name": "SPASE ObservedRegion"
-               },
-               "termCode": "Heliosphere.NearEarth"
-            }
+         "keywords": {
+            "@type": "DefinedTerm",
+            "inDefinedTermSet": {
+               "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Region"
+            },
+            "termCode": "Heliosphere.NearEarth"
          },
          "name": "Heliosphere NearEarth"
       }
@@ -497,7 +495,7 @@
       "@type": "DataDownload",
       "contentUrl": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
       "dateModified": "2023-03-04T12:34:56",
-      "description": "SPASE metadata describing the dataset",
+      "description": "The SPASE metadata describing the indicated dataset.",
       "encodingFormat": "application/xml",
       "identifier": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
       "license": "https://spdx.org/licenses/CC0-1.0.html",
