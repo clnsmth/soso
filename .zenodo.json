@@ -3,17 +3,20 @@
     {
       "name": "Smith, Colin",
       "orcid": "0000-0003-2261-9931",
-      "affiliation": "Environmental Data Initiative"
+      "affiliation": "Environmental Data Initiative",
+      "ror": "0330j0z60"
     },
     {
       "name": "Boquet, Zach",
       "orcid": "0009-0005-1686-262X",
-      "affiliation": "Heliophysics Data and Modeling Consortium"
+      "affiliation": "Heliophysics Data and Modeling Consortium",
+      "ror": "04xbq1n92"
     },
     {
       "name": "Ringuette, Rebecca",
       "orcid": "0000-0003-0875-2023",
-      "affiliation": "Heliophysics Data and Modeling Consortium"
+      "affiliation": "Heliophysics Data and Modeling Consortium",
+      "ror": "04xbq1n92"
     },
   ],
   "contributors": [
@@ -24,15 +27,20 @@
     },
     {
       "name": "Helvey, Tressa",
-      "affiliation": "Heliophysics Data and Modeling Consortium"
+      "affiliation": "Heliophysics Data and Modeling Consortium",
+      "ror": "04xbq1n92"
     },
     {
       "name": "Koval, Andriy",
-      "affiliation": "Heliophysics Data and Modeling Consortium"
+      "orcid": "0000-0003-1398-1752"
+      "affiliation": "University of Maryland, Baltimore County",
+      "ror": "02qskvh78"
     },
     {
       "name": "Byrd, Catherine",
-      "affiliation": "Heliophysics Data and Modeling Consortium"
+      "orcid": "0009-0006-6661-0938"
+      "affiliation": "University of Maryland, Baltimore County",
+      "ror": "02qskvh78"
     }
   ],
   "title": "soso",
