@@ -65,11 +65,14 @@ class SPASE(StrategyInterface):
         #print(etree.tostring(self.desiredRoot, pretty_print = True).decode(), end=' ')
 
     def get_id(self) -> str:
-        # Mapping: schema:identifier = hpde.io landing page for the SPASE record
-        ResourceID = get_ResourceID(self.metadata, self.namespaces)
-        hpdeURL = ResourceID.replace("spase://", "https://hpde.io/")
+        # Mapping: schema:identifier = spase:ResourceHeader/spase:DOI OR hpde.io landing page for the SPASE record
+        url = self.get_url()
+        if url:
+            id = url
+        else:
+            id = None
 
-        return delete_null_values(hpdeURL)
+        return delete_null_values(id)
 
     def get_name(self) -> str:
         # Mapping: schema:name = spase:ResourceHeader/spase:ResourceName
@@ -100,7 +103,9 @@ class SPASE(StrategyInterface):
             namespaces=self.namespaces,
         )
         if delete_null_values(url) is None:
-            url = self.get_id()
+            ResourceID = get_ResourceID(self.metadata, self.namespaces)
+            if ResourceID:
+                url = ResourceID.replace("spase://", "https://hpde.io/")
         return delete_null_values(url)
 
     def get_same_as(self) -> Union[List, None]:
@@ -164,30 +169,31 @@ class SPASE(StrategyInterface):
         #  OR schema:PropertyValue, provided at: https://schema.org/PropertyValue
         url = self.get_url()
         ID = get_ResourceID(self.metadata, self.namespaces)
-        hpdeURL = self.get_id()
-        # if SPASE record has a DOI
-        if "doi" in url:
-            temp = url.split("/")
-            value = "doi:" + "/".join(temp[3:])
-            identifier = {"@list": [{"@id": url,
-                            "@type" : "PropertyValue",
-                            "propertyID": "https://registry.identifiers.org/registry/doi",
-                            "value": value,
-                            "url": url,
-                            "name": value.replace("doi:", "DOI: ")},
-                        {"@id": hpdeURL,
-                            "@type": "PropertyValue",
-                            "propertyID": "SPASE",
-                            "value": ID,
-                            "url": hpdeURL,}
-                        ]}
-        # if SPASE record only has landing page instead
+        if url:
+            # if SPASE record has a DOI
+            if "doi" in url:
+                hpdeURL = ID.replace("spase://", "https://hpde.io/")
+                temp = url.split("/")
+                value = "doi:" + "/".join(temp[3:])
+                identifier = {"@list": [
+                                {"@type" : "PropertyValue",
+                                "propertyID": "https://registry.identifiers.org/registry/doi",
+                                "value": value,
+                                "url": url,
+                                "name": value.replace("doi:", "DOI: ")},
+                                {"@type": "PropertyValue",
+                                "propertyID": "SPASE",
+                                "value": ID,
+                                "url": hpdeURL}
+                            ]}
+            # if SPASE record only has landing page instead
+            else:
+                identifier = {"@type": "PropertyValue",
+                                "propertyID": "SPASE",
+                                "url": url,
+                                "value": ID}
         else:
-            identifier = {"@id": url,
-                            "@type": "PropertyValue",
-                            "propertyID": "SPASE",
-                            "url": url,
-                            "value": ID}
+            identifier = None
         return delete_null_values(identifier)
 
     def get_citation(self) -> Union[List[Dict], None]:
@@ -273,6 +279,12 @@ class SPASE(StrategyInterface):
         date_modified = self.get_date_modified()
         metadata_license = get_metadata_license(self.metadata)
         contentURL = self.get_id()
+        doi = False
+        if "doi" in contentURL:
+            doi = True
+            ResourceID = get_ResourceID(self.metadata, self.namespaces)
+            before, sep, after = ResourceID.partition("/NASA")
+            contentURL = f"https://hpde.io{sep}{after}"
         # small lookup table for commonly used licenses in SPASE (CC0 for NASA, CC-BY-NC-3.0 for ESA, etc)
         commonLicenses = [{"fullName":"Creative Commons Zero v1.0 Universal",
                             "identifier": "CC0-1.0",
@@ -296,8 +308,7 @@ class SPASE(StrategyInterface):
                 pass
 
             # basic format for item
-            entry = {"@id": contentURL,
-                    "@type": "DataDownload",
+            entry = {"@type": "DataDownload",
                     "name": "SPASE metadata for dataset",
                     "description": "The SPASE metadata describing the indicated dataset.",
                     "license": licenseURL,
@@ -307,6 +318,9 @@ class SPASE(StrategyInterface):
             # if date modified is available, add it
             if date_modified:
                 entry["dateModified"] = date_modified
+            # if hpde.io landing page not used as top-level @id, include here as @id
+            if doi:    
+                entry["@id"] = contentURL
             subject_of = entry
         else:
             subject_of = None
@@ -1088,7 +1102,7 @@ def get_accessURLs(metadata: etree.ElementTree) -> tuple[Dict, Dict]:
         i += 1
     return dataDownloads, potentialActions
 
-def get_dates(metadata: etree.ElementTree) -> tuple[str, List]:
+def get_dates(metadata: etree.ElementTree) -> tuple[datetime, List[datetime]]:
     """
     Scrapes the ReleaseDate and RevisionHistory:ReleaseDate(s) SPASE properties for use 
     in the dateModified, dateCreated, and datePublished schema.org properties.
@@ -1164,7 +1178,7 @@ def personFormat(type:str, roleName:Union[str, List], name:str, givenName:str, f
     """
     
     domain, sep, orcidVal = orcidID.rpartition("/")
-
+    entry = None
     # most basic format for creator item
     if type == "creator":
         entry = {"@type": "Person",
@@ -1580,37 +1594,38 @@ def get_cadenceContext(cadence:str) -> str:
     # ISO 8601 Format = PTHH:MM:SS.sss
     # P1D, P1M, and P1Y represent time cadences of one day, one month, and one year, respectively
     context = "The time series is periodic with a "
-    start, sep, end = cadence.partition("P")
-    # cadence is in hrs, min, or sec
-    if "T" in end:
-        start, sep, time = end.partition("T")
-        if "H" in time:
-            # hrs
-            start, sep, end = time.partition("H")
-            context += start + " hour cadence"
-        elif "M" in time:
-            # min
-            start, sep, end = time.partition("M")
-            context += start + " minute cadence"
-        elif "S" in time:
-            # sec
-            start, sep, end = time.partition("S")
-            context += start + " second cadence"
-    # one of the 3 base cadences
-    else:
-        if "D" in end:
-            # days
-            start, sep, end = end.partition("D")
-            context += start + " day cadence"
-        elif "M" in end:
-            # months
-            start, sep, end = end.partition("M")
-            context += start + " month cadence"
-        elif "Y" in end:
-            # yrs
-            start, sep, end = end.partition("Y")
-            context += start + " year cadence"
-    if context == "This means that the time series is periodic with a ":
+    if cadence is not None:
+        start, sep, end = cadence.partition("P")
+        # cadence is in hrs, min, or sec
+        if "T" in end:
+            start, sep, time = end.partition("T")
+            if "H" in time:
+                # hrs
+                start, sep, end = time.partition("H")
+                context += start + " hour cadence"
+            elif "M" in time:
+                # min
+                start, sep, end = time.partition("M")
+                context += start + " minute cadence"
+            elif "S" in time:
+                # sec
+                start, sep, end = time.partition("S")
+                context += start + " second cadence"
+        # one of the 3 base cadences
+        else:
+            if "D" in end:
+                # days
+                start, sep, end = end.partition("D")
+                context += start + " day cadence"
+            elif "M" in end:
+                # months
+                start, sep, end = end.partition("M")
+                context += start + " month cadence"
+            elif "Y" in end:
+                # yrs
+                start, sep, end = end.partition("Y")
+                context += start + " year cadence"
+    if context == "The time series is periodic with a ":
         context = None
     return context
 
@@ -1668,48 +1683,49 @@ def get_ORCiD_and_Affiliation(SPASE_ID: str, file: str, **kwargs:dict) -> tuple[
     orcidID = ""
     affiliation = ""
     ror = ""
-    # get home directory
-    homeDir = str(Path.home())
-    homeDir = homeDir.replace("\\","/")
-    # get current working directory
-    cwd = str(Path.cwd()).replace("\\","/")
-    # split record into needed substrings
-    before, absPath, after = file.partition(f"{homeDir}/")
-    repoName, sep, after = after.partition("/")
-    # add original SPASE repo to log file that holds name of repos needed
-    updateLog(cwd, repoName, "requiredRepos")
-    # add SPASE repo that contains Person descriptions to log file also
-    repoName, sep, after = SPASE_ID.replace("spase://", "").partition("/")
-    updateLog(cwd, repoName, "requiredRepos")
-    # format record name
-    if kwargs:
-        # being called by testing function = change directory to xml file in tests folder
-        before, sep, fileName = SPASE_ID.rpartition("/")
-        record = absPath + kwargs["testing"] + f"spase-{fileName}" + ".xml"
-    else:
-        record = absPath + SPASE_ID.replace("spase://", "") + ".xml"
-    record = record.replace("'","")
-    if os.path.isfile(record):
-        testSpase = SPASE(record)
-        root = testSpase.metadata.getroot()
-        # iterate thru xml to get desired info
-        for elt in root.iter(tag=etree.Element):
-            if elt.tag.endswith("Person") or elt.tag.endswith("Repository"):
-                desiredRoot = elt
-        for child in desiredRoot.iter(tag=etree.Element):
-            if child.tag.endswith("ORCIdentifier"):
-                orcidID = child.text
-            elif child.tag.endswith("OrganizationName"):
-                affiliation = child.text
-            elif child.tag.endswith("RORIdentifier"):
-                ror = child.text
-    else:
-        # add file to log called 'problematic records/files'
-        if not os.path.exists(f"{cwd}/problematicRecords.txt"):
-            with open(f"{cwd}/problematicRecords.txt", "w") as f:
-                f.write(f"{record}")
+    if (SPASE_ID is not None) and (file is not None):
+        # get home directory
+        homeDir = str(Path.home())
+        homeDir = homeDir.replace("\\","/")
+        # get current working directory
+        cwd = str(Path.cwd()).replace("\\","/")
+        # split record into needed substrings
+        before, absPath, after = file.partition(f"{homeDir}/")
+        repoName, sep, after = after.partition("/")
+        # add original SPASE repo to log file that holds name of repos needed
+        updateLog(cwd, repoName, "requiredRepos")
+        # add SPASE repo that contains Person descriptions to log file also
+        repoName, sep, after = SPASE_ID.replace("spase://", "").partition("/")
+        updateLog(cwd, repoName, "requiredRepos")
+        # format record name
+        if kwargs:
+            # being called by testing function = change directory to xml file in tests folder
+            before, sep, fileName = SPASE_ID.rpartition("/")
+            record = absPath + kwargs["testing"] + f"spase-{fileName}" + ".xml"
         else:
-            updateLog(cwd, record, "problematicRecords")
+            record = absPath + SPASE_ID.replace("spase://", "") + ".xml"
+        record = record.replace("'","")
+        if os.path.isfile(record):
+            testSpase = SPASE(record)
+            root = testSpase.metadata.getroot()
+            # iterate thru xml to get desired info
+            for elt in root.iter(tag=etree.Element):
+                if elt.tag.endswith("Person") or elt.tag.endswith("Repository"):
+                    desiredRoot = elt
+            for child in desiredRoot.iter(tag=etree.Element):
+                if child.tag.endswith("ORCIdentifier"):
+                    orcidID = child.text
+                elif child.tag.endswith("OrganizationName"):
+                    affiliation = child.text
+                elif child.tag.endswith("RORIdentifier"):
+                    ror = child.text
+        else:
+            # add file to log called 'problematic records/files'
+            if not os.path.exists(f"{cwd}/problematicRecords.txt"):
+                with open(f"{cwd}/problematicRecords.txt", "w") as f:
+                    f.write(f"{record}")
+            else:
+                updateLog(cwd, record, "problematicRecords")
     return orcidID, affiliation, ror
 
 def get_temporal(metadata: etree.ElementTree, namespaces: Dict) -> Union[List, None]:
@@ -1931,63 +1947,72 @@ def verifyType(url:str) -> tuple[bool, bool, dict]:
     isDataset = False
     isArticle = False
     nonSPASE_Info = {}
-
-    if "hpde.io" in url:
-        if "Data" in url:
-            isDataset = True
-    # case where url provided is a DOI
-    else:
-        link = requests.head(url)
-        # check to make sure doi resolved to an hpde.io page
-        if "hpde.io" in link.headers['location']:
-            if "Data" in link.headers['location']:
+    if url is not None:
+        if "hpde.io" in url:
+            if "Data" in url:
                 isDataset = True
-        # if not, call DataCite API to check resourceTypeGeneral property associated w the record
+        # case where url provided is a DOI
         else:
-            protocol, sep, doi = link.partition("doi.org/")
-            #dataciteLink = f"https://api.datacite.org/dois/{doi}"
-            #headers = {"accept": "application/vnd.api+json"}
-            #response = requests.get(dataciteLink, headers=headers)
-            response = requests.get(f"https://api.datacite.org/application/vnd.datacite.datacite+json/{doi}")
-            dict = json.loads(response.text)
-            for item in dict["data"]["types"]:
-                if "resourceType" in item.keys():
-                    if (item["resourceType"] == "Dataset"):
-                        isDataset = True
-                    elif (item["resourceType"] == "JournalArticle"):
-                        isArticle = True
-                else:
-                    if (item["resourceTypeGeneral"] == "Dataset"):
-                        isDataset = True
-                    elif (item["resourceTypeGeneral"] == "JournalArticle"):
-                        isArticle = True
-                # if wish to add more checks, simply add more "elif" stmts like above
-                # and adjust provenance/relationship functions to include new type check
-            if isDataset:
-                # grab name, description, license, and creators
-                nonSPASE_Info["name"] = dict["titles"][0]["title"]
-                if dict["descriptions"]:
-                    nonSPASE_Info["description"] = dict["descriptions"][0]["description"]
-                else:
-                    nonSPASE_Info["description"] = f"No description currently available for {url}."
-                if dict["rightsList"]:
-                    nonSPASE_Info["license"] = []
-                    for each in dict["rightsList"]:
-                        nonSPASE_Info["license"].append(each["rightsUri"])
-                for creator in dict["creators"]:
-                    if ", " in creator["name"]:
-                        familyName, sep, givenName = creator["name"].partition(", ")
+            link = requests.head(url)
+            # check to make sure doi resolved to an hpde.io page
+            if "hpde.io" in link.headers['location']:
+                if "Data" in link.headers['location']:
+                    isDataset = True
+            # if not, call DataCite API to check resourceTypeGeneral property associated w the record
+            else:
+                protocol, sep, doi = url.partition("doi.org/")
+                #dataciteLink = f"https://api.datacite.org/dois/{doi}"
+                #headers = {"accept": "application/vnd.api+json"}
+                #response = requests.get(dataciteLink, headers=headers)
+                response = requests.get(f"https://api.datacite.org/application/vnd.datacite.datacite+json/{doi}")
+                if response.raise_for_status() is None:
+                    dict = json.loads(response.text)
+                    if "resourceType" in dict["types"].keys():
+                        if dict["types"]["resourceType"]:
+                            if (dict["types"]["resourceType"] == "Dataset"):
+                                isDataset = True
+                            elif (dict["types"]["resourceType"] == "JournalArticle"):
+                                isArticle = True
+                        else:
+                            if (dict["types"]["resourceTypeGeneral"] == "Dataset"):
+                                isDataset = True
+                            elif (dict["types"]["resourceTypeGeneral"] == "JournalArticle"):
+                                isArticle = True
                     else:
-                        familyName = ""
-                        givenName = ""
-                    # adjust DataCite format to conform to schema.org format
-                    if creator["affiliation"]:
-                        nonSPASE_Info["creators"] = personFormat(
-                            "creator", "", creator["name"], givenName, familyName,
-                            creator["affiliation"]["name"])
-                    else:
-                        nonSPASE_Info["creators"] = personFormat(
-                            "creator", "", creator["name"], givenName, familyName)
+                        if (dict["types"]["resourceTypeGeneral"] == "Dataset"):
+                            isDataset = True
+                        elif (dict["types"]["resourceTypeGeneral"] == "JournalArticle"):
+                            isArticle = True
+                        # if wish to add more checks, simply add more "elif" stmts like above
+                        # and adjust provenance/relationship functions to include new type check
+                    if isDataset:
+                        # grab name, description, license, and creators
+                        nonSPASE_Info["name"] = dict["titles"][0]["title"]
+                        if dict["descriptions"]:
+                            nonSPASE_Info["description"] = dict["descriptions"][0]["description"]
+                        else:
+                            nonSPASE_Info["description"] = f"No description currently available for {url}."
+                        if dict["rightsList"]:
+                            nonSPASE_Info["license"] = []
+                            for each in dict["rightsList"]:
+                                nonSPASE_Info["license"].append(each["rightsUri"])
+                        for creator in dict["creators"]:
+                            if ("givenName" in creator.keys()) and ("familyName" in creator.keys()):
+                                familyName = creator["familyName"]
+                                givenName = creator["givenName"]
+                            elif ", " in creator["name"]:
+                                familyName, sep, givenName = creator["name"].partition(", ")
+                            else:
+                                familyName = ""
+                                givenName = ""
+                            # adjust DataCite format to conform to schema.org format
+                            if creator["affiliation"]:
+                                nonSPASE_Info["creators"] = personFormat(
+                                    "creator", "", creator["name"], givenName, familyName,
+                                    creator["affiliation"]["name"])
+                            else:
+                                nonSPASE_Info["creators"] = personFormat(
+                                    "creator", "", creator["name"], givenName, familyName)
 
     return isDataset, isArticle, nonSPASE_Info
 
@@ -2075,109 +2100,109 @@ def get_relation(desiredRoot: etree.Element, association: list[str], **kwargs:di
     relations = []
     relationalRecords = {}
     # iterate thru xml to find desired info
-    for child in desiredRoot.iter(tag=etree.Element):
-        if child.tag.endswith("Association"):
-            targetChild = child
-            for child in targetChild:
-                if child.tag.endswith("AssociationID"):
-                    A_ID = child.text
-                elif child.tag.endswith("AssociationType"):
-                    type = child.text
-            for each in association:
-                if type == each:
-                    relations.append(A_ID)
-    if relations == []:
-        relation = None
-    else:
-        i = 0
-        # if called by testing function, only test first link
-        if kwargs:
-            relations = [relations[0]]
-        # try and get DOI instead of SPASE ID
-        for record in relations:
-            # get home directory
-            homeDir = str(Path.home())
-            homeDir = homeDir.replace("\\","/")
-            # get current working directory
-            cwd = str(Path.cwd()).replace("\\","/")
-            # add SPASE repo that contains related SPASE record to log file
-            repoName, sep, after = record.replace("spase://", "").partition("/")
-            updateLog(cwd, repoName, "requiredRepos")
-            # format record
-            if kwargs:
-                # being called by testing function = change directory to xml file in tests folder
-                before, sep, fileName = record.rpartition("/")
-                record = f"{homeDir}/" + kwargs["testing"] + f"spase-{fileName}" + ".xml"
-            else:
-                record = homeDir + '/' + record.replace("spase://", "") + ".xml"
-            record = record.replace("'","")
-            if os.path.isfile(record):
-                testSpase = SPASE(record)
-                url = testSpase.get_url()
-                name = testSpase.get_name()
-                description = testSpase.get_description()
-                license = testSpase.get_license()
-                creators = testSpase.get_creator()
-                if creators is None:
-                    creators = "No creators were found. View record for contacts."
-                relationalRecords[url] = {"name": name,
-                                            "description": description,
-                                            "creators": creators}
-                if license is not None:
-                    relationalRecords[url]["license"] = license
-
-            else:
-                # add file to log called 'problematic records/files'
-                if not os.path.exists(f"{cwd}/problematicRecords.txt"):
-                    with open(f"{cwd}/problematicRecords.txt", "w") as f:
-                        f.write(f"{record}")
-                else:
-                    updateLog(cwd, record, "problematicRecords")
-            i += 1
-        # add correct type
-        if len(relations) > 1:
-            relation = []
-        # not SPASE records
-        if relationalRecords == {}:
-            for each in relations:
-                # most basic entry into relation
-                entry = {"@id": each,
-                            "identifier": each,
-                            "url": each}
-                isDataset, isArticle, nonSPASE_Info = verifyType(each)
-                if isDataset:
-                    entry["@type"] = "Dataset"
-                    entry["name"] = nonSPASE_Info["name"]
-                    entry["description"] = nonSPASE_Info["description"]
-                    if "license" in nonSPASE_Info.keys():
-                        entry["license"] = nonSPASE_Info["license"]
-                    entry["creator"] = nonSPASE_Info["creators"]
-                elif isArticle:
-                    entry["@type"] = "ScholarlyArticle"
-                if len(relations) > 1:
-                    relation.append(entry)
-                else:
-                    relation = entry
+    if desiredRoot is not None:
+        for child in desiredRoot.iter(tag=etree.Element):
+            if child.tag.endswith("Association"):
+                targetChild = child
+                for child in targetChild:
+                    if child.tag.endswith("AssociationID"):
+                        A_ID = child.text
+                    elif child.tag.endswith("AssociationType"):
+                        type = child.text
+                for each in association:
+                    if type == each:
+                        relations.append(A_ID)
+        if relations == []:
+            relation = None
         else:
-            for each in relationalRecords.keys():
-                # most basic entry into relation
-                entry = {"@id": each,
-                            "identifier": each,
-                            "url": each}
-                isDataset, isArticle, nonSPASE_Info = verifyType(each)
-                if isDataset:
-                    entry["@type"] = "Dataset"
-                    entry["name"] = relationalRecords[each]["name"]
-                    entry["description"] = relationalRecords[each]["description"]
-                    if "license" in relationalRecords[each].keys():
-                        entry["license"] = relationalRecords[each]["license"]
-                    entry["creator"] = relationalRecords[each]["creators"]
-                elif isArticle:
-                    entry["@type"] = "ScholarlyArticle"
-                if len(relations) > 1:
-                    relation.append(entry)
+            i = 0
+            # try and get DOI instead of SPASE ID
+            for record in relations:
+                # get home directory
+                homeDir = str(Path.home())
+                homeDir = homeDir.replace("\\","/")
+                # get current working directory
+                cwd = str(Path.cwd()).replace("\\","/")
+                # add SPASE repo that contains related SPASE record to log file
+                repoName, sep, after = record.replace("spase://", "").partition("/")
+                updateLog(cwd, repoName, "requiredRepos")
+                # format record
+                if kwargs:
+                    # being called by testing function = change directory to xml file in tests folder
+                    before, sep, fileName = record.rpartition("/")
+                    record = f"{homeDir}/" + kwargs["testing"] + f"spase-{fileName}" + ".xml"
                 else:
-                    relation = entry
+                    record = homeDir + '/' + record.replace("spase://", "") + ".xml"
+                record = record.replace("'","")
+                if os.path.isfile(record):
+                    testSpase = SPASE(record)
+                    url = testSpase.get_url()
+                    name = testSpase.get_name()
+                    description = testSpase.get_description()
+                    license = testSpase.get_license()
+                    creators = testSpase.get_creator()
+                    if creators is None:
+                        creators = "No creators were found. View record for contacts."
+                    relationalRecords[url] = {"name": name,
+                                                "description": description,
+                                                "creators": creators}
+                    if license is not None:
+                        relationalRecords[url]["license"] = license
+
+                else:
+                    # add file to log called 'problematic records/files'
+                    if not os.path.exists(f"{cwd}/problematicRecords.txt"):
+                        with open(f"{cwd}/problematicRecords.txt", "w") as f:
+                            f.write(f"{record}")
+                    else:
+                        updateLog(cwd, record, "problematicRecords")
+                i += 1
+            # add correct type
+            if len(relations) > 1:
+                relation = []
+            # not SPASE records
+            if relationalRecords == {}:
+                for each in relations:
+                    # most basic entry into relation
+                    entry = {"@id": each,
+                                "identifier": each,
+                                "url": each}
+                    isDataset, isArticle, nonSPASE_Info = verifyType(each)
+                    if isDataset:
+                        entry["@type"] = "Dataset"
+                        entry["name"] = nonSPASE_Info["name"]
+                        entry["description"] = nonSPASE_Info["description"]
+                        if "license" in nonSPASE_Info.keys():
+                            entry["license"] = nonSPASE_Info["license"]
+                        entry["creator"] = nonSPASE_Info["creators"]
+                    elif isArticle:
+                        entry["@type"] = "ScholarlyArticle"
+                    if len(relations) > 1:
+                        relation.append(entry)
+                    else:
+                        relation = entry
+            else:
+                for each in relationalRecords.keys():
+                    # most basic entry into relation
+                    entry = {"@id": each,
+                                "identifier": each,
+                                "url": each}
+                    isDataset, isArticle, nonSPASE_Info = verifyType(each)
+                    if isDataset:
+                        entry["@type"] = "Dataset"
+                        entry["name"] = relationalRecords[each]["name"]
+                        entry["description"] = relationalRecords[each]["description"]
+                        if "license" in relationalRecords[each].keys():
+                            entry["license"] = relationalRecords[each]["license"]
+                        entry["creator"] = relationalRecords[each]["creators"]
+                    elif isArticle:
+                        entry["@type"] = "ScholarlyArticle"
+                    if len(relations) > 1:
+                        relation.append(entry)
+                    else:
+                        relation = entry
+    else:
+        relation = None
     return relation
 
 def updateLog(cwd:str, addition:str, logFileName:str) -> None:

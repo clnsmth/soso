@@ -4,7 +4,7 @@
       "prov": "http://www.w3.org/ns/prov#",
       "sosa": "https://w3c.github.io/sdw-sosa-ssn/ssn/#SOSA"
    },
-   "@id": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
+   "@id": "https://doi.org/10.48322/6cfb-rq65",
    "@type": "Dataset",
    "citation": [
       {
@@ -167,7 +167,6 @@
    "identifier": {
       "@list": [
          {
-            "@id": "https://doi.org/10.48322/6cfb-rq65",
             "@type": "PropertyValue",
             "name": "DOI: 10.48322/6cfb-rq65",
             "propertyID": "https://registry.identifiers.org/registry/doi",
@@ -175,7 +174,6 @@
             "value": "doi:10.48322/6cfb-rq65"
          },
          {
-            "@id": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
             "@type": "PropertyValue",
             "propertyID": "SPASE",
             "url": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",

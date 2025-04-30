@@ -78,8 +78,8 @@ def test_get_dates_returns_expected_value():
     # Positive case: The function will return the release date and 
     # the list of all dates in revision history of the SPASE file.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
-    assert get_dates(spase) == ("2023-03-04 12:34:56", ["2021-04-27 15:38:11",
-                                "2022-08-04 12:34:56", "2023-03-04 12:34:56"])
+    assert get_dates(spase) == (datetime(2023, 3, 4, 12, 34, 56), [datetime(2021, 4, 27, 15, 38, 11),
+                                datetime(2022, 8, 4, 12, 34, 56), datetime(2023, 3, 4, 12, 34, 56)])
 
     # Negative case: If the schema version is not present, the function will
     # return null/empty values
@@ -103,15 +103,15 @@ def test_personFormat_returns_expected_value():
                 "@type": "Person",
                 "name": "John H. Smith",
                 "givenName": "John H.",
-                "familyName": "Smith",
-                "inDefinedTermSet": {
+                "familyName": "Smith"},
+            "inDefinedTermSet": {
                     "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Role",
                     "@type": "DefinedTermSet",
                     "name": "SPASE Role",
                     "url": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Role"
-                },            
-                "roleName": "General Contact",
-                "termCode": "GeneralContact"}
+            },            
+            "roleName": "General Contact",
+            "termCode": "GeneralContact"
             })
     # Case 2: An author is being formatted
     type = "creator"
@@ -139,11 +139,11 @@ def test_nameSplitter_returns_expected_value():
     # Negative case: If no contact info is given, the function will
     # raise an error.
     try:
-        nameSplitter(None, None, None, None)
+        nameSplitter(None)
     except ValueError as error:
         assert "This function only takes a nonempty string as an argument" in str(error)
     try:
-        nameSplitter("", "", "", "")
+        nameSplitter("")
     except ValueError as error:
         assert "This function only takes a nonempty string as an argument" in str(error)
 
@@ -153,7 +153,8 @@ def test_get_measurementMethod_returns_expected_value():
     # Positive case: The function will return the MeasurementType(s) found in the SPASE
     # file.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
-    assert get_measurementMethod(spase) == [
+    namespaces = {"spase": "http://www.spase-group.org/data/schema"}
+    assert get_measurementMethod(spase, namespaces) == [
         {"@type": "DefinedTerm",
         "inDefinedTermSet": {
             "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#MeasurementType",
@@ -176,7 +177,7 @@ def test_get_measurementMethod_returns_expected_value():
     # Negative case: If the schema version is not present, the function will
     # return None.
     spase = etree.parse(get_empty_metadata_file_path("SPASE"))
-    assert get_measurementMethod(spase) is None
+    assert get_measurementMethod(spase, namespaces) is None
 
 def test_get_information_url_returns_expected_value():
     """Test that the get_information_url function returns the expected value."""
@@ -184,15 +185,17 @@ def test_get_information_url_returns_expected_value():
     # Positive case: The function will return the name, description, and url for the
     # InformationURL(s) found in the SPASE file.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
-    assert get_information_url(spase) == [{'name': '''The Magnetospheric Multiscale (MMS) Mission home page at
-                                           Goddard Space Flight Center (GSFC)''', 'url': 'https://mms.gsfc.nasa.gov/',
-                                           'description': '''The Magnetospheric Multiscale (MMS) Mission Home Page 
-                                           hosted by the Goddard Space Flight Center (GSFC).'''},
-                                           {'name': 'Data Caveats and Current Release Notes at LASP MMS SDC',
-                                            'url': 'https://lasp.colorado.edu/mms/sdc/public/datasets/hpca/',
-                                            'description': '''The Magnetospheric Multiscale (MMS) Mission home page
-                                            hosted by the Laboratory of Atmospheric and Space Physics, Science Data
-                                            Center (LASP, SDC) at the University of Colorado, Boulder.'''}]
+    assert get_information_url(spase) == [
+        {'name': "The Magnetospheric Multiscale (MMS) Mission home page at Goddard "
+            "Space Flight Center (GSFC)",
+        'url': 'https://mms.gsfc.nasa.gov/',
+        'description': "The Magnetospheric Multiscale (MMS) Mission Home Page hosted by "
+            "the Goddard Space Flight Center (GSFC)."},
+        {'name': 'Data Caveats and Current Release Notes at LASP MMS SDC',
+        'url': 'https://lasp.colorado.edu/mms/sdc/public/datasets/hpca/',
+        'description': "The Magnetospheric Multiscale (MMS) Mission home page hosted by the "
+        "Laboratory of Atmospheric and Space Physics, Science Data Center (LASP, SDC) at the "
+        "University of Colorado, Boulder."}]
 
     # Negative case: If the schema version is not present, the function will
     # return None.
@@ -206,29 +209,35 @@ def test_get_instrument_returns_expected_value():
     # InstrumentID(s) found in the SPASE file.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
     kwargs = {"testing": "soso-spase/tests/data/"}
-    assert get_instrument(spase, get_example_metadata_file_path("SPASE"), **kwargs) == (
-        {'@id': 'https://hpde.io/SMWG/Instrument/MMS/4/FIELDS/FGM',
+    assert get_instrument(spase, str(get_example_metadata_file_path("SPASE")).replace("\\", "/"), **kwargs) == (
+        [{"@id": "https://hpde.io/SMWG/Instrument/MMS/4/FIELDS/FGM",
+            "@type": [
+                "IndividualProduct",
+                "prov:Entity",
+                "sosa:System"
+            ],
+            "identifier": {
+                "@id": "https://hpde.io/SMWG/Instrument/MMS/4/FIELDS/FGM",
+                "@type": "PropertyValue",
+                "propertyID": "SPASE Resource ID",
+                "value": "spase://SMWG/Instrument/MMS/4/FIELDS/FGM"
+            },
+            "name": "MMS 4 FIELDS Suite, Fluxgate Magnetometer (FGM) Instrument",
+            "url": "https://hpde.io/SMWG/Instrument/MMS/4/FIELDS/FGM"
+        }])
+    """{'@id': 'https://hpde.io/SMWG/Instrument/MMS/4/HotPlasmaCompositionAnalyzer',
         '@type': ['IndividualProduct', 'prov:Entity', 'sosa:System'],
         'identifier':
-            {'@id': 'https://hpde.io/SMWG/Instrument/MMS/4/FIELDS/FGM',
-                '@type': 'PropertyValue',
-                'propertyID': 'SPASE Resource ID',
-                'value': 'spase://SMWG/Instrument/MMS/4/FIELDS/FGM'},
-        'name': 'MMS 4 FIELDS Suite, Fluxgate Magnetometer (FGM) Instrument',
-        'url': 'https://hpde.io/SMWG/Instrument/MMS/4/FIELDS/FGM'})
-    """{'@id': 'https://hpde.io/SMWG/Instrument/MMS/4/HotPlasmaCompositionAnalyzer',
-                                        '@type': ['IndividualProduct', 'prov:Entity', 'sosa:System'],
-                                        'identifier':
-                                            {'@id': 'https://hpde.io/SMWG/Instrument/MMS/4/HotPlasmaCompositionAnalyzer',
-                                                '@type': 'PropertyValue', 'propertyID': 'SPASE Resource ID',
-                                                'value': 'spase://SMWG/Instrument/MMS/4/HotPlasmaCompositionAnalyzer'},
-                                        'name': 'MMS 4 Hot Plasma Composition Analyzer (HPCA) Instrument',
-                                        'url': 'https://hpde.io/SMWG/Instrument/MMS/4/HotPlasmaCompositionAnalyzer'}]"""
+            {'@id': 'https://hpde.io/SMWG/Instrument/MMS/4/HotPlasmaCompositionAnalyzer',
+                '@type': 'PropertyValue', 'propertyID': 'SPASE Resource ID',
+                'value': 'spase://SMWG/Instrument/MMS/4/HotPlasmaCompositionAnalyzer'},
+        'name': 'MMS 4 Hot Plasma Composition Analyzer (HPCA) Instrument',
+        'url': 'https://hpde.io/SMWG/Instrument/MMS/4/HotPlasmaCompositionAnalyzer'}]"""
 
     # Negative case: If the schema version is not present, the function will
     # return None.
     spase = etree.parse(get_empty_metadata_file_path("SPASE"))
-    assert get_instrument(spase) is None
+    assert get_instrument(spase, str(get_example_metadata_file_path("SPASE")).replace("\\", "/")) is None
 
 def test_get_observatory_returns_expected_value():
     """Test that the get_observatory function returns the expected value."""
@@ -237,7 +246,7 @@ def test_get_observatory_returns_expected_value():
     # observatoryID(s) found in the SPASE file.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
     kwargs = {"testing": "soso-spase/tests/data/"}
-    assert get_observatory(spase, get_example_metadata_file_path("SPASE"), **kwargs) == ([
+    assert get_observatory(spase, str(get_example_metadata_file_path("SPASE")).replace("\\", "/"), **kwargs) == ([
         {'@type': ['ResearchProject', 'prov:Entity', 'sosa:Platform'],
         '@id': 'https://hpde.io/SMWG/Observatory/MMS',
         'name': 'MMS',
@@ -260,7 +269,7 @@ def test_get_observatory_returns_expected_value():
     # Negative case: If the schema version is not present, the function will
     # return None.
     spase = etree.parse(get_empty_metadata_file_path("SPASE"))
-    assert get_observatory(spase) is None
+    assert get_observatory(spase, str(get_example_metadata_file_path("SPASE")).replace("\\", "/")) is None
 
 def test_get_alternate_name_returns_expected_value():
     """Test that the get_alternate_name function returns the expected value."""
@@ -280,13 +289,12 @@ def test_get_cadenceContext_returns_expected_value():
 
     # Positive case: The function will return a description of the Cadence
     # found within the TemporalDescription section of the SPASE record.
-    spase = etree.parse(get_example_metadata_file_path("SPASE"))
-    assert get_cadenceContext(spase) == "The time series is periodic with a 0.625 second cadence"
+    cadence = "PT0.625S"
+    assert get_cadenceContext(cadence) == "The time series is periodic with a 0.625 second cadence"
 
     # Negative case: If Cadence is not present, the function will
     # return None.
-    spase = etree.parse(get_empty_metadata_file_path("SPASE"))
-    assert get_cadenceContext(spase) is None
+    assert get_cadenceContext(None) is None
 
 def test_get_mentions_returns_expected_value():
     """Test that the get_mentions function returns the expected value."""
@@ -295,7 +303,7 @@ def test_get_mentions_returns_expected_value():
     # AssociationType = "Other" found within the Association section of the SPASE record.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
     kwargs = {"testing": "soso-spase/tests/data/"}
-    assert get_mentions(spase, **kwargs) == (
+    assert get_mentions(spase, **kwargs) == ([
         {"@id": "https://doi.org/10.48322/xhe6-5a16",
         "@type": "Dataset",
         "creator": {
@@ -333,13 +341,54 @@ def test_get_mentions_returns_expected_value():
         "description": "17-min-averaged sectored proton fluxes from the MF Spectrum Analyzer of the ACE/EPAM LEFS150 instrument. All energies thresholds take into account the incident particle type, shielding, and inactive dead-layer of the solid state detector. All fluxes are background corrected and are in the solar wind rest frame.",
         "identifier": "https://doi.org/10.48322/xhe6-5a16",
         "name": "ACE Electron Proton Alpha Monitor (EPAM) LEFS150 MFSA, Solar Wind Frame, Sectored Proton Fluxes, 17 min Averages",
-        "url": "https://doi.org/10.48322/xhe6-5a16"})
-    """{
-            "@id": "https://doi.org/10.48322/2ry9-3s59",
-            "@type": "Dataset",
-            "identifier": "https://doi.org/10.48322/2ry9-3s59"
-        }
-    ]"""
+        "url": "https://doi.org/10.48322/xhe6-5a16"},
+        {
+        "@id": "https://doi.org/10.48322/2ry9-3s59",
+        "@type": "Dataset",
+        "creator": {
+            "@list": [
+            {"@type": "Person",
+                "familyName": "Gold",
+                "givenName": "R.E.",
+                "name": "Gold, R.E."
+            },
+            {"@type": "Person",
+                "familyName": "Roelof",
+                "givenName": "E.C.",
+                "name": "Roelof, E.C."
+            },
+            {"@type": "Person",
+                "familyName": "Krimigis",
+                "givenName": "S.",
+                "name": "Krimigis, S."
+            },
+            {"@type": "Person",
+                "familyName": "Haggerty",
+                "givenName": "D.",
+                "name": "Haggerty, D."
+            },
+            {"@type": "Person",
+                "familyName": "Armstrong",
+                "givenName": "T.P.",
+                "name": "Armstrong, T.P."
+            },
+            {"@type": "Person",
+                "familyName": "Manweiler",
+                "givenName": "J.W.",
+                "name": "Manweiler, J.W."
+            },
+            {"@type": "Person",
+                "familyName": "Patterson",
+                "givenName": "J.D.",
+                "name": "Patterson, J.D."
+            }
+            ]
+        },
+        "description": "Daily-averaged sectored proton fluxes from the MF Spectrum Analyzer of the ACE/EPAM LEFS150 instrument. All energies thresholds take into account the incident particle type, shielding, and inactive dead-layer of the solid state detector. All fluxes are background corrected and are in the solar wind rest frame.",
+        "identifier": "https://doi.org/10.48322/2ry9-3s59",
+        "name": "ACE Electron Proton Alpha Monitor (EPAM) LEFS150 MFSA, Solar Wind Frame, Sectored Proton Fluxes, Daily Averages",
+        "url": "https://doi.org/10.48322/2ry9-3s59"}
+    ])
 
     # Negative case: If Other AssociationIDs are not present, the function will
     # return None.
@@ -431,13 +480,13 @@ def test_get_ORCiD_and_Affiliation_returns_expected_value():
     #   associated with the given SPASE Person.
     person = "spase://SMWG/Person/David.T.Young"
     kwargs = {"testing": "soso-spase/tests/data/"}
-    spase = etree.parse(get_example_metadata_file_path("SPASE"))
+    spase = str(get_example_metadata_file_path("SPASE")).replace("\\", "/")
     assert get_ORCiD_and_Affiliation(person, spase, **kwargs) == ("0000-0001-9473-7000",
         "Southwest Research Institute", "03tghng59")
 
     # Negative case: If no person information is provided, the function will
-    # return None.
-    assert get_ORCiD_and_Affiliation(None, None, None) is None
+    # return None value.
+    assert get_ORCiD_and_Affiliation(None, None) == ("", "", "")
 
 def test_get_temporal_returns_expected_value():
     """Test that the get_temporal function returns the expected value."""
@@ -446,7 +495,8 @@ def test_get_temporal_returns_expected_value():
     # found within the TemporalDescription section of the SPASE record,
     # as well as a human-readable description of it.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
-    assert get_temporal(spase) == [
+    namespaces = {"spase": "http://www.spase-group.org/data/schema"}
+    assert get_temporal(spase, namespaces) == [
         "The time series is periodic with a 0.625 second cadence",
         "PT0.625S"
     ]
@@ -454,7 +504,7 @@ def test_get_temporal_returns_expected_value():
     # Negative case: If Cadence is not present, the function will
     # return None.
     spase = etree.parse(get_empty_metadata_file_path("SPASE"))
-    assert get_temporal(spase) is None
+    assert get_temporal(spase, namespaces) is None
 
 def test_get_metadata_license_returns_expected_value():
     """Test that the get_metadata_license function returns the expected value."""
@@ -472,8 +522,9 @@ def test_get_metadata_license_returns_expected_value():
 def test_process_authors_returns_expected_value():
     """Test that the process_authors function returns the expected value."""
 
-    # Positive case: The function will return the correctly formatted entry to be added
-    # to the creators and/or contributors list.
+    # Positive case: The function will return the correctly formatted info for an entry 
+    # to be added to the creators and/or contributors list.
+    # Case 1: Authors were found in PublicationInfo
     author = ['Fuselier, Stephen, A.; Young, David, T.; Gomez, Roman, G.; Burch, James, L.']
     authorRole = ['Author']
     contactsList = {'spase://SMWG/Person/Stephen.A.Fuselier': ['CoInvestigator'],
@@ -490,16 +541,27 @@ def test_process_authors_returns_expected_value():
             'spase://SMWG/Person/Roman.G.Gomez': 'Gomez, Roman G.',
             'spase://SMWG/Person/James.L.Burch': 'Burch, James L.',
             'spase://SMWG/Person/Jolene.S.Pickett': ['PrincipalInvestigator']})
+    
+    # Case 2: Authors are found in Contacts (no PublicationInfo container found)
+    author = ['spase://SMWG/Person/Mark.Linton', 'spase://SMWG/Person/Russell.A.Howard']
+    authorRole = ['PrincipalInvestigator', 'FormerPI']
+    contactsList = {'spase://SMWG/Person/Mark.Linton': ['PrincipalInvestigator'],
+                    'spase://SMWG/Person/Russell.A.Howard': ['FormerPI']}
+    assert process_authors(author, authorRole, contactsList) == (
+        ['spase://SMWG/Person/Mark.Linton', 'spase://SMWG/Person/Russell.A.Howard'],
+        ['PrincipalInvestigator', 'FormerPI'], {})
 
     # Negative case: If no contact info is given, the function will
     # return None.
-    assert process_authors(None, None, None) is None
+    assert process_authors(None, None, None) == (None, None, None)
 
 def test_verifyType_returns_expected_value():
     """Test that the verifyType function returns the expected value."""
 
-    # Positive cases: The function will return True or False for the first value 
-    # depending on if the URL is a link to a Dataset.
+    # Positive cases: The function will return True or False for the first and second values,
+    #   depending on if the URL is a link to a Dataset or JournalArticle. It will also
+    #   return a dictionary containing additional info pulled from the DataCite API if the
+    #   link is to a non-NASA Dataset
     # Case 1: hpde.io landing page URL to a Dataset is provided
     url = "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S.html"
     assert verifyType(url) == (True, False, {})
@@ -520,17 +582,19 @@ def test_verifyType_returns_expected_value():
     url = "https://doi.org/10.5067/SeaBASS/TURBID9/DATA001"
     assert verifyType(url) == (True, False,
         {"name": "Turbid9",
-        "creator": {"@type": "Person",
-                    "name": "SeaBASS"},
-        "description": "No description currently available for https://doi.org/10.5067/SeaBASS/TURBID9/DATA001"})
+        "creators": {"@type": "Person",
+                    "name": "SeaBASS",
+                    'givenName': '',
+                    'familyName': ''},
+        "description": "No description currently available for https://doi.org/10.5067/SeaBASS/TURBID9/DATA001."})
 
     # Case 6: DOI that does not resolve to an hpde.io landing page (but still to a JournalArticle) is provided
     url = "https://doi.org/10.1007/s11214-014-0119-6"
     assert verifyType(url) == (False, True, {})
 
     # Negative case: If no related info is given, the function will
-    # return None.
-    assert verifyType(None) is None
+    # return None value.
+    assert verifyType(None) == (False, False, {})
 
 def test_get_ResourceID_returns_expected_value():
     """Test that the get_ResourceID function returns the expected value."""
@@ -538,12 +602,13 @@ def test_get_ResourceID_returns_expected_value():
     # Positive case: The function will return the Resource ID of the SPASE
     # dataset.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
-    assert get_ResourceID(spase) == "spase://NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S"
+    namespaces = {"spase": "http://www.spase-group.org/data/schema"}
+    assert get_ResourceID(spase, namespaces) == "spase://NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S"
 
     # Negative case: If the Resource ID is not present, the function will
     # return None.
     spase = etree.parse(get_empty_metadata_file_path("SPASE"))
-    assert get_ResourceID(spase) is None
+    assert get_ResourceID(spase, namespaces) is None
 
 def test_get_relation_returns_expected_value():
     """Test that the get_relation function returns the expected value."""
@@ -557,7 +622,7 @@ def test_get_relation_returns_expected_value():
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desiredRoot = elt
     
-    assert get_relation(desiredRoot, ["Other"], **kwargs) == (
+    assert get_relation(desiredRoot, ["Other"], **kwargs) == ([
         {"@id": "https://doi.org/10.48322/xhe6-5a16",
         "@type": "Dataset",
         "creator": {
@@ -595,7 +660,54 @@ def test_get_relation_returns_expected_value():
         "description": "17-min-averaged sectored proton fluxes from the MF Spectrum Analyzer of the ACE/EPAM LEFS150 instrument. All energies thresholds take into account the incident particle type, shielding, and inactive dead-layer of the solid state detector. All fluxes are background corrected and are in the solar wind rest frame.",
         "identifier": "https://doi.org/10.48322/xhe6-5a16",
         "name": "ACE Electron Proton Alpha Monitor (EPAM) LEFS150 MFSA, Solar Wind Frame, Sectored Proton Fluxes, 17 min Averages",
-        "url": "https://doi.org/10.48322/xhe6-5a16"})
+        "url": "https://doi.org/10.48322/xhe6-5a16"},
+        {
+        "@id": "https://doi.org/10.48322/2ry9-3s59",
+        "@type": "Dataset",
+        "creator": {
+            "@list": [
+            {"@type": "Person",
+                "familyName": "Gold",
+                "givenName": "R.E.",
+                "name": "Gold, R.E."
+            },
+            {"@type": "Person",
+                "familyName": "Roelof",
+                "givenName": "E.C.",
+                "name": "Roelof, E.C."
+            },
+            {"@type": "Person",
+                "familyName": "Krimigis",
+                "givenName": "S.",
+                "name": "Krimigis, S."
+            },
+            {"@type": "Person",
+                "familyName": "Haggerty",
+                "givenName": "D.",
+                "name": "Haggerty, D."
+            },
+            {"@type": "Person",
+                "familyName": "Armstrong",
+                "givenName": "T.P.",
+                "name": "Armstrong, T.P."
+            },
+            {"@type": "Person",
+                "familyName": "Manweiler",
+                "givenName": "J.W.",
+                "name": "Manweiler, J.W."
+            },
+            {"@type": "Person",
+                "familyName": "Patterson",
+                "givenName": "J.D.",
+                "name": "Patterson, J.D."
+            }
+            ]
+        },
+        "description": "Daily-averaged sectored proton fluxes from the MF Spectrum Analyzer of the ACE/EPAM LEFS150 instrument. All energies thresholds take into account the incident particle type, shielding, and inactive dead-layer of the solid state detector. All fluxes are background corrected and are in the solar wind rest frame.",
+        "identifier": "https://doi.org/10.48322/2ry9-3s59",
+        "name": "ACE Electron Proton Alpha Monitor (EPAM) LEFS150 MFSA, Solar Wind Frame, Sectored Proton Fluxes, Daily Averages",
+        "url": "https://doi.org/10.48322/2ry9-3s59"}
+    ])
 
     # Negative case: If no relation is given, the function will
     # return None.
