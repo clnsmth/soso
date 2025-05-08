@@ -249,7 +249,6 @@
       },
       {
          "@type": "SearchAction",
-         "description": "Download dataset data as CDF or CSV file at this URL",
          "target": {
             "@id": "https://cdaweb.gsfc.nasa.gov/cgi-bin/eval2.cgi?dataset=MMS4_HPCA_BRST_L2_ION&index=sp_phys",
             "@type": "EntryPoint",
@@ -394,7 +393,7 @@
       "@type": "Organization",
       "name": "Space Physics Data Facility"
    },
-   "sameAs": "https://hpde.io/VSPO/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
+   "sameAs": "spase://VSPO/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
    "spatialCoverage": [
       {
          "@type": "Place",
