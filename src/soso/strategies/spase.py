@@ -441,6 +441,7 @@ class SPASE(StrategyInterface):
                 "(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9])"
                 ":([0-5][0-9])(.[0-9]+)?(Z)?"
             )
+            multiple = False
 
             # most basic format for a potentialAction item
             entry = {
@@ -463,47 +464,62 @@ class SPASE(StrategyInterface):
                     entry["target"]["name"] = name
                 potential_action_list.append(entry)
             else:
-                # loop thru all product keys if there are multiple
-                for prod_key in prod_keys:
-                    prod_key = prod_key.replace('"', "")
-                    # if name available, add it
-                    if name:
-                        entry["target"]["name"] = name
-                    # if link is a hapi link, provide the hapi interface
-                    #   web service to download data
-                    if "/hapi" in k:
-                        # additions needed for each hapi link
-                        query_format = [
-                            {
-                                "@type": "PropertyValueSpecification",
-                                "valueName": "start",
-                                "description": f"A UTC ISO DateTime. {start_sent}",
-                                "valueRequired": False,
-                                "valuePattern": f"{pattern}",
-                            },
-                            {
-                                "@type": "PropertyValueSpecification",
-                                "valueName": "end",
-                                "description": f"A UTC ISO DateTime. {end_sent}",
-                                "valueRequired": False,
-                                "valuePattern": f"{pattern}",
-                            },
-                        ]
+                # if name available, add it
+                if name:
+                    entry["target"]["name"] = name
+                # find if multiple product keys
+                if len(prod_keys) > 1:
+                    multiple = True
+                # let user know of product key names in description
+                entry["target"][
+                    "description"
+                ] += f" using these product key(s): {str(prod_keys)}"
+                # if link is a hapi link, provide the hapi interface
+                #   web service to download data
+                if "/hapi" in k:
+                    # additions needed for each hapi link
+                    query_format = [
+                        {
+                            "@type": "PropertyValueSpecification",
+                            "valueName": "start",
+                            "description": f"A UTC ISO DateTime. {start_sent}",
+                            "valueRequired": False,
+                            "valuePattern": f"{pattern}",
+                        },
+                        {
+                            "@type": "PropertyValueSpecification",
+                            "valueName": "end",
+                            "description": f"A UTC ISO DateTime. {end_sent}",
+                            "valueRequired": False,
+                            "valuePattern": f"{pattern}",
+                        },
+                    ]
+                    if "url" in entry["target"].keys():
                         entry["target"].pop("url")
+                    # if multiple product keys, keep track of all of them
+                    if multiple:
+                        entry["target"]["urlTemplate"] = []
+                        for prod_key in prod_keys:
+                            prod_key = prod_key.replace('"', "")
+                            entry["target"]["urlTemplate"].append(
+                                f"{k}/data?id={prod_key}&time.min={{start}}&time.max={{end}}"
+                            )
+                    else:
+                        prod_keys[0] = prod_keys[0].replace('"', "")
                         entry["target"][
                             "urlTemplate"
-                        ] = f"{k}/data?id={prod_key}&time.min={{start}}&time.max={{end}}"
-                        entry["target"]["description"] = (
-                            "Download dataset labeled by id in CSV format based on "
-                            "the requested start and end dates"
-                        )
-                        entry["target"]["httpMethod"] = "GET"
-                        entry["query-input"] = query_format
-                    # if not ftp link, include url as @id
-                    if "ftp" not in k:
-                        entry["target"]["@id"] = k
-                        entry["target"]["identifier"] = k
-                    potential_action_list.append(entry)
+                        ] = f"{k}/data?id={prod_keys[0]}&time.min={{start}}&time.max={{end}}"
+                    entry["target"]["description"] = (
+                        "Download dataset labeled by id in CSV format based on "
+                        "the requested start and end dates"
+                    )
+                    entry["target"]["httpMethod"] = "GET"
+                    entry["query-input"] = query_format
+                # if not ftp link, include url as @id
+                if "ftp" not in k:
+                    entry["target"]["@id"] = k
+                    entry["target"]["identifier"] = k
+                potential_action_list.append(entry)
         if len(potential_action_list) != 0:
             potential_action = potential_action_list
         else:
@@ -1141,85 +1157,90 @@ def get_authors(
 
     # traverse xml to extract needed info
     # iterate thru to find ResourceHeader
-    for child in desired_root.iter(tag=etree.Element):
-        if child.tag.endswith("ResourceHeader"):
-            target_child = child
-            # iterate thru to find PublicationInfo
-            for child in target_child:
-                try:
-                    if child.tag.endswith("PublicationInfo"):
-                        pi_child = child
-                    elif child.tag.endswith("Contact"):
-                        c_child = child
-                        # iterate thru Contact to find PersonID and Role
-                        for child in c_child:
-                            try:
-                                # find PersonID
-                                if child.tag.endswith("PersonID"):
-                                    # store PersonID
-                                    person_id = child.text.strip()
-                                    backups[person_id] = []
-                                    contacts_list[person_id] = []
-                                # find Role
-                                elif child.tag.endswith("Role"):
-                                    # backup author
-                                    if (
-                                        ("PrincipalInvestigator" in child.text)
-                                        or ("PI" in child.text)
-                                        or ("CoInvestigator" in child.text)
-                                    ):
-                                        if person_id not in author:
-                                            author.append(person_id)
-                                            author_role.append(child.text.strip())
-                                        else:
-                                            index = author.index(person_id)
-                                            author_role[index] = [
-                                                author_role[index],
-                                                child.text.strip(),
+    if desired_root is not None:
+        for child in desired_root.iter(tag=etree.Element):
+            if child.tag.endswith("ResourceHeader"):
+                target_child = child
+                # iterate thru to find PublicationInfo
+                for child in target_child:
+                    try:
+                        if child.tag.endswith("PublicationInfo"):
+                            pi_child = child
+                        elif child.tag.endswith("Contact"):
+                            c_child = child
+                            # iterate thru Contact to find PersonID and Role
+                            for child in c_child:
+                                try:
+                                    # find PersonID
+                                    if child.tag.endswith("PersonID"):
+                                        # store PersonID
+                                        person_id = child.text.strip()
+                                        backups[person_id] = []
+                                        contacts_list[person_id] = []
+                                    # find Role
+                                    elif child.tag.endswith("Role"):
+                                        # backup author
+                                        if (
+                                            ("PrincipalInvestigator" in child.text)
+                                            or ("PI" in child.text)
+                                            or ("CoInvestigator" in child.text)
+                                        ):
+                                            if person_id not in author:
+                                                author.append(person_id)
+                                                author_role.append(child.text.strip())
+                                            else:
+                                                index = author.index(person_id)
+                                                author_role[index] = [
+                                                    author_role[index],
+                                                    child.text.strip(),
+                                                ]
+                                            # store author roles found here in case PubInfo present
+                                            contacts_list[person_id] += [
+                                                child.text.strip()
                                             ]
-                                        # store author roles found here in case PubInfo present
-                                        contacts_list[person_id] += [child.text.strip()]
-                                    # preferred contributor
-                                    elif child.text == "Contributor":
-                                        contributor.append(person_id)
-                                    # backup publisher (none found in SPASE currently)
-                                    elif child.text == "Publisher":
-                                        pub = child.text.strip()
-                                    else:
-                                        # use list for values in case one person has multiple roles
-                                        # store contacts w non-author roles for use in contributors
-                                        backups[person_id] += [child.text.strip()]
-                            except AttributeError:
-                                continue
-                except AttributeError:
-                    continue
-    if pi_child is not None:
-        for child in pi_child.iter(tag=etree.Element):
-            # collect preferred author
-            if child.tag.endswith("Authors"):
-                author = [child.text.strip()]
-                author_role = ["Author"]
-            # collect preferred publication date
-            elif child.tag.endswith("PublicationDate"):
-                pub_date = child.text.strip()
-            # collect preferred publisher
-            elif child.tag.endswith("PublishedBy"):
-                pub = child.text.strip()
-            # collect preferred dataset
-            elif child.tag.endswith("Title"):
-                dataset = child.text.strip()
+                                        # preferred contributor
+                                        elif child.text == "Contributor":
+                                            contributor.append(person_id)
+                                        # backup publisher (none found in SPASE currently)
+                                        elif child.text == "Publisher":
+                                            pub = child.text.strip()
+                                        else:
+                                            # use list for values in case one person
+                                            #   has multiple roles
+                                            # store contacts w non-author roles for
+                                            #   use in contributors
+                                            backups[person_id] += [child.text.strip()]
+                                except AttributeError:
+                                    continue
+                    except AttributeError:
+                        continue
+        if pi_child is not None:
+            for child in pi_child.iter(tag=etree.Element):
+                # collect preferred author
+                if child.tag.endswith("Authors"):
+                    author = [child.text.strip()]
+                    author_role = ["Author"]
+                # collect preferred publication date
+                elif child.tag.endswith("PublicationDate"):
+                    pub_date = child.text.strip()
+                # collect preferred publisher
+                elif child.tag.endswith("PublishedBy"):
+                    pub = child.text.strip()
+                # collect preferred dataset
+                elif child.tag.endswith("Title"):
+                    dataset = child.text.strip()
 
-    # remove contacts w/o role values
-    contacts_copy = {}
-    for contact, role in contacts_list.items():
-        if role:
-            contacts_copy[contact] = role
-    # compare author and contacts_list to add author roles
-    #   from contacts_list for matching people found in PubInfo
-    # also formats the author list correctly for use in get_creator
-    author, author_role, contacts_list = process_authors(
-        author, author_role, contacts_copy
-    )
+        # remove contacts w/o role values
+        contacts_copy = {}
+        for contact, role in contacts_list.items():
+            if role:
+                contacts_copy[contact] = role
+        # compare author and contacts_list to add author roles
+        #   from contacts_list for matching people found in PubInfo
+        # also formats the author list correctly for use in get_creator
+        author, author_role, contacts_list = process_authors(
+            author, author_role, contacts_copy
+        )
 
     return (
         author,
@@ -1323,9 +1344,7 @@ def get_access_urls(metadata: etree.ElementTree) -> tuple[Dict, Dict]:
             ]
             substring = k.split("://")
             domain = substring[1]
-            substring2 = domain.rsplit("/", 1)
-            domain = substring2[0]
-            download_file = substring2[1]
+            domain, _, download_file = domain.rpartition("/")
             download_file, _, ext = download_file.rpartition(".")
             # see if file extension is one associated w data files
             if ext not in data_file_ext:
@@ -1376,8 +1395,8 @@ def get_dates(metadata: etree.ElementTree) -> tuple[datetime, List[datetime]]:
                         if "Z" in child.text:
                             time_str = time_str.replace("Z", "")
                         if "." in child.text:
-                            time_str = time_str.split(".", 1)
-                        dt_string = date + " " + time_str[0]
+                            time_str, _, _ = time_str.partition(".")
+                        dt_string = date + " " + time_str
                         dt_obj = datetime.strptime(dt_string, "%Y-%m-%d %H:%M:%S")
                         release_date = dt_obj
                     elif child.tag.endswith("RevisionHistory"):

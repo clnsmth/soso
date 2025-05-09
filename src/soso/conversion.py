@@ -77,6 +77,7 @@ def find_requirements(folder: str) -> None:
             "No records found. Make sure the directory path is correct and try again."
         )
     else:
+        print("Looking through files to see what repos are needed locally. One moment.")
         # iterate through all SPASE records
         for record in spase_paths:
             if record not in searched:
@@ -146,6 +147,7 @@ def main(folder: str, additional_license_info=None) -> None:
     spase_paths = []
     spase_paths = get_paths(folder, spase_paths)
     # print("You entered " + folder)
+    num = 0
     if len(spase_paths) == 0:
         print(
             "No records found. Make sure the directory path is correct and try again."
@@ -158,8 +160,9 @@ def main(folder: str, additional_license_info=None) -> None:
                 status_message = f"\r\033[KExtracting metadata from record {r+1}"
                 status_message += f" of {len(spase_paths)}"
                 print(status_message, end="")
-                # print(record)
+                print(record)
                 print()
+                num = r
 
                 # create path to schema.org output json
                 path_to_file, file_name = make_json_path(record)
@@ -193,8 +196,8 @@ def main(folder: str, additional_license_info=None) -> None:
                     kwargs["subjectOf"] = subject_of
 
                 # create schema.org JSON
-                r = convert(file=record, strategy="SPASE")
-                updated_dict = json.loads(r)
+                creation = convert(file=record, strategy="SPASE")
+                updated_dict = json.loads(creation)
                 # add sosa ontology to json "@context"
                 updated_dict["@context"][
                     "sosa"
@@ -214,7 +217,7 @@ def main(folder: str, additional_license_info=None) -> None:
                 # from pprint import pprint
                 # finalDict = updated_dict | kwargs
                 # pprint(finalDict)
-        print(f"{len(spase_paths)} records successfully converted to schema.org JSONs")
+        print(f"{num + 1} records successfully converted to schema.org JSONs")
         with open(
             f"{str(Path.cwd())}/problematicRecords.txt", "r", encoding="utf-8"
         ) as f:
@@ -243,9 +246,6 @@ if __name__ == "__main__":
             " that you want to create schema.org JSONs for as an argument"
         )
     else:
-        # folder = "C:/Users/zboquet/NASA/DisplayData/SolarOrbiter/SoloHI/MP4"
-        # folder = "C:/Users/zboquet/NASA/DisplayData"
-        # print(argv)
         if len(argv) > 2:
             main(argv[1], [argv[2], argv[3], argv[4]])
         else:
