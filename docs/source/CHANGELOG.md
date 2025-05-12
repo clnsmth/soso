@@ -2,30 +2,56 @@
 
 
 
+## v0.4.0 (2025-01-17)
+
+
+### Bug fixes
+
+* fix: translate docstrings into comments (#213, #222) ([`ba74a46`](https://github.com/clnsmth/soso/commit/ba74a463cb3bd86869114c7eb2c19b2a24520e12)) 
+
+### Build system
+
+* build: configure Read the Docs for explicit path to config.py ([`a1a54c0`](https://github.com/clnsmth/soso/commit/a1a54c010ac626033c75369e59fb6cf8b90bf2dc)) 
+
+### Features
+
+* feat: add spatial coverage support for SPASE (#213) ([`4c3154b`](https://github.com/clnsmth/soso/commit/4c3154b8b4dbbf75f109a959ca145dc6a1b64f57)) 
+
+### Refactoring
+
+* refactor: address Pylint issues in SPASE strategy integrations ([`e793798`](https://github.com/clnsmth/soso/commit/e793798a252a28f4c285c8a4f8c1817d84ae8df5)) 
+
 ## v0.3.0 (2024-12-12)
 
 
-### Feature
+### Bug fixes
+
+* fix: prevent invalid property assignments in SOSO records (#218) ([`de3b430`](https://github.com/clnsmth/soso/commit/de3b4307146207d96085408d3e322a92efd6b2dd)) 
+* fix: correct XML declaration in example SPASE file (#213) ([`599807e`](https://github.com/clnsmth/soso/commit/599807e18b8b05200c37413e1be8674c45fe2ffb)) 
+* fix: enhance `generate_citation_from_doi` for invalid input handling ([`ceb6706`](https://github.com/clnsmth/soso/commit/ceb6706b225ec75e3146586ca60c1dd6a7dc8236)) 
+
+### Features
 
 * feat: first set of mapping implementation #213 ([`6b07636`](https://github.com/clnsmth/soso/commit/6b0763649922fbe884bf4db8756622a493e98e14)) 
 * feat: establish SPASE conversion strategy (#213) ([`3ce2b25`](https://github.com/clnsmth/soso/commit/3ce2b2526dffac806d4d63eef6981e1fe5253dc3)) 
 * feat: add SPASE empty file #213 ([`b4f5ad1`](https://github.com/clnsmth/soso/commit/b4f5ad19d432c0ccf9e1925e4771aa568c3e445e)) 
 * feat: create example spase.xml for testing (#213) ([`cbef3a1`](https://github.com/clnsmth/soso/commit/cbef3a16849ddbda784028d5efb37cb3c3ab97ac)) 
 
-### Fix
-
-* fix: prevent invalid property assignments in SOSO records (#218) ([`de3b430`](https://github.com/clnsmth/soso/commit/de3b4307146207d96085408d3e322a92efd6b2dd)) 
-* fix: correct XML declaration in example SPASE file (#213) ([`599807e`](https://github.com/clnsmth/soso/commit/599807e18b8b05200c37413e1be8674c45fe2ffb)) 
-* fix: enhance `generate_citation_from_doi` for invalid input handling ([`ceb6706`](https://github.com/clnsmth/soso/commit/ceb6706b225ec75e3146586ca60c1dd6a7dc8236)) 
-
-### Test
+### Testing
 
 * test: add missing `@id` property to test fixture (#213) ([`5d980c8`](https://github.com/clnsmth/soso/commit/5d980c83df8e2738f86af23de55f941d49be3562)) 
 
 ## v0.2.0 (2024-09-27)
 
 
-### Ci
+### Bug fixes
+
+* fix: add @id for Organization type in EML strategy ([`0765e08`](https://github.com/clnsmth/soso/commit/0765e08703580c547881a47bfdbe8720bc27a499)) 
+* fix: add @id for MonetaryGrant type in EML strategy ([`cdbdafd`](https://github.com/clnsmth/soso/commit/cdbdafd3107a965b4ae7b21b346d8287a04a5477)) 
+* fix: incorrect comparison of bytes and string objects ([`f883bfd`](https://github.com/clnsmth/soso/commit/f883bfda01f8b753abc8f8e93dcb00a3a4af3f8d)) 
+* fix: add @id for identifier of Person and Org type in EML strategy ([`98887ee`](https://github.com/clnsmth/soso/commit/98887eeaf1bddd238fc519a81f42f8d78921e637)) 
+
+### Continuous integration
 
 * ci: fix code coverage report generation ([`3bed01d`](https://github.com/clnsmth/soso/commit/3bed01dd29fe28db41bdaf0b18aac7046d329485)) 
 
@@ -38,23 +64,48 @@
 * docs: enhance README with installation and quickstart ([`851ed49`](https://github.com/clnsmth/soso/commit/851ed4986c63bd850bd9bf288981ec776ab30eb1)) 
 * docs: correct _templates/ structure for proper rendering ([`5a3e878`](https://github.com/clnsmth/soso/commit/5a3e87869fada55248a260d17f8545c03e304d25)) 
 
-### Feature
+### Features
 
 * feat: add @id for Dataset type in EML strategy ([`b41a572`](https://github.com/clnsmth/soso/commit/b41a572009688f19e929e5516fbf9efd3a999a16)) 
 * feat: add @id for Dataset type in strategy interface ([`bf86774`](https://github.com/clnsmth/soso/commit/bf86774449bf723f62ce547bb639fab52f62350a)) 
 * feat: implement heuristic URL validation utility ([`0c7729f`](https://github.com/clnsmth/soso/commit/0c7729fbd20219cfc4f122336b862e61e6d14291)) 
 
-### Fix
-
-* fix: add @id for Organization type in EML strategy ([`0765e08`](https://github.com/clnsmth/soso/commit/0765e08703580c547881a47bfdbe8720bc27a499)) 
-* fix: add @id for MonetaryGrant type in EML strategy ([`cdbdafd`](https://github.com/clnsmth/soso/commit/cdbdafd3107a965b4ae7b21b346d8287a04a5477)) 
-* fix: incorrect comparison of bytes and string objects ([`f883bfd`](https://github.com/clnsmth/soso/commit/f883bfda01f8b753abc8f8e93dcb00a3a4af3f8d)) 
-* fix: add @id for identifier of Person and Org type in EML strategy ([`98887ee`](https://github.com/clnsmth/soso/commit/98887eeaf1bddd238fc519a81f42f8d78921e637)) 
-
 ## v0.1.0 (2024-07-30)
 
 
-### Build
+### Bug fixes
+
+* fix: adjust mapping implementations ([`df72499`](https://github.com/clnsmth/soso/commit/df72499c58a6219968481fd9f9f2a5a4ab856e92)) 
+* fix: future deprecation warning ([`5a74275`](https://github.com/clnsmth/soso/commit/5a742759b91e99b2baa0f5fd990ebbbca7c21022)) 
+* fix: geo time `xsd:decimal` could be string ([`635d0ed`](https://github.com/clnsmth/soso/commit/635d0ed62252025ce212dad2c80f5ff71ea4e8e3)) 
+* fix: add missing contributors ([`daaf1e3`](https://github.com/clnsmth/soso/commit/daaf1e3e085f898a9a2b5e32a5ba203288212eb3)) 
+* fix: limit textual properties to 5000 characters ([`c53bce9`](https://github.com/clnsmth/soso/commit/c53bce99977b1871f6eb1fad5699893e3d5ddb9f)) 
+* fix: get_description returns incomplete value ([`ea993a3`](https://github.com/clnsmth/soso/commit/ea993a37cca23b4394a9514fddb3d20aee0a409c)) 
+* fix: get_checksum errors on no checksum value ([`f64de9c`](https://github.com/clnsmth/soso/commit/f64de9c7f8ef0b21cdcbd256bc7fd2108ebb5942)) 
+* fix: get_content_size errors when unit not present ([`f85f972`](https://github.com/clnsmth/soso/commit/f85f9728a59bfee3e8d806f8b85f247c01d26153)) 
+* fix: strategy_instance returns class, not PosixPath ([`16c205d`](https://github.com/clnsmth/soso/commit/16c205dc399f386593972094d390fd5f8a96f4b5)) 
+* fix: don't list nested properties as "unmappable" ([`316c525`](https://github.com/clnsmth/soso/commit/316c525bbb3f4cf2ee60dfa05d3692dc41098b59)) 
+* fix: consistent representation of metadata acronyms ([`fad2836`](https://github.com/clnsmth/soso/commit/fad2836ae82f14347e9ad344eda4e08db78b55fe)) 
+* fix: convert SPDX license URL to URI for EML ([`dea8bfe`](https://github.com/clnsmth/soso/commit/dea8bfef18051c8369bb284d43b4e1bacfe86d34)) 
+* fix: add missing prefixes to top-level properties ([`88e956f`](https://github.com/clnsmth/soso/commit/88e956febf0f8d55bdd019af50df9cac14219b02)) 
+* fix: use contentUrl not contentURL ([`158330e`](https://github.com/clnsmth/soso/commit/158330e783618c22b9478a053a1616fbf2e4dbda)) 
+* fix: correct typo in EML SSSOM ([`114080b`](https://github.com/clnsmth/soso/commit/114080b782b7a74647b2a7257309de916e4c0679)) 
+* fix: differentiate persons from organizations (#5) ([`4d3218e`](https://github.com/clnsmth/soso/commit/4d3218ea27ee14de8a22e80dc26755f3b4ee9df7)) 
+* fix: resolve pylint warning regarding long line ([`f3bd1ea`](https://github.com/clnsmth/soso/commit/f3bd1ea14729abfda043d32c464f8b0ef152b145)) 
+* fix: note publisher is unmappable (#5) ([`215d24c`](https://github.com/clnsmth/soso/commit/215d24c86dabee8ffed4e93a79934cae0e61c243)) 
+* fix: note provider is unmappable (#5) ([`e664f01`](https://github.com/clnsmth/soso/commit/e664f016e08d6a94247810cdc9f0054191f962a0)) 
+* fix: return None creator/contributor for readability ([`0d62bdf`](https://github.com/clnsmth/soso/commit/0d62bdf5eb9a099fbf87bcfde3ee7fa9a43c2d64)) 
+* fix: add missing return type to method docstring (#5) ([`3654bd1`](https://github.com/clnsmth/soso/commit/3654bd12b170706a9fd87b7d738fa3f3100502b7)) 
+* fix: update spatialCoverage mapping dates (#5) ([`bcb2a4f`](https://github.com/clnsmth/soso/commit/bcb2a4f887e43db00807a664bc246f05c044e45d)) 
+* fix: fix distribution in EML SSSOM (#5) ([`5c29cc2`](https://github.com/clnsmth/soso/commit/5c29cc23a122bb2804edd677e53abcf776f983ee)) 
+* fix: revert to previous SSSOM practices (#5) ([`05816b3`](https://github.com/clnsmth/soso/commit/05816b311af595f61c8570cdacb961b86c342de1)) 
+* fix: fully represent properties with 'schema' prefix (#5) ([`17e5953`](https://github.com/clnsmth/soso/commit/17e59539f8a09375b0372027f05097e5267d3a05)) 
+* fix: add missing note to EML strategy (#5) ([`5978c78`](https://github.com/clnsmth/soso/commit/5978c785440ea0f95f561ba8871d645a55e32d69)) 
+* fix: specify expected string format ([`a3f9b30`](https://github.com/clnsmth/soso/commit/a3f9b30b44347d4efb76aed412c60e1efe31ce37)) 
+* fix: deprecation warnings issued by pytest ([`fcee9df`](https://github.com/clnsmth/soso/commit/fcee9df16b35dc76b828e783a72eaa978e6d7ff1)) 
+* fix: return JSON-LD str not JSON dict ([`6fa9ff8`](https://github.com/clnsmth/soso/commit/6fa9ff8ce4965af6cb285fedcc957ac2b2f6e625)) 
+
+### Build system
 
 * build: clean up env build files ([`07277f5`](https://github.com/clnsmth/soso/commit/07277f5cb62b5ed79150b350bab51cee66a76c06)) 
 * build: update dependencies ([`7d87a08`](https://github.com/clnsmth/soso/commit/7d87a08256961daa51fe611047c054af84d66f4d)) 
@@ -62,13 +113,13 @@
 * build: synchronize environment files ([`f163ffd`](https://github.com/clnsmth/soso/commit/f163ffd9ef8f5a976471812ca53f33c33f424aff)) 
 * build: remove invalid package metadata ([`3e1a8e3`](https://github.com/clnsmth/soso/commit/3e1a8e31a96c8240cf32699b163664745e629c98)) 
 
-### Ci
+### Continuous integration
 
 * ci: fix failing release workflow ([`ee76c39`](https://github.com/clnsmth/soso/commit/ee76c398dd1b59104f4d1925c5f3f4ff775a0199)) 
 * ci: ignore Pylint too-many-instance-attributes ([`25d33e2`](https://github.com/clnsmth/soso/commit/25d33e2917d816e1a6bc1b0e1037b8ba7466844c)) 
-* ci: ignore Pylint &#39;too many arguments&#39; ([`83ca931`](https://github.com/clnsmth/soso/commit/83ca93143153ecc0d5d1b4a57f0fad35153c3da8)) 
+* ci: ignore Pylint 'too many arguments' ([`83ca931`](https://github.com/clnsmth/soso/commit/83ca93143153ecc0d5d1b4a57f0fad35153c3da8)) 
 * ci: ignore pylint R0912 for is_property_type ([`e64906b`](https://github.com/clnsmth/soso/commit/e64906b66148b9d06cb5c49e93e987020d983968)) 
-* ci: use &#39;black&#39; version 23.7.0 ([`c84d8b3`](https://github.com/clnsmth/soso/commit/c84d8b339573754d0af5ddd42f4f8053dc805251)) 
+* ci: use 'black' version 23.7.0 ([`c84d8b3`](https://github.com/clnsmth/soso/commit/c84d8b339573754d0af5ddd42f4f8053dc805251)) 
 * ci: ignore pylint c-extension-no-member messages ([`7d6e9cc`](https://github.com/clnsmth/soso/commit/7d6e9cc75529f771bdb1028df884dae98af721d3)) 
 * ci: simplify pylint calls with pyproject.toml ([`7578728`](https://github.com/clnsmth/soso/commit/7578728f760b5581cbaf87c70630004ee7980716)) 
 
@@ -80,13 +131,13 @@
 * docs: update mapping guidelines ([`042db8e`](https://github.com/clnsmth/soso/commit/042db8ef91b85278f1a9fa74f28558c2132de640)) 
 * docs: update SSSOM mapping for EML ([`b0f0baa`](https://github.com/clnsmth/soso/commit/b0f0baa87423a2d4033ce95b1a6b0f63fa986d0f)) 
 * docs: improve design requirement clarity ([`f44c8d7`](https://github.com/clnsmth/soso/commit/f44c8d7da6080f454211804725f3ce7887737063)) 
-* docs: define &#34;acceptable mapping implementation&#34; ([`93b5526`](https://github.com/clnsmth/soso/commit/93b5526a03939b84ec9d825536f5aa7cd689c433)) 
-* docs: don&#39;t coerce SSSOM mapping predicates ([`318c6a6`](https://github.com/clnsmth/soso/commit/318c6a6f792a047dbb39e8c673fa5edfc071d0ce)) 
+* docs: define "acceptable mapping implementation" ([`93b5526`](https://github.com/clnsmth/soso/commit/93b5526a03939b84ec9d825536f5aa7cd689c433)) 
+* docs: don't coerce SSSOM mapping predicates ([`318c6a6`](https://github.com/clnsmth/soso/commit/318c6a6f792a047dbb39e8c673fa5edfc071d0ce)) 
 * docs: install from GitHub ([`3c9e17b`](https://github.com/clnsmth/soso/commit/3c9e17b71d6f2921c625f395f342fc792efe0d2a)) 
-* docs: clean up code in &#34;Wrapping it All Up&#34; demo ([`4a882e6`](https://github.com/clnsmth/soso/commit/4a882e6c68d70c51eff782af81d31412e6fe8b18)) 
+* docs: clean up code in "Wrapping it All Up" demo ([`4a882e6`](https://github.com/clnsmth/soso/commit/4a882e6c68d70c51eff782af81d31412e6fe8b18)) 
 * docs: establish consistent mapping terminology ([`622b25c`](https://github.com/clnsmth/soso/commit/622b25cc28409f4893bcef9c3c7bcb304e7e0542)) 
 * docs: new strategy methods should use delete_null_values ([`1b58b0b`](https://github.com/clnsmth/soso/commit/1b58b0b6fd71f177229e5e6d5a13bd8a952b696c)) 
-* docs: remove &#34;precision-based property control&#34; ([`955b895`](https://github.com/clnsmth/soso/commit/955b8957b71033e75f9c659ed35d1144c3b0d32c)) 
+* docs: remove "precision-based property control" ([`955b895`](https://github.com/clnsmth/soso/commit/955b8957b71033e75f9c659ed35d1144c3b0d32c)) 
 * docs: de-emphasize section headings of quickstart notes ([`504521d`](https://github.com/clnsmth/soso/commit/504521dfbb83a6251c8763d1316c968fe0fbf5d9)) 
 * docs: consistently emphasize package name ([`fc6e357`](https://github.com/clnsmth/soso/commit/fc6e3574ec67e9397b911f16173c40e2a2a535d2)) 
 * docs: remove mention of Numpy docstrings ([`ac7b2f2`](https://github.com/clnsmth/soso/commit/ac7b2f26b59523f03e80002e41d94fc346bc783a)) 
@@ -96,7 +147,7 @@
 * docs: link to quickstart guide for customization ([`63428c3`](https://github.com/clnsmth/soso/commit/63428c319e3e7421b1fad0962a76834210bed478)) 
 * docs: add support for a new metadata standard ([`43b45ed`](https://github.com/clnsmth/soso/commit/43b45ed98e733dfbf79a354acc317e5c5db5294b)) 
 * docs: remove architecture heading from design docs ([`0cb7200`](https://github.com/clnsmth/soso/commit/0cb720001bf17993ef9a67cb99457b9afa411026)) 
-* docs: design docs don&#39;t belong in contributor guide ([`6334512`](https://github.com/clnsmth/soso/commit/6334512b95b34135b25da45cd4080cfe029e81c3)) 
+* docs: design docs don't belong in contributor guide ([`6334512`](https://github.com/clnsmth/soso/commit/6334512b95b34135b25da45cd4080cfe029e81c3)) 
 * docs: refactor remaining system details of design docs ([`ccf46be`](https://github.com/clnsmth/soso/commit/ccf46be56b60d7929a7f1c9c373fdc0b8bef8366)) 
 * docs: simplify detailed testing section of design docs ([`3290bcc`](https://github.com/clnsmth/soso/commit/3290bcc527ba2254bded11d3bfd285a8c6fc4833)) 
 * docs: remove unused advanced section ([`249e4da`](https://github.com/clnsmth/soso/commit/249e4da8886b428528483e252359bdca8dc52c7b)) 
@@ -130,18 +181,18 @@
 * docs: add design docs for effective contributions ([`f93f568`](https://github.com/clnsmth/soso/commit/f93f5687772aa41898a9b9bc48ef59f21b4beaa0)) 
 * docs: note unmappable property for CRS ([`1a1863f`](https://github.com/clnsmth/soso/commit/1a1863f0fbdd225fd015d3fd2fb36a3b8d2a055c)) 
 * docs: improve delete_unused_vocabularies description ([`01ad124`](https://github.com/clnsmth/soso/commit/01ad12464c47131d520b38a01cce73bdab37e242)) 
-* docs: define &#34;null&#34; in rm_null_values function ([`69ad083`](https://github.com/clnsmth/soso/commit/69ad083f754020dbaaaee824151812cab256e103)) 
+* docs: define "null" in rm_null_values function ([`69ad083`](https://github.com/clnsmth/soso/commit/69ad083f754020dbaaaee824151812cab256e103)) 
 * docs: improve strategy return type descriptions ([`fc8c0e5`](https://github.com/clnsmth/soso/commit/fc8c0e53d7aefdda68ab92d68b60239b173063e5)) 
 * docs: fix broken reference URLs in Maintainer Guide ([`d2f17d6`](https://github.com/clnsmth/soso/commit/d2f17d6686068936b69a913ecdc499dd4a50fab1)) 
 * docs: fix local test instructions ([`9da4dce`](https://github.com/clnsmth/soso/commit/9da4dce055076a440025abee8d67882cf8f00765)) 
 * docs: note nuances of EML object identifiers (#5) ([`a281c93`](https://github.com/clnsmth/soso/commit/a281c935db334096862a7b74d07332f138b65873)) 
 * docs: refine project descriptions ([`9933d45`](https://github.com/clnsmth/soso/commit/9933d45bf152dbf4613b6e727a1b809cbd3d4e21)) 
 
-### Feature
+### Features
 
 * feat: convert multiple versions of source metadata ([`0a200f5`](https://github.com/clnsmth/soso/commit/0a200f586af6dbea17714bfdc3c5cd3b16651a99)) 
 * feat: cast value to numeric type ([`503fc52`](https://github.com/clnsmth/soso/commit/503fc525c1ba439a0b7726ffa56728c8cea833ca)) 
-* feat: make &#39;file&#39; argument accessible to strategy methods ([`a132797`](https://github.com/clnsmth/soso/commit/a132797dae9005b8f945b388b75d5bf2acc73d26)) 
+* feat: make 'file' argument accessible to strategy methods ([`a132797`](https://github.com/clnsmth/soso/commit/a132797dae9005b8f945b388b75d5bf2acc73d26)) 
 * feat: override any top-level SOSO property via kwargs ([`158a924`](https://github.com/clnsmth/soso/commit/158a92423eaa9d48c7c0a99ec8626463f4d3bc15)) 
 * feat: create expires via parameter for EML ([`b1bde5b`](https://github.com/clnsmth/soso/commit/b1bde5bb623ca9244d79631b38ebeab83082d191)) 
 * feat: create dateCreated via parameter for EML ([`e55a3ef`](https://github.com/clnsmth/soso/commit/e55a3efa87760958cd5c3497b889c0b5629d86fa)) 
@@ -195,39 +246,7 @@
 * feat: map SOSO to EML with SSSOM (#5) ([`2a7dfe6`](https://github.com/clnsmth/soso/commit/2a7dfe649749987ac098f33c421a371e3cdcd0dd)) 
 * feat: validate graph against the dataset SHACL shape ([`a1abc3f`](https://github.com/clnsmth/soso/commit/a1abc3f27b1d186fc7d740eaf0ebc5311fd8958d)) 
 
-### Fix
-
-* fix: adjust mapping implementations ([`df72499`](https://github.com/clnsmth/soso/commit/df72499c58a6219968481fd9f9f2a5a4ab856e92)) 
-* fix: future deprecation warning ([`5a74275`](https://github.com/clnsmth/soso/commit/5a742759b91e99b2baa0f5fd990ebbbca7c21022)) 
-* fix: geo time `xsd:decimal` could be string ([`635d0ed`](https://github.com/clnsmth/soso/commit/635d0ed62252025ce212dad2c80f5ff71ea4e8e3)) 
-* fix: add missing contributors ([`daaf1e3`](https://github.com/clnsmth/soso/commit/daaf1e3e085f898a9a2b5e32a5ba203288212eb3)) 
-* fix: limit textual properties to 5000 characters ([`c53bce9`](https://github.com/clnsmth/soso/commit/c53bce99977b1871f6eb1fad5699893e3d5ddb9f)) 
-* fix: get_description returns incomplete value ([`ea993a3`](https://github.com/clnsmth/soso/commit/ea993a37cca23b4394a9514fddb3d20aee0a409c)) 
-* fix: get_checksum errors on no checksum value ([`f64de9c`](https://github.com/clnsmth/soso/commit/f64de9c7f8ef0b21cdcbd256bc7fd2108ebb5942)) 
-* fix: get_content_size errors when unit not present ([`f85f972`](https://github.com/clnsmth/soso/commit/f85f9728a59bfee3e8d806f8b85f247c01d26153)) 
-* fix: strategy_instance returns class, not PosixPath ([`16c205d`](https://github.com/clnsmth/soso/commit/16c205dc399f386593972094d390fd5f8a96f4b5)) 
-* fix: don&#39;t list nested properties as &#34;unmappable&#34; ([`316c525`](https://github.com/clnsmth/soso/commit/316c525bbb3f4cf2ee60dfa05d3692dc41098b59)) 
-* fix: consistent representation of metadata acronyms ([`fad2836`](https://github.com/clnsmth/soso/commit/fad2836ae82f14347e9ad344eda4e08db78b55fe)) 
-* fix: convert SPDX license URL to URI for EML ([`dea8bfe`](https://github.com/clnsmth/soso/commit/dea8bfef18051c8369bb284d43b4e1bacfe86d34)) 
-* fix: add missing prefixes to top-level properties ([`88e956f`](https://github.com/clnsmth/soso/commit/88e956febf0f8d55bdd019af50df9cac14219b02)) 
-* fix: use contentUrl not contentURL ([`158330e`](https://github.com/clnsmth/soso/commit/158330e783618c22b9478a053a1616fbf2e4dbda)) 
-* fix: correct typo in EML SSSOM ([`114080b`](https://github.com/clnsmth/soso/commit/114080b782b7a74647b2a7257309de916e4c0679)) 
-* fix: differentiate persons from organizations (#5) ([`4d3218e`](https://github.com/clnsmth/soso/commit/4d3218ea27ee14de8a22e80dc26755f3b4ee9df7)) 
-* fix: resolve pylint warning regarding long line ([`f3bd1ea`](https://github.com/clnsmth/soso/commit/f3bd1ea14729abfda043d32c464f8b0ef152b145)) 
-* fix: note publisher is unmappable (#5) ([`215d24c`](https://github.com/clnsmth/soso/commit/215d24c86dabee8ffed4e93a79934cae0e61c243)) 
-* fix: note provider is unmappable (#5) ([`e664f01`](https://github.com/clnsmth/soso/commit/e664f016e08d6a94247810cdc9f0054191f962a0)) 
-* fix: return None creator/contributor for readability ([`0d62bdf`](https://github.com/clnsmth/soso/commit/0d62bdf5eb9a099fbf87bcfde3ee7fa9a43c2d64)) 
-* fix: add missing return type to method docstring (#5) ([`3654bd1`](https://github.com/clnsmth/soso/commit/3654bd12b170706a9fd87b7d738fa3f3100502b7)) 
-* fix: update spatialCoverage mapping dates (#5) ([`bcb2a4f`](https://github.com/clnsmth/soso/commit/bcb2a4f887e43db00807a664bc246f05c044e45d)) 
-* fix: fix distribution in EML SSSOM (#5) ([`5c29cc2`](https://github.com/clnsmth/soso/commit/5c29cc23a122bb2804edd677e53abcf776f983ee)) 
-* fix: revert to previous SSSOM practices (#5) ([`05816b3`](https://github.com/clnsmth/soso/commit/05816b311af595f61c8570cdacb961b86c342de1)) 
-* fix: fully represent properties with &#39;schema&#39; prefix (#5) ([`17e5953`](https://github.com/clnsmth/soso/commit/17e59539f8a09375b0372027f05097e5267d3a05)) 
-* fix: add missing note to EML strategy (#5) ([`5978c78`](https://github.com/clnsmth/soso/commit/5978c785440ea0f95f561ba8871d645a55e32d69)) 
-* fix: specify expected string format ([`a3f9b30`](https://github.com/clnsmth/soso/commit/a3f9b30b44347d4efb76aed412c60e1efe31ce37)) 
-* fix: deprecation warnings issued by pytest ([`fcee9df`](https://github.com/clnsmth/soso/commit/fcee9df16b35dc76b828e783a72eaa978e6d7ff1)) 
-* fix: return JSON-LD str not JSON dict ([`6fa9ff8`](https://github.com/clnsmth/soso/commit/6fa9ff8ce4965af6cb285fedcc957ac2b2f6e625)) 
-
-### Refactor
+### Refactoring
 
 * refactor: remove unused SSSOM functions ([`0157622`](https://github.com/clnsmth/soso/commit/01576226d0a6bdfbe9d0cbbfbd23fa140d28f7af)) 
 * refactor: list subjectOf as unmappable, not contentUrl ([`d76eade`](https://github.com/clnsmth/soso/commit/d76eadeb4329c15e5b87227351d4c3b03e2f6c76)) 
@@ -244,12 +263,12 @@
 * refactor: rename method for readability ([`dcf34e8`](https://github.com/clnsmth/soso/commit/dcf34e840790361633468ba8a9d34e93a237644b)) 
 * refactor: enhance clarity of the public-facing API ([`de7260d`](https://github.com/clnsmth/soso/commit/de7260da9dc4ef66a9bf476da8e1b37f295fbae8)) 
 * refactor: re-enable pylint checks to improve code ([`dee39e9`](https://github.com/clnsmth/soso/commit/dee39e99dee5fdfc9475cc72191749a2b907cb20)) 
-* refactor: use &#34;strategy&#34; instead of &#34;standard&#34; ([`941c37f`](https://github.com/clnsmth/soso/commit/941c37f28496d537879452ae0feab1f8937646ae)) 
+* refactor: use "strategy" instead of "standard" ([`941c37f`](https://github.com/clnsmth/soso/commit/941c37f28496d537879452ae0feab1f8937646ae)) 
 * refactor: comment out stubs for implementation ([`f5f5829`](https://github.com/clnsmth/soso/commit/f5f582962f94c155badcc31394995d4a7bb9bc41)) 
 * refactor: remove TODO and FIXME to silence pylint ([`7def44d`](https://github.com/clnsmth/soso/commit/7def44d9512a093e0d13c00300f04191f99c2605)) 
 * refactor: match test and code module names ([`baeb00e`](https://github.com/clnsmth/soso/commit/baeb00e6f252fede24177570d475efdb50aa02b3)) 
 
-### Test
+### Testing
 
 * test: nest abstract of test EML ([`c4c0f59`](https://github.com/clnsmth/soso/commit/c4c0f59e6f8e73a01413ca2bd7c517831b6cdf3f)) 
 * test: use empty metadata for testing negative cases ([`336dd7b`](https://github.com/clnsmth/soso/commit/336dd7b9ee8364250e2c000a5dc6b0e0d371ddaa)) 
