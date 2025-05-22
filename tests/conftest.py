@@ -154,7 +154,7 @@ def is_url(url: str) -> bool:
     try:
         res = urlparse(url)
         return all([res.scheme, res.netloc])
-    except ValueError:
+    except (ValueError, AttributeError):
         return False
 
 
