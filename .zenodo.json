@@ -1,0 +1,65 @@
+{
+  "creators": [
+    {
+      "name": "Smith, Colin",
+      "orcid": "0000-0003-2261-9931",
+      "affiliation": "Environmental Data Initiative",
+      "ror": "0330j0z60"
+    },
+    {
+      "name": "Boquet, Zach",
+      "orcid": "0009-0005-1686-262X",
+      "affiliation": "Heliophysics Data and Modeling Consortium",
+      "ror": "04xbq1n92"
+    },
+    {
+      "name": "Ringuette, Rebecca",
+      "orcid": "0000-0003-0875-2023",
+      "affiliation": "Heliophysics Data and Modeling Consortium",
+      "ror": "04xbq1n92"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Cecconi, Baptiste",
+      "orcid": "0000-0001-7915-5571",
+      "affiliation": "Observatoire de Paris, Université de Recherche Paris Sciences et Lettres"
+    },
+    {
+      "name": "Helvey, Tressa",
+      "orcid": "0009-0001-1714-839X",
+      "affiliation": "Heliophysics Data and Modeling Consortium",
+      "ror": "04xbq1n92"
+    },
+    {
+      "name": "Koval, Andriy",
+      "orcid": "0000-0003-1398-1752",
+      "affiliation": "University of Maryland, Baltimore County",
+      "ror": "02qskvh78"
+    },
+    {
+      "name": "Byrd, Catherine",
+      "orcid": "0009-0006-6661-0938",
+      "affiliation": "University of Maryland, Baltimore County",
+      "ror": "02qskvh78"
+    }
+  ],
+  "title": "SOSO: For Converting Metadata Records into Science-On-Schema.Org Markup",
+  "access_right": "open",
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/ESIPFed/science-on-schema.org/",
+      "relation": "isSupplementTo",
+      "resource_type": "software"
+    }
+  ],
+  "keywords": [
+    "Science-on-Schema.org",
+    "Schema.org",
+    "metadata",
+    "sssom"
+  ],
+  "license": "MIT",
+  "upload_type": "software",
+  "language": "eng"
+}
