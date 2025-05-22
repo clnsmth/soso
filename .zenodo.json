@@ -17,7 +17,7 @@
       "orcid": "0000-0003-0875-2023",
       "affiliation": "Heliophysics Data and Modeling Consortium",
       "ror": "04xbq1n92"
-    },
+    }
   ],
   "contributors": [
     {
@@ -27,24 +27,24 @@
     },
     {
       "name": "Helvey, Tressa",
+      "orcid": "0009-0001-1714-839X",
       "affiliation": "Heliophysics Data and Modeling Consortium",
       "ror": "04xbq1n92"
     },
     {
       "name": "Koval, Andriy",
-      "orcid": "0000-0003-1398-1752"
+      "orcid": "0000-0003-1398-1752",
       "affiliation": "University of Maryland, Baltimore County",
       "ror": "02qskvh78"
     },
     {
       "name": "Byrd, Catherine",
-      "orcid": "0009-0006-6661-0938"
+      "orcid": "0009-0006-6661-0938",
       "affiliation": "University of Maryland, Baltimore County",
       "ror": "02qskvh78"
     }
   ],
-  "title": "soso",
-  "version": "0.5.0",
+  "title": "SOSO: For Converting Metadata Records into Science-On-Schema.Org Markup",
   "access_right": "open",
   "related_identifiers": [
     {
@@ -59,7 +59,7 @@
     "metadata",
     "sssom"
   ],
-  "license": "mit",
+  "license": "MIT",
   "upload_type": "software",
   "language": "eng"
 }

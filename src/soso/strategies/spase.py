@@ -1366,7 +1366,9 @@ def get_access_urls(metadata: etree.ElementTree) -> tuple[Dict, Dict]:
     return data_downloads, potential_actions
 
 
-def get_dates(metadata: etree.ElementTree) -> tuple[datetime, List[datetime]]:
+def get_dates(
+    metadata: etree.ElementTree,
+) -> Union[tuple[datetime, List[datetime]], tuple[str, List]]:
     """
     Scrapes the ReleaseDate and RevisionHistory:ReleaseDate(s) SPASE properties for use
     in the dateModified, dateCreated, and datePublished schema.org properties.
@@ -1433,10 +1435,10 @@ def person_format(
     name: str,
     given_name: str,
     family_name: str,
-    affiliation="",
-    orcid_id="",
-    ror="",
-    first_entry=False,
+    affiliation: str = "",
+    orcid_id: str = "",
+    ror: str = "",
+    first_entry: bool = False,
 ) -> Dict:
     """
     Groups up all available metadata associated with a given contact
@@ -1961,7 +1963,7 @@ def get_alternate_name(metadata: etree.ElementTree) -> Union[str, None]:
     return alternate_name
 
 
-def get_cadence_context(cadence: str) -> str:
+def get_cadence_context(cadence: str) -> Union[str, None]:
     """
     Returns a more human friendly explanation of the ISO 8601 formatted value
     found in the TemporalDescription:Cadence field in SPASE.
@@ -2162,7 +2164,7 @@ def get_temporal(metadata: etree.ElementTree, namespaces: Dict) -> Union[List, N
     return delete_null_values(temporal)
 
 
-def get_metadata_license(metadata: etree.ElementTree) -> str:
+def get_metadata_license(metadata: etree.ElementTree) -> Union[str, None]:
     """
     :param metadata: The metadata object as an XML tree.
 
@@ -2509,7 +2511,7 @@ def verify_type(url: str) -> tuple[bool, bool, dict]:
     return is_dataset, is_article, non_spase_info
 
 
-def get_resource_id(metadata: etree.ElementTree, namespaces: Dict):
+def get_resource_id(metadata: etree.ElementTree, namespaces: Dict) -> Union[str, None]:
     """
     :param metadata: The SPASE metadata object as an XML tree.
     :param namespaces: The SPASE namespaces used in the form of a dictionary.
@@ -2745,7 +2747,9 @@ def update_log(cwd: str, addition: str, log_file_name: str) -> None:
                 f.write(f"\n{addition}")
 
 
-def make_trial_start_and_stop(temp_covg: Union[str, Dict]):
+def make_trial_start_and_stop(
+    temp_covg: Union[str, Dict]
+) -> Union[tuple[str, str], None]:
     """
     Creates a test end time for the dataset based on the TemporalDescription found in
     the SPASE record. Returns two sentences describing the start and stop times for use
