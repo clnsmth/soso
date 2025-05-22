@@ -1,0 +1,14 @@
+mapping_set_id: https://doi.org/10.5281/zenodo.15490531
+license: https://creativecommons.org/publicdomain/zero/1.0/
+mapping_set_version: 1.0.0
+mapping_set_description: This mapping set is a manually curated alignment of the Science-on-Schema.org (SOSO) recommendations for datasets, with the Space Physics Archive Search and Extract (SPASE) language. Property alignment was created using the Simple Standard for Sharing Ontology Mappings (SSSOM; https://mapping-commons.github.io/sssom/home/). The motivation of this mapping is to inform an automated transformation from SPASE to SOSO for use by data repositories to expose their holdings to data aggregators and search engines. A high degree of precision was attempted. 
+subject_source: https://spase-group.org/data/model/spase-2.7.0/index.html 
+subject_source_version: 2.7.0
+object_source: https://doi.org/10.5281/zenodo.7884538
+object_source_version: 1.3.2 
+curie_map:
+  prov: http://www.w3.org/ns/prov#
+  schema: https://schema.org/
+  sosa: https://w3c.github.io/sdw-sosa-ssn/ssn/#SOSA
+  spdx: http://spdx.org/rdf/terms#
+  xsd: https://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html
