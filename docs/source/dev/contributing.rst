@@ -16,8 +16,6 @@ In this project, we uphold a golden rule that applies to all forms of contributi
 
 See the :ref:`Code of Conduct <conduct>` for details.
 
-.. _Code of Conduct: https://soso.readthedocs.io/en/latest/dev/conduct/
-
 Contribution Suitability
 ------------------------
 

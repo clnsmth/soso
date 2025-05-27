@@ -96,3 +96,10 @@ architecture and design decisions.
    :maxdepth: 3
 
    dev/design
+
+Code of Conduct
+---------------
+
+In the spirit of collaboration, we emphasize the importance of maintaining a respectful and inclusive environment.
+
+See the :ref:`Code of Conduct <conduct>` for details.
