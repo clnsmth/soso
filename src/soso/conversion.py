@@ -157,7 +157,7 @@ def main(folder: str, additional_license_info: bool = None) -> None:
                 status_message = f"\r\033[KExtracting metadata from record {r+1}"
                 status_message += f" of {len(spase_paths)}"
                 print(status_message, end="")
-                print(record)
+                # print(record)
                 print()
                 num = r
 
@@ -243,6 +243,8 @@ if __name__ == "__main__":
             " that you want to create schema.org JSONs for as an argument"
         )
     else:
+        if "\\" in str(argv[1]):
+            argv[1] = argv[1].replace("\\", "/")
         if len(argv) > 2:
             main(argv[1], [argv[2], argv[3], argv[4]])
         else:
