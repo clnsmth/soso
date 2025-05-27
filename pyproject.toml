@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "soso"
 version = "0.4.0"
-description = "For creating Science On Schema.Org (SOSO) markup in dataset landing pages to improve data discovery through search engines."
+description = "For Converting Metadata Records into Science-On-Schema.Org Markup"
 authors = ["Colin Smith <colin.smith@wisc.edu>", "Zach Boquet", "Rebecca Ringuette"]
 maintainers = ["Colin Smith <colin.smith@wisc.edu>"]
 license = "MIT"
