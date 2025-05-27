@@ -2,7 +2,7 @@
 name = "soso"
 version = "0.4.0"
 description = "For creating Science On Schema.Org (SOSO) markup in dataset landing pages to improve data discovery through search engines."
-authors = ["Colin Smith <colin.smith@wisc.edu>"]
+authors = ["Colin Smith <colin.smith@wisc.edu>", "Zach Boquet", "Rebecca Ringuette"]
 maintainers = ["Colin Smith <colin.smith@wisc.edu>"]
 license = "MIT"
 readme = "README.md"
