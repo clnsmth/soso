@@ -38,3 +38,9 @@ Unmappable properties are listed in the strategy documentation.
 
 The API reference and user guide are available on [Read the Docs](https://soso.readthedocs.io).
 
+## Code of Conduct
+
+In the spirit of collaboration, we emphasize the importance of maintaining a respectful and inclusive environment.
+
+See the [Code of Conduct](https://soso.readthedocs.io/en/latest/dev/conduct.html#conduct) for details.
+
