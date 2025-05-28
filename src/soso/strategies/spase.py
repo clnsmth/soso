@@ -780,30 +780,41 @@ class SPASE(StrategyInterface):
                     # get rid of extra quotations
                     person = author_str.replace('"', "")
                     person = author_str.replace("'", "")
-                    family_name, _, given_name = person.partition(",")
-                    # find matching person in contacts, if any, to retrieve affiliation and ORCiD
-                    for key, val in contacts_list.items():
+                    if ", " in person:
+                        family_name, _, given_name = person.partition(",")
+                        # find matching person in contacts, if any, to get affiliation and ORCiD
+                        for key, val in contacts_list.items():
+                            if not matching_contact:
+                                if person == val:
+                                    matching_contact = True
+                                    orcid_id, affiliation, ror = (
+                                        get_orcid_and_affiliation(key, self.file)
+                                    )
+                                    creator_entry = person_format(
+                                        "creator",
+                                        author_role[0],
+                                        person,
+                                        given_name,
+                                        family_name,
+                                        affiliation,
+                                        orcid_id,
+                                        ror,
+                                    )
                         if not matching_contact:
-                            if person == val:
-                                matching_contact = True
-                                orcid_id, affiliation, ror = get_orcid_and_affiliation(
-                                    key, self.file
-                                )
-                                creator_entry = person_format(
-                                    "creator",
-                                    author_role[0],
-                                    person,
-                                    given_name,
-                                    family_name,
-                                    affiliation,
-                                    orcid_id,
-                                    ror,
-                                )
-                    if not matching_contact:
+                            creator_entry = person_format(
+                                "creator",
+                                author_role[0],
+                                person,
+                                given_name,
+                                family_name,
+                            )
+                        creator.append(creator_entry)
+                    # no comma = organization = no givenName and familyName
+                    else:
                         creator_entry = person_format(
-                            "creator", author_role[0], person, given_name, family_name
+                            "creator", author_role[0], person, "", ""
                         )
-                    creator.append(creator_entry)
+                        creator.append(creator_entry)
         # preserve order of elements
         if len(creator) != 0:
             if len(creator) > 1:
@@ -1184,6 +1195,7 @@ def get_authors(
                                             ("PrincipalInvestigator" in child.text)
                                             or ("PI" in child.text)
                                             or ("CoInvestigator" in child.text)
+                                            or ("Author" in child.text)
                                         ):
                                             if person_id not in author:
                                                 author.append(person_id)
@@ -1463,12 +1475,10 @@ def person_format(
     entry = None
     # most basic format for creator item
     if person_type == "creator":
-        entry = {
-            "@type": "Person",
-            "name": name,
-            "givenName": given_name,
-            "familyName": family_name,
-        }
+        entry = {"@type": "Person", "name": name}
+        if given_name and family_name:
+            entry["familyName"] = family_name
+            entry["givenName"] = given_name
     elif person_type == "contributor":
         # Split string on uppercase characters
         res = re.split(r"(?=[A-Z])", role_name)
@@ -1484,18 +1494,17 @@ def person_format(
         # most basic format for contributor item
         entry = {
             "@type": ["Role", "DefinedTerm"],
-            f"{person_type}": {
-                "@type": "Person",
-                "name": name,
-                "givenName": given_name,
-                "familyName": family_name,
-            },
+            "contributor": {"@type": "Person", "name": name},
             "inDefinedTermSet": {
                 "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Role"
             },
             "roleName": pretty_name,
             "termCode": role_name,
         }
+
+        if given_name and family_name:
+            entry["contributor"]["familyName"] = family_name
+            entry["contributor"]["givenName"] = given_name
 
         if first_entry:
             entry["inDefinedTermSet"]["@type"] = "DefinedTermSet"
@@ -1526,7 +1535,7 @@ def person_format(
     if affiliation:
         if person_type == "contributor":
             if ror:
-                entry[f"{person_type}"]["affiliation"] = {
+                entry["contributor"]["affiliation"] = {
                     "@type": "Organization",
                     "name": affiliation,
                     "identifier": {
@@ -1538,7 +1547,7 @@ def person_format(
                     },
                 }
             else:
-                entry[f"{person_type}"]["affiliation"] = {
+                entry["contributor"]["affiliation"] = {
                     "@type": "Organization",
                     "name": affiliation,
                 }
@@ -2218,6 +2227,7 @@ def process_authors(
                     ("PrincipalInvestigator" not in role)
                     and ("PI" not in role)
                     and ("CoInvestigator" not in role)
+                    and ("Author" not in role)
                 ):
                     contacts_copy[person].append(role)
             # if no acceptable roles were found, remove that author from contributor consideration
@@ -2227,11 +2237,20 @@ def process_authors(
     # if all creators were found in PublicationInfo/Authors
     else:
         # if there are multiple authors
-        if (";" in author_str) or (".," in author_str):
+        if (
+            ("; " in author_str)
+            or ("., " in author_str)
+            or (" and " in author_str)
+            or (" & " in author_str)
+        ):
             if ";" in author_str:
                 author = author_str.split("; ")
-            else:
+            elif ".," in author_str:
                 author = author_str.split("., ")
+            elif " and " in author_str:
+                author = author_str.split(" and ")
+            else:
+                author = author_str.split(" & ")
             # fix num of roles
             while len(author_role) < len(author):
                 author_role += ["Author"]
@@ -2304,9 +2323,10 @@ def process_authors(
                 # if match is found, add role to author_role and replace role with formatted
                 #   person name in contacts_list
                 if matching_contact is not None:
-                    author_role[index] = [author_role[index]] + contacts_list[
-                        matching_contact
-                    ]
+                    if author_role[index] != contacts_list[matching_contact]:
+                        author_role[index] = [author_role[index]] + contacts_list[
+                            matching_contact
+                        ]
                     if not initial:
                         contacts_list[matching_contact] = f"{last_name}, {first_name}"
                     elif len(initial) > 1:
@@ -2325,70 +2345,33 @@ def process_authors(
             person = author_str.replace('"', "")
             person = author_str.replace("'", "")
             if author_role == ["Author"]:
-                family_name, _, given_name = person.partition(", ")
-                # handle case when name is not formatted correctly
-                if given_name == "":
-                    given_name, _, family_name = family_name.partition(". ")
-                    initial, _, family_name = family_name.partition(" ")
-                    given_name = given_name + ". " + initial[0] + "."
-                if "," in given_name:
-                    given_name = given_name.replace(",", "")
-                # iterate thru contacts to find one that matches the current person
-                for contact in contacts_list.keys():
-                    if matching_contact is None:
-                        initial = None
-                        first_name, _, last_name = contact.rpartition(".")
-                        first_name, _, initial = first_name.partition(".")
-                        *_, first_name = first_name.rpartition("/")
-                        if len(first_name) == 1:
-                            first_name = first_name[0] + "."
-                        # Assumption: if first name initial, middle initial, and last name
-                        #   match = same person
-                        # remove <f"{first_name[0]}."> in the lines below if this assumption
-                        #   is no longer accurate
-                        # if no middle name
-                        if not initial:
-                            if (
-                                (f"{first_name[0]}." in person)
-                                or (first_name in person)
-                            ) and (last_name in person):
-                                matching_contact = contact
-                        # if middle name is not initialized, check whole string
-                        elif len(initial) > 1:
-                            if (
-                                (
-                                    (f"{first_name[0]}." in person)
-                                    or (first_name in person)
-                                )
-                                and (initial in person)
-                                and (last_name in person)
-                            ):
-                                matching_contact = contact
-                        else:
-                            if (
-                                (
-                                    (f"{first_name[0]}." in person)
-                                    or (first_name in person)
-                                )
-                                and (f"{initial}." in person)
-                                and (last_name in person)
-                            ):
-                                matching_contact = contact
-                # if match is found, add role to author_role and replace role with
-                #   formatted person name in contacts_list
-                if matching_contact is not None:
-                    author_role[0] = [author_role[0]] + contacts_list[matching_contact]
-                    if not initial:
-                        contacts_list[matching_contact] = f"{last_name}, {first_name}"
-                    elif len(initial) > 1:
-                        contacts_list[matching_contact] = (
-                            f"{last_name}, {first_name} {initial}"
+                # if author is a person (assuming names contain a comma)
+                if ", " in person:
+                    family_name, _, given_name = person.partition(", ")
+                    # also used when there are 3+ comma separated orgs
+                    #   listed as authors - not intended (how to fix?)
+                    if "," in given_name:
+                        given_name = given_name.replace(",", "")
+                    # iterate thru contacts to find one that matches the current person
+                    contacts_list, author_role = find_match(
+                        contacts_list, person, author_role
+                    )
+                    author[0] = (f"{family_name}, {given_name}").strip()
+                else:
+                    # handle case when assumption 'names have commas' fails
+                    if ". " in person:
+                        given_name, _, family_name = person.partition(". ")
+                        if " " in family_name:
+                            initial, _, family_name = family_name.partition(" ")
+                            given_name = given_name + ". " + initial[0] + "."
+                        # iterate thru contacts to find one that matches the current person
+                        contacts_list, author_role = find_match(
+                            contacts_list, person, author_role
                         )
+                        author[0] = (f"{family_name}, {given_name}").strip()
+                    # author is an organization, so no splitting is needed
                     else:
-                        contacts_list[matching_contact] = (
-                            f"{last_name}, {first_name} {initial}."
-                        )
-                author[0] = (f"{family_name}, {given_name}").strip()
+                        author[0] = person.strip()
     return author, author_role, contacts_list
 
 
@@ -2756,6 +2739,8 @@ def make_trial_start_and_stop(
     in the description(s) for datasets with HAPI links.
 
     :param temp_covg: The value returned from the get_temporal_coverage function
+
+    :returns: Two sentence descriptions of the start and (newly created) trial stop times
     """
     if temp_covg:
         start_sent = ""
@@ -2786,3 +2771,71 @@ def make_trial_start_and_stop(
         start_sent = None
         end_sent = None
     return start_sent, end_sent
+
+
+def find_match(
+    contacts_list: dict, person: str, author_role: list, matching_contact: bool = None
+) -> tuple[dict, list]:
+    """
+    Attempts to find a match in the provided dictionary of contacts (with their roles)
+    found in the SPASE record to the given person name. If a match is found, that role
+    is added to corresponding entry in the given list of author roles, and, in the
+    dictionary of contacts, the role value is replaced with the formatted person name.
+
+    :param contacts_list: The dictionary containing the contacts found in the SPASE record as keys
+                            and their roles as values.
+    :param person: The string containing the name of the person you wish to find a match for.
+    :param author_role: The list of author roles.
+    :param matching_contact: The string containing the contact from the contacts_list parameter
+                                that matches the person parameter
+
+    :returns: The updated versions of the given dictionary of contacts and list of author roles.
+    """
+    if contacts_list and person and author_role:
+        for contact in contacts_list.keys():
+            if matching_contact is None:
+                initial = None
+                first_name, _, last_name = contact.rpartition(".")
+                first_name, _, initial = first_name.partition(".")
+                *_, first_name = first_name.rpartition("/")
+                if len(first_name) == 1:
+                    first_name = first_name[0] + "."
+                # Assumption: if first name initial, middle initial, and last name
+                #   match = same person
+                # remove <f"{first_name[0]}."> in the lines below if this assumption
+                #   is no longer accurate
+                # if no middle name
+                if not initial:
+                    if ((f"{first_name[0]}." in person) or (first_name in person)) and (
+                        last_name in person
+                    ):
+                        matching_contact = contact
+                # if middle name is not initialized, check whole string
+                elif len(initial) > 1:
+                    if (
+                        ((f"{first_name[0]}." in person) or (first_name in person))
+                        and (initial in person)
+                        and (last_name in person)
+                    ):
+                        matching_contact = contact
+                else:
+                    if (
+                        ((f"{first_name[0]}." in person) or (first_name in person))
+                        and (f"{initial}." in person)
+                        and (last_name in person)
+                    ):
+                        matching_contact = contact
+        # if match is found, add role to author_role and replace role with
+        #   formatted person name in contacts_list
+        if matching_contact is not None:
+            if author_role[0] != contacts_list[matching_contact]:
+                author_role[0] = [author_role[0]] + contacts_list[matching_contact]
+            if not initial:
+                contacts_list[matching_contact] = f"{last_name}, {first_name}"
+            elif len(initial) > 1:
+                contacts_list[matching_contact] = f"{last_name}, {first_name} {initial}"
+            else:
+                contacts_list[matching_contact] = (
+                    f"{last_name}, {first_name} {initial}."
+                )
+    return contacts_list, author_role
