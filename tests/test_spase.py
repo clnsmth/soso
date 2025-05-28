@@ -27,6 +27,7 @@ from soso.strategies.spase import (
     get_relation,
     update_log,
     make_trial_start_and_stop,
+    find_match,
 )
 from soso.utilities import get_empty_metadata_file_path, get_example_metadata_file_path
 
@@ -790,8 +791,6 @@ def test_verify_type_returns_expected_value():
             "creators": {
                 "@type": "Person",
                 "name": "SeaBASS",
-                "givenName": "",
-                "familyName": "",
             },
             "description": "No description currently available for "
             + "https://doi.org/10.5067/SeaBASS/TURBID9/DATA001.",
@@ -1012,3 +1011,29 @@ def test_make_trial_start_and_stop_returns_expected_value():
     # Negative case: If there is no temporalCoverage provided/found, the function will
     # return None.
     assert make_trial_start_and_stop(None) == (None, None)
+
+
+def test_find_match_returns_expected_value():
+    """Test that the find_match function returns the expected value."""
+
+    # Positive case: A matching contact is found, so its role is added to the
+    # corresponding entry in the given list of author roles, and, in the
+    # dictionary of contacts, the role value is replaced with the formatted person name.
+
+    person = "Gurnett, Donald, A."
+    author_role = ["Author"]
+    contacts_list = {
+        "spase://SMWG/Person/Donald.A.Gurnett": ["PrincipalInvestigator"],
+        "spase://SMWG/Person/Jolene.S.Pickett": ["FormerPI"],
+    }
+    assert find_match(contacts_list, person, author_role) == (
+        {
+            "spase://SMWG/Person/Donald.A.Gurnett": "Gurnett, Donald A.",
+            "spase://SMWG/Person/Jolene.S.Pickett": ["FormerPI"],
+        },
+        [["Author", "PrincipalInvestigator"]],
+    )
+
+    # Negative case: If no contact info is given, the function will
+    # return None.
+    assert find_match(None, None, None) == (None, None)
