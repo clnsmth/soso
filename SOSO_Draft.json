@@ -6,6 +6,7 @@
    },
    "@id": "https://doi.org/10.48322/6cfb-rq65",
    "@type": "Dataset",
+   "alternateName": "MMS4_HPCA_BRST_L2_ION",
    "citation": [
       {
          "@id": "https://mms.gsfc.nasa.gov/",
@@ -95,6 +96,13 @@
             "@type": "Person",
             "affiliation": {
                "@type": "Organization",
+               "identifier": {
+                  "@id": "https://ror.org/03tghng59",
+                  "@type": "PropertyValue",
+                  "propertyID": "https://registry.identifiers.org/registry/ror",
+                  "url": "https://ror.org/03tghng59",
+                  "value": "ror:03tghng59"
+               },
                "name": "Southwest Research Institute"
             },
             "familyName": "Young",
@@ -181,6 +189,7 @@
          }
       ]
    },
+   "inLanguage": "en",
    "isBasedOn": {
       "@id": "https://doi.org/10.48322/cb14-a164",
       "@type": "Dataset",
@@ -208,11 +217,211 @@
       "name": "DE 1 Plasma Wave Instrument (PWI) Step Frequency Correlator Electric and Magnetic Field Spectral Density",
       "url": "https://doi.org/10.48322/cb14-a164"
    },
+   "isPartOf": {
+      "@id": "https://doi.org/10.48322/s9mg-he04",
+      "@type": "Dataset",
+      "creator": {
+         "@list": [
+            {
+               "@type": "Person",
+               "affiliation": {
+                  "@type": "Organization",
+                  "identifier": {
+                     "@id": "https://ror.org/01rmh9n78",
+                     "@type": "PropertyValue",
+                     "propertyID": "https://registry.identifiers.org/registry/ror",
+                     "url": "https://ror.org/01rmh9n78",
+                     "value": "ror:01rmh9n78"
+                  },
+                  "name": "University of New Hampshire"
+               },
+               "familyName": "McKibben",
+               "givenName": "R. Bruce",
+               "name": "McKibben, R. Bruce"
+            },
+            {
+               "@type": "Person",
+               "affiliation": {
+                  "@type": "Organization",
+                  "identifier": {
+                     "@id": "https://ror.org/01rmh9n78",
+                     "@type": "PropertyValue",
+                     "propertyID": "https://registry.identifiers.org/registry/ror",
+                     "url": "https://ror.org/01rmh9n78",
+                     "value": "ror:01rmh9n78"
+                  },
+                  "name": "Physics Department, University of New Hampshire"
+               },
+               "familyName": "Connell",
+               "givenName": "James",
+               "name": "Connell, James"
+            },
+            {
+               "@type": "Person",
+               "affiliation": {
+                  "@type": "Organization",
+                  "identifier": {
+                     "@id": "https://ror.org/04atsbb87",
+                     "@type": "PropertyValue",
+                     "propertyID": "https://registry.identifiers.org/registry/ror",
+                     "url": "https://ror.org/04atsbb87",
+                     "value": "ror:04atsbb87"
+                  },
+                  "name": "Department of Physics and Space Sciences, Florida Institute of Technology"
+               },
+               "familyName": "Zhang",
+               "givenName": "Ming",
+               "name": "Zhang, Ming"
+            },
+            {
+               "@type": "Person",
+               "familyName": "Tranquille",
+               "givenName": "Cecil",
+               "name": "Tranquille, Cecil"
+            }
+         ]
+      },
+      "description": "This Data Set contains 10 min Average Ion and Electron Spin-Averaged Coincidence Counting Rates from the COSPIN High Energy Telescope (HET). The Parameter Keys in the Parameter Level Segments below are specifically relevant to the UFA accessible Versions of the Data.",
+      "identifier": "https://doi.org/10.48322/s9mg-he04",
+      "name": "Ulysses Cosmic Ray and Solar Particle Investigation (COSPIN) High Energy Telescope (HET) Ion and Electron Spin-Averaged Coincidence Counting Rates, 10 min Data",
+      "url": "https://doi.org/10.48322/s9mg-he04"
+   },
    "keywords": [
       "MMS",
       "Magnetic Reconnection"
    ],
    "license": "https://spdx.org/licenses/CC0-1.0.html",
+   "measurementMethod": [
+      {
+         "@type": "DefinedTerm",
+         "inDefinedTermSet": {
+            "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#MeasurementType",
+            "@type": "DefinedTermSet",
+            "name": "SPASE MeasurementType",
+            "url": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#MeasurementType"
+         },
+         "name": "Energetic Particles",
+         "termCode": "EnergeticParticles"
+      },
+      {
+         "@type": "DefinedTerm",
+         "inDefinedTermSet": {
+            "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#MeasurementType"
+         },
+         "name": "Magnetic Field",
+         "termCode": "MagneticField"
+      }
+   ],
+   "mentions": [
+      {
+         "@id": "https://doi.org/10.48322/xhe6-5a16",
+         "@type": "Dataset",
+         "creator": {
+            "@list": [
+               {
+                  "@type": "Person",
+                  "familyName": "Gold",
+                  "givenName": "R.E.",
+                  "name": "Gold, R.E."
+               },
+               {
+                  "@type": "Person",
+                  "familyName": "Roelof",
+                  "givenName": "E.C.",
+                  "name": "Roelof, E.C."
+               },
+               {
+                  "@type": "Person",
+                  "familyName": "Krimigis",
+                  "givenName": "S.",
+                  "name": "Krimigis, S."
+               },
+               {
+                  "@type": "Person",
+                  "familyName": "Haggerty",
+                  "givenName": "D.",
+                  "name": "Haggerty, D."
+               },
+               {
+                  "@type": "Person",
+                  "familyName": "Armstrong",
+                  "givenName": "T.P.",
+                  "name": "Armstrong, T.P."
+               },
+               {
+                  "@type": "Person",
+                  "familyName": "Manweiler",
+                  "givenName": "J.W.",
+                  "name": "Manweiler, J.W."
+               },
+               {
+                  "@type": "Person",
+                  "familyName": "Patterson",
+                  "givenName": "J.D.",
+                  "name": "Patterson, J.D."
+               }
+            ]
+         },
+         "description": "17-min-averaged sectored proton fluxes from the MF Spectrum Analyzer of the ACE/EPAM LEFS150 instrument. All energies thresholds take into account the incident particle type, shielding, and inactive dead-layer of the solid state detector. All fluxes are background corrected and are in the solar wind rest frame.",
+         "identifier": "https://doi.org/10.48322/xhe6-5a16",
+         "name": "ACE Electron Proton Alpha Monitor (EPAM) LEFS150 MFSA, Solar Wind Frame, Sectored Proton Fluxes, 17 min Averages",
+         "url": "https://doi.org/10.48322/xhe6-5a16"
+      },
+      {
+         "@id": "https://doi.org/10.48322/2ry9-3s59",
+         "@type": "Dataset",
+         "creator": {
+            "@list": [
+               {
+                  "@type": "Person",
+                  "familyName": "Gold",
+                  "givenName": "R.E.",
+                  "name": "Gold, R.E."
+               },
+               {
+                  "@type": "Person",
+                  "familyName": "Roelof",
+                  "givenName": "E.C.",
+                  "name": "Roelof, E.C."
+               },
+               {
+                  "@type": "Person",
+                  "familyName": "Krimigis",
+                  "givenName": "S.",
+                  "name": "Krimigis, S."
+               },
+               {
+                  "@type": "Person",
+                  "familyName": "Haggerty",
+                  "givenName": "D.",
+                  "name": "Haggerty, D."
+               },
+               {
+                  "@type": "Person",
+                  "familyName": "Armstrong",
+                  "givenName": "T.P.",
+                  "name": "Armstrong, T.P."
+               },
+               {
+                  "@type": "Person",
+                  "familyName": "Manweiler",
+                  "givenName": "J.W.",
+                  "name": "Manweiler, J.W."
+               },
+               {
+                  "@type": "Person",
+                  "familyName": "Patterson",
+                  "givenName": "J.D.",
+                  "name": "Patterson, J.D."
+               }
+            ]
+         },
+         "description": "Daily-averaged sectored proton fluxes from the MF Spectrum Analyzer of the ACE/EPAM LEFS150 instrument. All energies thresholds take into account the incident particle type, shielding, and inactive dead-layer of the solid state detector. All fluxes are background corrected and are in the solar wind rest frame.",
+         "identifier": "https://doi.org/10.48322/2ry9-3s59",
+         "name": "ACE Electron Proton Alpha Monitor (EPAM) LEFS150 MFSA, Solar Wind Frame, Sectored Proton Fluxes, Daily Averages",
+         "url": "https://doi.org/10.48322/2ry9-3s59"
+      }
+   ],
    "name": "MMS 4 Hot Plasma Composition Analyzer (HPCA) Ions, Level 2 (L2), Burst Mode, 0.625 s Data",
    "potentialAction": [
       {
@@ -498,6 +707,10 @@
       "license": "https://spdx.org/licenses/CC0-1.0.html",
       "name": "SPASE metadata for dataset"
    },
+   "temporal": [
+      "The time series is periodic with a 0.625 second cadence",
+      "PT0.625S"
+   ],
    "temporalCoverage": "2015-09-01T12:11:00/..",
    "url": "https://doi.org/10.48322/6cfb-rq65",
    "variableMeasured": [
