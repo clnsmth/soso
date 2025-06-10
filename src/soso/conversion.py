@@ -84,12 +84,17 @@ def find_requirements(folder: str) -> None:
                 test_spase = SPASE(record)
                 test_spase.get_creator()
                 test_spase.get_contributor()
-                get_instrument(test_spase.metadata, record)
-                # get_observatory(test_spase.metadata, record)
-                get_is_part_of(test_spase.metadata)
-                get_mentions(test_spase.metadata)
-                test_spase.get_was_revision_of()
-                test_spase.get_is_based_on()
+                try:
+                    get_instrument(test_spase.metadata, record)
+                    # get_observatory(test_spase.metadata, record)
+                    get_is_part_of(test_spase.metadata)
+                    get_mentions(test_spase.metadata)
+                    test_spase.get_was_revision_of()
+                    test_spase.get_is_based_on()
+                # to ensure that main script will still run in
+                #   the event of a broken link
+                except AttributeError:
+                    pass
 
                 # print()
             # add record to searched
@@ -235,8 +240,8 @@ if __name__ == "__main__":
         print(help(main))
         print()
         print(
-            "A good test record to try if scraping the NASA SPASE repo is "
-            f"{HOME_DIR}/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
+            "A good test record to try if scraping the NASA SPASE repo is in this folder: "
+            f"{HOME_DIR}/.../NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion"
         )
         print(
             "Rerun the script again, passing the SPASE repo (or a specific folder within it)"
