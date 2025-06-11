@@ -972,15 +972,15 @@ def test_update_log_returns_expected_value():
     # Positive case: The function will update the log file by adding the
     #   repository name given.
 
-    # get current working directory
-    cwd = str(Path.cwd())
+
     # create log file that holds the name(s) of the repos needed
-    with open(f"{cwd}/requiredRepos.txt", "w", encoding="utf-8") as f:
+    with open("./test_update_log.txt", "w", encoding="utf-8") as f:
         f.write("This is placeholder text for use in test_spase.py.")
-    update_log(cwd, "testRepo", "requiredRepos")
-    with open(f"{cwd}/requiredRepos.txt", "r", encoding="utf-8") as f:
+    update_log(".", "testRepo", "test_update_log")
+    with open("./test_update_log.txt", "r", encoding="utf-8") as f:
         text = f.read()
     assert "testRepo" in text
+
 
     # Negative case: If there is no file nor attempt number present, the function will
     # return None.
