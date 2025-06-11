@@ -356,37 +356,40 @@ class SPASE(StrategyInterface):
                     "and that it contains the text 'https://spdx.org/licenses/'"
                 )
 
-        if metadata_license:
-            # find URL associated w license found in top-level SPASE line
-            license_url = ""
-            for entry in common_licenses:
-                if entry["fullName"] == metadata_license:
-                    license_url = entry["url"]
-            # if license is not in lookup table
-            if not license_url:
-                # find license info from SPDX data file at
-                #   https://github.com/spdx/license-list-data/tree/main
-                #   and add to common_licenses dictionary OR provide the
-                #   fullName, identifier, and URL (in that order) as arguments
-                #   to the conversion function. Then rerun script for those that failed.
-                pass
-
+        if content_url:
             # basic format for item
             entry = {
                 "@type": "DataDownload",
                 "name": "SPASE metadata for dataset",
                 "description": "The SPASE metadata describing the indicated dataset.",
-                "license": license_url,
                 "encodingFormat": "application/xml",
                 "contentUrl": content_url,
                 "identifier": content_url,
             }
-            # if date modified is available, add it
-            if date_modified:
-                entry["dateModified"] = date_modified
             # if hpde.io landing page not used as top-level @id, include here as @id
             if doi:
                 entry["@id"] = content_url
+            if metadata_license:
+                # find URL associated w license found in top-level SPASE line
+                license_url = ""
+                for entry in common_licenses:
+                    if entry["fullName"] == metadata_license:
+                        license_url = entry["url"]
+                # if license is not in lookup table
+                if not license_url:
+                    # find license info from SPDX data file at
+                    #   https://github.com/spdx/license-list-data/tree/main
+                    #   and add to common_licenses dictionary OR provide the
+                    #   fullName, identifier, and URL (in that order) as arguments
+                    #   to the conversion function. Then rerun script for those that failed.
+                    pass
+                else:
+                    entry["license"] = license_url
+
+                # if date modified is available, add it
+                if date_modified:
+                    entry["dateModified"] = date_modified
+
             subject_of = entry
         else:
             subject_of = None
@@ -2672,22 +2675,23 @@ def get_relation(
             # not SPASE records
             if not relational_records:
                 for each in relations:
-                    # most basic entry into relation
-                    entry = {"@id": each, "identifier": each, "url": each}
-                    is_dataset, is_article, non_spase_info = verify_type(each)
-                    if is_dataset:
-                        entry["@type"] = "Dataset"
-                        entry["name"] = non_spase_info["name"]
-                        entry["description"] = non_spase_info["description"]
-                        if "license" in non_spase_info.keys():
-                            entry["license"] = non_spase_info["license"]
-                        entry["creator"] = non_spase_info["creators"]
-                    elif is_article:
-                        entry["@type"] = "ScholarlyArticle"
-                    if len(relations) > 1:
-                        relation.append(entry)
-                    else:
-                        relation = entry
+                    if "spase" not in each:
+                        # most basic entry into relation
+                        entry = {"@id": each, "identifier": each, "url": each}
+                        is_dataset, is_article, non_spase_info = verify_type(each)
+                        if is_dataset:
+                            entry["@type"] = "Dataset"
+                            entry["name"] = non_spase_info["name"]
+                            entry["description"] = non_spase_info["description"]
+                            if "license" in non_spase_info.keys():
+                                entry["license"] = non_spase_info["license"]
+                            entry["creator"] = non_spase_info["creators"]
+                        elif is_article:
+                            entry["@type"] = "ScholarlyArticle"
+                        if len(relations) > 1:
+                            relation.append(entry)
+                        else:
+                            relation = entry
             else:
                 for each in relational_records.keys():
                     # most basic entry into relation
@@ -2723,6 +2727,10 @@ def update_log(cwd: str, addition: str, log_file_name: str) -> None:
     needed to access the SPASE record or the SPASE record itself.
     """
     if (cwd is not None) and (addition is not None):
+        # create test requiredRepos.txt file for testing suite
+        if not os.path.isfile(f"{cwd}/{log_file_name}.txt"):
+            with open(f"{cwd}/{log_file_name}.txt", "w", encoding="utf-8") as f:
+                f.write("This is placeholder text.")
         with open(f"{cwd}/{log_file_name}.txt", "r", encoding="utf-8") as f:
             text = f.read()
         if addition not in text:
