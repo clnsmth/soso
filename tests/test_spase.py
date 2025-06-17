@@ -1,7 +1,6 @@
 """Test additional SPASE module functions and methods."""
 
 from datetime import datetime
-from pathlib import Path
 from lxml import etree
 from soso.strategies.spase import (
     get_schema_version,
@@ -963,7 +962,7 @@ def test_get_relation_returns_expected_value():
 
     # Negative case: If no relation is given, the function will
     # return None.
-    assert get_relation(None, None) is None
+    assert get_relation(None, None, None) is None
 
 
 def test_update_log_returns_expected_value():
@@ -972,7 +971,6 @@ def test_update_log_returns_expected_value():
     # Positive case: The function will update the log file by adding the
     #   repository name given.
 
-
     # create log file that holds the name(s) of the repos needed
     with open("./test_update_log.txt", "w", encoding="utf-8") as f:
         f.write("This is placeholder text for use in test_spase.py.")
@@ -980,7 +978,6 @@ def test_update_log_returns_expected_value():
     with open("./test_update_log.txt", "r", encoding="utf-8") as f:
         text = f.read()
     assert "testRepo" in text
-
 
     # Negative case: If there is no file nor attempt number present, the function will
     # return None.

@@ -84,7 +84,7 @@
          <AssociationType>DerivedFrom</AssociationType>
          </Association>
          <Association>
-         <AssociationID>spase://NASA/NumericalData/DE1/PWI/LFC/PT0.25S</AssociationID>
+         <AssociationID>spase://NASA/NumericalData/DE1/Ephemeris/PT8S</AssociationID>
          <AssociationType>RevisionOf</AssociationType>
          </Association>
          <Association>

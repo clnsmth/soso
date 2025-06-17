@@ -20,6 +20,7 @@ from soso.utilities import delete_null_values
 # pylint: disable=no-member
 # pylint: disable=pointless-string-statement
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
 # pylint: disable=consider-using-f-string
 # pylint: disable=consider-using-dict-items
 # pylint: disable=consider-iterating-dictionary
@@ -372,9 +373,9 @@ class SPASE(StrategyInterface):
             if metadata_license:
                 # find URL associated w license found in top-level SPASE line
                 license_url = ""
-                for entry in common_licenses:
-                    if entry["fullName"] == metadata_license:
-                        license_url = entry["url"]
+                for each in common_licenses:
+                    if each["fullName"] == metadata_license:
+                        license_url = each["url"]
                 # if license is not in lookup table
                 if not license_url:
                     # find license info from SPDX data file at
@@ -1072,7 +1073,7 @@ class SPASE(StrategyInterface):
         # Mapping: prov:wasRevisionOf = spase:Association/spase:AssociationID
         #   (if spase:AssociationType is "RevisionOf")
         # prov:wasRevisionOf found at https://www.w3.org/TR/prov-o/#wasRevisionOf
-        was_revision_of = get_relation(self.desired_root, ["RevisionOf"])
+        was_revision_of = get_relation(self.desired_root, ["RevisionOf"], self.file)
         return delete_null_values(was_revision_of)
 
     def get_was_derived_from(self) -> Union[Dict, None]:
@@ -1088,7 +1089,9 @@ class SPASE(StrategyInterface):
         # Mapping: schema:isBasedOn = spase:Association/spase:AssociationID
         #   (if spase:AssociationType is "DerivedFrom" or "ChildEventOf")
         # schema:isBasedOn found at https://schema.org/isBasedOn
-        is_based_on = get_relation(self.desired_root, ["ChildEventOf", "DerivedFrom"])
+        is_based_on = get_relation(
+            self.desired_root, ["ChildEventOf", "DerivedFrom"], self.file
+        )
         return delete_null_values(is_based_on)
 
     def get_was_generated_by(self) -> Union[List[Dict], None]:
@@ -1717,7 +1720,10 @@ def get_instrument(
             # get current working directory
             cwd = str(Path.cwd()).replace("\\", "/")
             # split path into needed substrings
-            _, abs_path, after = path.partition(f"{home_dir}/")
+            if "soso-spase" in path:
+                abs_path, _, after = path.partition("soso-spase/")
+            else:
+                _, abs_path, after = path.partition(f"{home_dir}/")
             repo_name, _, after = after.partition("/")
             # add original SPASE repo to log file that holds name of repos needed
             update_log(cwd, repo_name, "requiredRepos")
@@ -1804,7 +1810,10 @@ def get_observatory(
             # get current working directory
             cwd = str(Path.cwd()).replace("\\", "/")
             # split path into needed substrings
-            _, abs_path, after = path.partition(f"{home_dir}/")
+            if "soso-spase" in path:
+                abs_path, _, after = path.partition("soso-spase/")
+            else:
+                _, abs_path, after = path.partition(f"{home_dir}/")
             repo_name, _, after = after.partition("/")
             # add original SPASE repo to log file that holds name of repos needed
             update_log(cwd, repo_name, "requiredRepos")
@@ -2097,7 +2106,10 @@ def get_orcid_and_affiliation(
         # get current working directory
         cwd = str(Path.cwd()).replace("\\", "/")
         # split record into needed substrings
-        _, abs_path, after = file.partition(f"{home_dir}/")
+        if "soso-spase" in file:
+            abs_path, _, after = file.partition("soso-spase/")
+        else:
+            _, abs_path, after = file.partition(f"{home_dir}/")
         repo_name, _, after = after.partition("/")
         # add original SPASE repo to log file that holds name of repos needed
         update_log(cwd, repo_name, "requiredRepos")
@@ -2581,7 +2593,7 @@ def get_measurement_method(
 
 
 def get_relation(
-    desired_root: etree.Element, association: list[str], **kwargs: dict
+    desired_root: etree.Element, association: list[str], file="", **kwargs: dict
 ) -> Union[List[Dict], Dict, None]:
     """
     Scrapes through the SPASE record and returns the AssociationIDs which have the
@@ -2590,6 +2602,7 @@ def get_relation(
 
     :param desired_root: The element in the SPASE metadata tree object we are searching from.
     :param association: The AssociationType(s) we are searching for in the SPASE record.
+    :param file: The file path of the SPASE record being converted.
     :param **kwargs: Allows for additional parameters to be passed (only to be used for testing).
 
     :returns: The ID's of other SPASE records related to this one in some way.
@@ -2626,12 +2639,12 @@ def get_relation(
                 repo_name, _, _ = record.replace("spase://", "").partition("/")
                 update_log(cwd, repo_name, "requiredRepos")
                 # format record
-                if kwargs:
+                if ("soso-spase" in file) or kwargs:
                     # being called by test function = change directory to xml file in tests folder
                     *_, file_name = record.rpartition("/")
                     record = (
                         f"{home_dir}/"
-                        + kwargs["testing"]
+                        + "soso-spase/tests/data/"
                         + f"spase-{file_name}"
                         + ".xml"
                     )
