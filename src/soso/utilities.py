@@ -42,7 +42,7 @@ def validate(graph: str) -> bool:
         return None
 
 
-def get_shacl_file_path() -> pathlib.PosixPath:
+def get_shacl_file_path() -> pathlib.Path:
     """Return the SHACL shape file path for the SOSO dataset graph.
 
     The shape file is for the current release version of the SOSO dataset
@@ -54,7 +54,7 @@ def get_shacl_file_path() -> pathlib.PosixPath:
     return file_path
 
 
-def get_sssom_file_path(strategy: str) -> pathlib.PosixPath:
+def get_sssom_file_path(strategy: str) -> pathlib.Path:
     """Return the SSSOM file path for the specified strategy.
 
     :param strategy: Metadata strategy. Can be: EML.
@@ -66,7 +66,7 @@ def get_sssom_file_path(strategy: str) -> pathlib.PosixPath:
     return file_path
 
 
-def get_example_metadata_file_path(strategy: str) -> pathlib.PosixPath:
+def get_example_metadata_file_path(strategy: str) -> pathlib.Path:
     """Return the file path of an example metadata file.
 
     :param strategy: Metadata strategy. Can be: EML, SPASE.
@@ -82,7 +82,7 @@ def get_example_metadata_file_path(strategy: str) -> pathlib.PosixPath:
     return file_path
 
 
-def get_empty_metadata_file_path(strategy: str) -> pathlib.PosixPath:
+def get_empty_metadata_file_path(strategy: str) -> pathlib.Path:
     """
     :param strategy: Metadata strategy. Can be: EML.
 
