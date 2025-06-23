@@ -1,7 +1,7 @@
 """For testing the validator module."""
 
 import warnings
-from pathlib import PosixPath
+from pathlib import Path
 from json import dumps
 import pytest
 from soso.utilities import validate, is_url
@@ -56,20 +56,20 @@ def test_get_example_metadata_file_path_returns_path(strategy_names):
     """Test that get_example_metadata returns a path."""
     for strategy in strategy_names:
         file_path = get_example_metadata_file_path(strategy=strategy)
-        assert isinstance(file_path, PosixPath)
+        assert isinstance(file_path, Path)
 
 
 def test_get_empty_metadata_file_path_returns_path(strategy_names):
     """Test that get_empty_metadata_file_path returns a path."""
     for strategy in strategy_names:
         file_path = get_empty_metadata_file_path(strategy=strategy)
-        assert isinstance(file_path, PosixPath)
+        assert isinstance(file_path, Path)
 
 
 def test_get_shacl_file_path_returns_path():
     """Test that get_shacl_file_path returns a path."""
     file_path = get_shacl_file_path()
-    assert isinstance(file_path, PosixPath)
+    assert isinstance(file_path, Path)
 
 
 def test_rm_null_values():
