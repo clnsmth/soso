@@ -1,5 +1,6 @@
 """Utilities"""
 
+import mimetypes
 import re
 import urllib.error
 from urllib.parse import urlparse
@@ -283,3 +284,62 @@ def is_html(text: str) -> bool:
     """
     basic_html_pattern = r"<!DOCTYPE\s+html>|<html.*?>.*</html>"
     return bool(re.search(basic_html_pattern, text, re.DOTALL | re.IGNORECASE))
+
+
+# This will hold our dedicated MimeTypes instance, created only once.
+_CUSTOM_MIMETYPES_INSTANCE = None
+
+
+# pylint: disable=global-statement
+def _get_custom_mimetypes_instance():
+    """
+    Creates and returns a sandboxed MimeTypes instance loaded ONLY
+    with our custom, bundled mime.types file. Returns None if the
+    file can't be found.
+    """
+    global _CUSTOM_MIMETYPES_INSTANCE
+    if _CUSTOM_MIMETYPES_INSTANCE is not None:
+        return _CUSTOM_MIMETYPES_INSTANCE
+
+    try:
+        mime_file_path = resources.files("soso.data").joinpath("mime.types")
+        # Create a DEDICATED instance, don't touch the global one.
+        _CUSTOM_MIMETYPES_INSTANCE = mimetypes.MimeTypes(
+            filenames=[str(mime_file_path)]
+        )
+        return _CUSTOM_MIMETYPES_INSTANCE
+    except (ModuleNotFoundError, FileNotFoundError):
+        warnings.warn(
+            "Custom 'mime.types' file not found. Fallback to system "
+            "defaults will be used for all lookups.",
+            UserWarning,
+        )
+        # Return a dummy empty instance to prevent trying again.
+        _CUSTOM_MIMETYPES_INSTANCE = mimetypes.MimeTypes()
+        return _CUSTOM_MIMETYPES_INSTANCE
+
+
+def guess_mime_type_with_fallback(filename: str) -> str | None:
+    """
+    Guesses a MIME type by first checking our consistent, bundled database.
+    If no match is found, it falls back to the operating system's default.
+
+    :param filename: The file name or path to guess the MIME type for.
+    :returns: The guessed MIME type as a string, or None if no type could be
+        determined.
+    """
+    # Step 1: Try our custom, consistent database first.
+    custom_guesser = _get_custom_mimetypes_instance()
+    custom_guess, _ = custom_guesser.guess_type(filename)
+
+    if custom_guess is not None:
+        return custom_guess
+
+    # Step 2: If our custom database has no opinion, fall back to the system.
+    # The global `mimetypes.guess_type` uses the system's configuration.
+    warnings.warn(
+        f"'{filename}' not found in custom DB, falling back to system guess.",
+        UserWarning,
+    )
+    system_guess, _ = mimetypes.guess_type(filename)
+    return system_guess

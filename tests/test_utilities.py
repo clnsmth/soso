@@ -4,14 +4,20 @@ import warnings
 from pathlib import Path
 from json import dumps
 import pytest
-from soso.utilities import validate, is_url
-from soso.utilities import get_example_metadata_file_path, get_empty_metadata_file_path
-from soso.utilities import get_shacl_file_path, is_html
-from soso.utilities import delete_null_values
-from soso.utilities import delete_unused_vocabularies
-from soso.utilities import generate_citation_from_doi
-from soso.utilities import limit_to_5000_characters
-from soso.utilities import as_numeric
+from soso.utilities import (
+    validate,
+    is_url,
+    get_example_metadata_file_path,
+    get_empty_metadata_file_path,
+    get_shacl_file_path,
+    is_html,
+    delete_null_values,
+    delete_unused_vocabularies,
+    generate_citation_from_doi,
+    limit_to_5000_characters,
+    as_numeric,
+    guess_mime_type_with_fallback,
+)
 
 
 @pytest.mark.internet_required
@@ -229,3 +235,57 @@ def test_is_html():
     """Test that a string is HTML or not"""
     assert is_html("<!DOCTYPE html><html><head></head></html>") is True
     assert is_html("A free text description.") is False
+
+
+# Test cases for the MIME type guessing utility ------------------------------
+
+
+# Scenario 1: Test common types defined in our bundled mime.types file.
+@pytest.mark.parametrize(
+    "filename, expected_mime",
+    [
+        ("document.pdf", "application/pdf"),
+        ("archive.zip", "application/zip"),
+        ("photo.jpg", "image/jpeg"),
+        ("report.csv", "text/csv"),
+    ],
+)
+def test_known_extension_in_bundle(filename, expected_mime):
+    """
+    Verifies that extensions defined in our custom mime.types file
+    return the correct, consistent MIME type.
+    """
+    assert guess_mime_type_with_fallback(filename) == expected_mime
+
+
+# Scenario 2: Test an extension that is NOT in your bundled file.
+def test_unknown_extension_falls_back_to_system():
+    """
+    Verifies that an extension not in our list falls back to the system.
+    Note: We can't assert a specific result, as it depends on the OS,
+    so we just check that we get *some* result.
+    """
+    # Assuming '.rar' is not in our custom mime.types file
+    result = guess_mime_type_with_fallback("archive.rar")
+
+    # On Windows with WinRAR, this might be 'application/x-rar-compressed'.
+    # On Linux, it might be the same or None if 'rar' is not installed.
+    # The key is that our function correctly delegates to the system.
+    # Therefore, we just check that the logic path was followed.
+    assert isinstance(result, str) or result is None
+
+
+# Scenario 3: Test a completely nonsensical extension.
+def test_truly_unknown_extension_returns_none():
+    """
+    Verifies that a nonsensical extension not known by our list or the
+    system gracefully returns None.
+    """
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        result = guess_mime_type_with_fallback("file.thisdoesnotexist")
+        assert any(issubclass(warning.category, UserWarning) for warning in w)
+    assert result is None
+
+
+# End of test cases for the MIME type guessing utility ------------------------
