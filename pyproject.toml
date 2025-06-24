@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "soso"
 version = "0.4.0"
-description = "For creating Science On Schema.Org (SOSO) markup in dataset landing pages to improve data discovery through search engines."
-authors = ["Colin Smith <colin.smith@wisc.edu>"]
+description = "For Converting Metadata Records into Science-On-Schema.Org Markup"
+authors = ["Colin Smith <colin.smith@wisc.edu>", "Zach Boquet", "Rebecca Ringuette"]
 maintainers = ["Colin Smith <colin.smith@wisc.edu>"]
 license = "MIT"
 readme = "README.md"
@@ -12,8 +12,6 @@ python = "^3.11"
 pyshacl = "^0.26.0"
 requests = "^2.32.0"
 lxml = "^5.0.0"
-
-[tool.poetry.dev-dependencies]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"

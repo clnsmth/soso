@@ -188,6 +188,7 @@ Steps:
   * Implement the conversion strategy methods one by one within this directory, starting with stubs.
   * As you develop each method, remove the corresponding skip decorator from the related test case in `tests/test_strategies.py` to ensure testing.
   * We advocate for property methods that return useful content. Calling the `utilities.delete_null_values` function, before returning results, helps with this.
+  * Use the `guess_mime_type_with_fallback` utility for all filename-based MIME lookups to ensure cross-platform consistency.
 
 8. **Verification Tests:**
 

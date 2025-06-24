@@ -4,7 +4,7 @@
 ![example workflow](https://github.com/clnsmth/soso/actions/workflows/ci-cd.yml/badge.svg)
 [![codecov](https://codecov.io/github/clnsmth/soso/graph/badge.svg?token=2J4MNIXCTD)](https://codecov.io/github/clnsmth/soso)
 
-For creating [Science On Schema.Org](https://github.com/ESIPFed/science-on-schema.org) (SOSO) markup in dataset landing pages to improve data discovery through search engines.
+For converting metadata records into [Science-On-Schema.Org](https://github.com/ESIPFed/science-on-schema.org) markup.
 
 ## Installation
 
@@ -37,4 +37,10 @@ Unmappable properties are listed in the strategy documentation.
 ## API Reference and User Guide
 
 The API reference and user guide are available on [Read the Docs](https://soso.readthedocs.io).
+
+## Code of Conduct
+
+In the spirit of collaboration, we emphasize the importance of maintaining a respectful and inclusive environment.
+
+See the [Code of Conduct](https://soso.readthedocs.io/en/latest/dev/conduct.html#conduct) for details.
 

@@ -1,6 +1,5 @@
 """The EML strategy module."""
 
-from mimetypes import guess_type
 from typing import Union
 from lxml import etree
 from soso.interface import StrategyInterface
@@ -9,6 +8,7 @@ from soso.utilities import (
     limit_to_5000_characters,
     as_numeric,
     is_url,
+    guess_mime_type_with_fallback,
 )
 
 
@@ -628,7 +628,7 @@ def get_data_entity_encoding_format(
     """
     object_name = data_entity_element.findtext(".//physical/objectName")
     if object_name:
-        encoding_format = guess_type(object_name, strict=False)[0]
+        encoding_format = guess_mime_type_with_fallback(object_name)
     else:
         encoding_format = None
     return encoding_format

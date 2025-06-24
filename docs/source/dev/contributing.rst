@@ -16,8 +16,6 @@ In this project, we uphold a golden rule that applies to all forms of contributi
 
 See the :ref:`Code of Conduct <conduct>` for details.
 
-.. _Code of Conduct: https://soso.readthedocs.io/en/latest/dev/conduct/
-
 Contribution Suitability
 ------------------------
 
@@ -47,12 +45,11 @@ Here are a sequence of steps to help with your code contribution:
 8. Format and analyze your code according to our :ref:`code-format-and-analysis` guidelines.
 9. Ensure the docs build following the :ref:`documentation-contributions` guidelines.
 10. Check that the sdist and wheels build by running ``poetry build`` at the command line.
-11. Commit your work following our :ref:`commit-message` guidelines.
+11. Commit your work following our :ref:`commit-messages` guidelines.
 12. Submit a GitHub Pull Request to the `development` branch of the upstream repository.
 
 .. _reStructuredText: https://thomas-cokelaer.info/tutorials/sphinx/docstring_python.html
 .. _pytest: https://docs.pytest.org/en/latest/
-.. _Angular commit style: https://github.com/angular/angular/blob/convert/CONTRIBUTING.md#-commit-message-format
 
 Code Review
 ~~~~~~~~~~~
@@ -72,6 +69,12 @@ style and format as it grows. We use `Black`_ for code formatting and `Pylint`_ 
 
 .. _Black: https://black.readthedocs.io/en/stable/
 .. _Pylint: https://pylint.pycqa.org/en/latest/
+
+`Python Type Hints`_ are used to improve static code analysis and code clarity.
+
+*Note, Pylint exceptions may be allowed. If you believe there is a valid reason to deviate from Pylint's requirements for a specific piece of code, please open a GitHub issue to discuss and gain approval for the exception.*
+
+.. _Python Type Hints: https://peps.python.org/pep-0484/
 
 .. _documentation-contributions:
 
@@ -110,11 +113,22 @@ If you are proposing a feature, please use the `Feature request`_ issue template
 
 .. _Feature request: https://github.com/clnsmth/soso/issues/new/choose
 
-.. _commit-message:
+.. _commit-messages:
 
 Commit Messages
 ---------------
 
-Commit messages are incredibly valuable for understanding the project's code. When crafting your commit message, please provide context about the changes being made and the reasons behind them.
+Commit messages are incredibly valuable for understanding the project’s code. When crafting your commit message, please provide context about the changes being made and the reasons behind them.
 
-To ensure readability, we recommend to keep the commit message header under 52 characters and the body within 72 characters.
+We use the `Angular commit style`_. This allows `Python Semantic Release`_ to streamline the release process. Our project uses this style in full with the notable exceptions that the commit message header should not include the scope value, and that any related GitHub issues should be referenced. For example:
+
+``feat: add framework for new feature (#3, #5)``
+
+not
+
+``feat(module): add framework for new feature``
+
+Do your best to keep the commit message header from exceeding 52 characters in length, and the commit message body from exceeding 72 characters.
+
+.. _Angular commit style: https://github.com/angular/angular/blob/main/contributing-docs/commit-message-guidelines.md
+.. _Python Semantic Release: https://python-semantic-release.readthedocs.io/en/latest/
