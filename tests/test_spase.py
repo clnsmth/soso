@@ -979,6 +979,7 @@ def test_update_log_returns_expected_value():
         text = f.read()
     assert "testRepo" in text
 
+
     # Negative case: If there is no file nor attempt number present, the function will
     # return None.
     assert update_log(None, None, None) is None
