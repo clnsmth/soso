@@ -689,16 +689,19 @@ class SPASE(StrategyInterface):
         #   plus the additional properties if available: affiliation and identifier (ORCiD ID),
         #       which are pulled from SMWG Person SPASE records
         # Using schema:Creator as defined in: https://schema.org/creator
+        creator = []
+        multiple = False
+        matching_contact = False
+        given_name = ""
+        family_name = ""
+        home_dir = str(Path.home()).replace("\\", "/")
         (
             author,
             author_role,
             *_,
             contacts_list,
-        ) = get_authors(self.metadata)
+        ) = get_authors(self.metadata, self.file.replace(f"{home_dir}/", ""))
         author_str = str(author).replace("[", "").replace("]", "")
-        creator = []
-        multiple = False
-        matching_contact = False
         if author:
             # if creators were found in Contact/PersonID
             if "Person/" in author_str:
@@ -784,26 +787,33 @@ class SPASE(StrategyInterface):
                     # get rid of extra quotations
                     person = author_str.replace('"', "")
                     person = author_str.replace("'", "")
+                    # determine if creator is a consortium
+                    with open(
+                        "./spase-ignoreCreatorSplit.txt", "r", encoding="utf-8"
+                    ) as f:
+                        do_not_split = f.read()
                     if ", " in person:
-                        family_name, _, given_name = person.partition(",")
-                        # find matching person in contacts, if any, to get affiliation and ORCiD
-                        for key, val in contacts_list.items():
-                            if not matching_contact:
-                                if person == val:
-                                    matching_contact = True
-                                    orcid_id, affiliation, ror = (
-                                        get_orcid_and_affiliation(key, self.file)
-                                    )
-                                    creator_entry = person_format(
-                                        "creator",
-                                        author_role[0],
-                                        person,
-                                        given_name,
-                                        family_name,
-                                        affiliation,
-                                        orcid_id,
-                                        ror,
-                                    )
+                        # if file is not in list of ones to not have their creators split
+                        if self.file.replace(home_dir, "") not in do_not_split:
+                            family_name, _, given_name = person.partition(",")
+                            # find matching person in contacts, if any, to get affiliation and ORCiD
+                            for key, val in contacts_list.items():
+                                if not matching_contact:
+                                    if person == val:
+                                        matching_contact = True
+                                        orcid_id, affiliation, ror = (
+                                            get_orcid_and_affiliation(key, self.file)
+                                        )
+                                        creator_entry = person_format(
+                                            "creator",
+                                            author_role[0],
+                                            person,
+                                            given_name,
+                                            family_name,
+                                            affiliation,
+                                            orcid_id,
+                                            ror,
+                                        )
                         if not matching_contact:
                             creator_entry = person_format(
                                 "creator",
@@ -1140,7 +1150,7 @@ def get_schema_version(metadata: etree.ElementTree) -> str:
 
 
 def get_authors(
-    metadata: etree.ElementTree,
+    metadata: etree.ElementTree, file="PlaceholderText"
 ) -> tuple[List, List, str, str, List, str, Dict, Dict]:
     """
     Takes an XML tree and scrapes the desired authors (with their roles), publication date,
@@ -1150,6 +1160,7 @@ def get_authors(
     except for the backups which is a dictionary.
 
     :param metadata: The SPASE metadata object as an XML tree.
+    :param file: The absolute path of the SPASE record being scraped.
     :returns: The highest priority authors found within the SPASE record as a list
                 as well as a list of their roles, the publication date, publisher,
                 contributors, and the title of the publication. It also returns any contacts found,
@@ -1257,7 +1268,7 @@ def get_authors(
         #   from contacts_list for matching people found in PubInfo
         # also formats the author list correctly for use in get_creator
         author, author_role, contacts_list = process_authors(
-            author, author_role, contacts_copy
+            author, author_role, contacts_copy, file
         )
 
     return (
@@ -1479,100 +1490,117 @@ def person_format(
 
     *_, orcid_val = orcid_id.rpartition("/")
     entry = None
-    # most basic format for creator item
-    if person_type == "creator":
-        entry = {"@type": "Person", "name": name}
-        if given_name and family_name:
-            entry["familyName"] = family_name
-            entry["givenName"] = given_name
-    elif person_type == "contributor":
-        # Split string on uppercase characters
-        res = re.split(r"(?=[A-Z])", role_name)
-        # Remove empty strings and join with space or hypen depending on role_name
-        if "Co" in role_name:
-            pattern = r"{}(?=[A-Z])".format(re.escape("Co"))
-            if bool(re.search(pattern, role_name)):
-                pretty_name = "-".join(filter(None, res))
+    if name:
+        # add check for organization
+        if ", " in name or ". " in name or (given_name and family_name) or "_" in name:
+            item_type = "Person"
+        else:
+            item_type = "Organization"
+        # most basic format for creator item
+        if person_type == "creator":
+            entry = {"@type": item_type, "name": name}
+            if (given_name and family_name) and item_type == "Person":
+                entry["familyName"] = family_name
+                entry["givenName"] = given_name
+        elif person_type == "contributor":
+            # Split string on uppercase characters
+            res = re.split(r"(?=[A-Z])", role_name)
+            # prevent 'PI' from turning into 'P I'
+            if "PI" in role_name:
+                first, sep, _ = role_name.partition("PI")
+                if "Co" in first:
+                    pretty_name = first + "-" + sep
+                else:
+                    pretty_name = first + " " + sep
+            # Remove empty strings and join with space or hypen depending on role_name
+            elif "Co" in role_name:
+                pattern = r"{}(?=[A-Z])".format(re.escape("Co"))
+                if bool(re.search(pattern, role_name)):
+                    pretty_name = "-".join(filter(None, res))
+                else:
+                    pretty_name = " ".join(filter(None, res))
             else:
                 pretty_name = " ".join(filter(None, res))
-        else:
-            pretty_name = " ".join(filter(None, res))
-        # most basic format for contributor item
-        entry = {
-            "@type": ["Role", "DefinedTerm"],
-            "contributor": {"@type": "Person", "name": name},
-            "inDefinedTermSet": {
-                "@id": "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Role"
-            },
-            "roleName": pretty_name,
-            "termCode": role_name,
-        }
-
-        if given_name and family_name:
-            entry["contributor"]["familyName"] = family_name
-            entry["contributor"]["givenName"] = given_name
-
-        if first_entry:
-            entry["inDefinedTermSet"]["@type"] = "DefinedTermSet"
-            entry["inDefinedTermSet"]["name"] = "SPASE Role"
-            entry["inDefinedTermSet"][
-                "url"
-            ] = "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Role"
-
-    if orcid_id:
-        if person_type == "contributor":
-            entry[f"{person_type}"]["identifier"] = {
-                "@id": f"https://orcid.org/{orcid_id}",
-                "@type": "PropertyValue",
-                "propertyID": "https://registry.identifiers.org/registry/orcid",
-                "url": f"https://orcid.org/{orcid_id}",
-                "value": f"orcid:{orcid_val}",
+            # most basic format for contributor item
+            entry = {
+                "@type": ["Role", "DefinedTerm"],
+                "contributor": {"@type": item_type, "name": name},
+                "inDefinedTermSet": {
+                    "@id": "https://spase-group.org/data/model/spase-latest/"
+                    + "spase-latest_xsd.htm#Role"
+                },
+                "roleName": pretty_name,
+                "termCode": role_name,
             }
-            entry[f"{person_type}"]["@id"] = f"https://orcid.org/{orcid_id}"
-        else:
-            entry["identifier"] = {
-                "@id": f"https://orcid.org/{orcid_id}",
-                "@type": "PropertyValue",
-                "propertyID": "https://registry.identifiers.org/registry/orcid",
-                "url": f"https://orcid.org/{orcid_id}",
-                "value": f"orcid:{orcid_val}",
-            }
-            entry["@id"] = f"https://orcid.org/{orcid_id}"
-    if affiliation:
-        if person_type == "contributor":
-            if ror:
-                entry["contributor"]["affiliation"] = {
-                    "@type": "Organization",
-                    "name": affiliation,
-                    "identifier": {
-                        "@id": f"https://ror.org/{ror}",
-                        "@type": "PropertyValue",
-                        "propertyID": "https://registry.identifiers.org/registry/ror",
-                        "url": f"https://ror.org/{ror}",
-                        "value": f"ror:{ror}",
-                    },
-                }
-            else:
-                entry["contributor"]["affiliation"] = {
-                    "@type": "Organization",
-                    "name": affiliation,
-                }
-        else:
-            if ror:
-                entry["affiliation"] = {
-                    "@type": "Organization",
-                    "name": affiliation,
-                    "identifier": {
-                        "@id": f"https://ror.org/{ror}",
-                        "@type": "PropertyValue",
-                        "propertyID": "https://registry.identifiers.org/registry/ror",
-                        "url": f"https://ror.org/{ror}",
-                        "value": f"ror:{ror}",
-                    },
-                }
-            else:
-                entry["affiliation"] = {"@type": "Organization", "name": affiliation}
 
+            if (given_name and family_name) and item_type == "Person":
+                entry["contributor"]["familyName"] = family_name
+                entry["contributor"]["givenName"] = given_name
+
+            if first_entry:
+                entry["inDefinedTermSet"]["@type"] = "DefinedTermSet"
+                entry["inDefinedTermSet"]["name"] = "SPASE Role"
+                entry["inDefinedTermSet"][
+                    "url"
+                ] = "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Role"
+
+        if item_type == "Person":
+            if orcid_id:
+                if person_type == "contributor":
+                    entry[f"{person_type}"]["identifier"] = {
+                        "@id": f"https://orcid.org/{orcid_id}",
+                        "@type": "PropertyValue",
+                        "propertyID": "https://registry.identifiers.org/registry/orcid",
+                        "url": f"https://orcid.org/{orcid_id}",
+                        "value": f"orcid:{orcid_val}",
+                    }
+                    entry[f"{person_type}"]["@id"] = f"https://orcid.org/{orcid_id}"
+                else:
+                    entry["identifier"] = {
+                        "@id": f"https://orcid.org/{orcid_id}",
+                        "@type": "PropertyValue",
+                        "propertyID": "https://registry.identifiers.org/registry/orcid",
+                        "url": f"https://orcid.org/{orcid_id}",
+                        "value": f"orcid:{orcid_val}",
+                    }
+                    entry["@id"] = f"https://orcid.org/{orcid_id}"
+            if affiliation:
+                if person_type == "contributor":
+                    if ror:
+                        entry["contributor"]["affiliation"] = {
+                            "@type": "Organization",
+                            "name": affiliation,
+                            "identifier": {
+                                "@id": f"https://ror.org/{ror}",
+                                "@type": "PropertyValue",
+                                "propertyID": "https://registry.identifiers.org/registry/ror",
+                                "url": f"https://ror.org/{ror}",
+                                "value": f"ror:{ror}",
+                            },
+                        }
+                    else:
+                        entry["contributor"]["affiliation"] = {
+                            "@type": "Organization",
+                            "name": affiliation,
+                        }
+                else:
+                    if ror:
+                        entry["affiliation"] = {
+                            "@type": "Organization",
+                            "name": affiliation,
+                            "identifier": {
+                                "@id": f"https://ror.org/{ror}",
+                                "@type": "PropertyValue",
+                                "propertyID": "https://registry.identifiers.org/registry/ror",
+                                "url": f"https://ror.org/{ror}",
+                                "value": f"ror:{ror}",
+                            },
+                        }
+                    else:
+                        entry["affiliation"] = {
+                            "@type": "Organization",
+                            "name": affiliation,
+                        }
     return entry
 
 
@@ -2207,7 +2235,7 @@ def get_metadata_license(metadata: etree.ElementTree) -> Union[str, None]:
 
 
 def process_authors(
-    author: List, author_role: List, contacts_list: Dict
+    author: List, author_role: List, contacts_list: Dict, file="PlaceholderText"
 ) -> tuple[List, List, Dict]:
     """
     Groups any contact names from the SPASE Contacts container with their matching names, if
@@ -2253,13 +2281,17 @@ def process_authors(
         return author, author_role, contacts_copy
     # if all creators were found in PublicationInfo/Authors
     else:
-        # if there are multiple authors
+        # determine if authors are a consortium
+        with open("./spase-ignoreCreatorSplit.txt", "r", encoding="utf-8") as f:
+            do_not_split = f.read()
+        # if file is not in list of ones to not have their creators split
+        # and there are multiple authors
         if (
             ("; " in author_str)
             or ("., " in author_str)
             or (" and " in author_str)
             or (" & " in author_str)
-        ):
+        ) and file not in do_not_split:
             if ";" in author_str:
                 author = author_str.split("; ")
             elif ".," in author_str:
@@ -2355,7 +2387,7 @@ def process_authors(
                             f"{last_name}, {first_name} {initial}."
                         )
                 author[index] = (f"{family_name}, {given_name}").strip()
-        # if there is only one author listed
+        # if there is only one author listed or file has consortium
         else:
             matching_contact = None
             # get rid of extra quotations
@@ -2363,7 +2395,7 @@ def process_authors(
             person = author_str.replace("'", "")
             if author_role == ["Author"]:
                 # if author is a person (assuming names contain a comma)
-                if ", " in person:
+                if ", " in person and file not in do_not_split:
                     family_name, _, given_name = person.partition(", ")
                     # also used when there are 3+ comma separated orgs
                     #   listed as authors - not intended (how to fix?)
@@ -2376,7 +2408,7 @@ def process_authors(
                     author[0] = (f"{family_name}, {given_name}").strip()
                 else:
                     # handle case when assumption 'names have commas' fails
-                    if ". " in person:
+                    if ". " in person and file not in do_not_split:
                         given_name, _, family_name = person.partition(". ")
                         if " " in family_name:
                             initial, _, family_name = family_name.partition(" ")

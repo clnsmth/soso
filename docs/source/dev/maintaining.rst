@@ -21,13 +21,13 @@ Pull request review facilitates refinement of a contribution before it's incorpo
 
 *Though pull request review is required by the project's GitHub branch protection rules, maintainers are allowed to bypass review. Having said this, we generally encourage review in all cases.*
 
-Here are a steps to help with your pull request review:
+Here are steps to help with your pull request review:
 
 1. Start a GitHub review on the pull request.
 2. Check that the :ref:`ci-workflow` passes. Even if successful, check the workflow run logs for Pylint related messages. Though not required, we recommend these messages be addressed.
 3. New features or bug-fixes should include tests demonstrating the change.
 4. Review the diffs of code and related documentation.
-5. Check for compliance with our :ref:`commit-message` style.
+5. Check for compliance with our :ref:`commit-messages` style.
 6. Submit the review.
 
 If collaboration on the pull request is needed, create a `feature branch` in GitHub, change the base branch of the pull request from `development` to the newly created `feature branch`, and merge. This allows the maintainer to lend a helpful hand.
@@ -38,31 +38,6 @@ Git and GitHub
 --------------
 
 We use a combination of git and GitHub features to version control and manage various aspects of our project. Generally, we prefer small, incremental changes that are easy to review and maintain.
-
-.. _commit-message-style:
-
-Commit Message Style
-~~~~~~~~~~~~~~~~~~~~
-
-Our project uses two different commit message styles. The first is used during feature development (see the Contributor's Guide :ref:`commit-message`). The second is used to convert a squash commit when merging a `feature branch` into `development`, and allows `Python Semantic Release`_ to streamline the reoccurring release process.
-
-This second commit style is the `Angular commit style`_. Our project uses this style in full with the notable exceptions that the `commit message header`_ should not include the `scope` value, and that any related GitHub issues should be referenced. For example:
-
-``feat: add framework for new feature (#3, #5)``
-
-not
-
-``feat(module): add framework for new feature``
-
-.. _Python Semantic Release: https://python-semantic-release.readthedocs.io/en/latest/
-.. _Angular commit style: https://github.com/angular/angular/blob/main/CONTRIBUTING.md#commit
-.. _commit message header: https://github.com/angular/angular/blob/main/CONTRIBUTING.md#commit-message-header
-
-Do your best to keep the commit message header from exceeding 52 characters in length, but no greater than 72 characters, and keep the commit message body from exceeding 72 characters.
-
-*Note, Semantic Release may be bypassed in special circumstances. To do this, simply remove all Angular style "type" keywords from the commit message header.*
-
-
 
 Branch Management
 ~~~~~~~~~~~~~~~~~
@@ -87,7 +62,7 @@ When a feature is complete and ready for integration with the project, it should
 2. Rebase the `feature branch` onto the `development` branch.
 3. Force push your local `feature branch` to the remote `feature branch`.
 4. Ensure the :ref:`ci-workflow` passes.
-5. Squash merge the `feature branch` into `development` using the GitHub pull request interface, and following the Angular commit style mentioned in the :ref:`commit-message-style` guidelines. To do this:
+5. Squash merge the `feature branch` into `development` using the GitHub pull request interface, and following the Angular commit style mentioned in the :ref:`commit-messages` guidelines. To do this:
     i. Edit the commit message header.
     ii. Preserve the commit message body as is (now a squashed set of commits).
     iii. Add keywords in the `commit message footer`_ to close out or mention any related GitHub issues.
@@ -117,7 +92,7 @@ Here's a sequence of steps for merging `development` into `main` and creating a 
 8. Pull the remote `main` and `development` branches back into your local repository. This will keep your local branches in sync with the remote, which the semantic release made modifications to during the release process.
 
 .. _readthedocs.io: https://soso.readthedocs.io/en/latest/
-
+.. _Python Semantic Release: https://python-semantic-release.readthedocs.io/en/latest/
 .. _hot-fixes:
 
 Hot Fixes

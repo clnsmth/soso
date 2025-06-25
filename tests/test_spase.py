@@ -788,7 +788,7 @@ def test_verify_type_returns_expected_value():
         {
             "name": "Turbid9",
             "creators": {
-                "@type": "Person",
+                "@type": "Organization",
                 "name": "SeaBASS",
             },
             "description": "No description currently available for "
