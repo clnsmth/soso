@@ -1595,8 +1595,10 @@ def name_splitter(person: str) -> tuple[str, str, str]:
         if "." in name_str:
             given_name, _, family_name = name_str.partition(".")
             # if name has initial(s)
-            if "." in family_name:
+            while "." in family_name:
                 initial, _, family_name = family_name.partition(".")
+                if len(initial) > 1:
+                    initial = initial[0]
                 given_name = given_name + " " + initial + "."
             name_str = given_name + " " + family_name
             name_str = name_str.replace('"', "")
