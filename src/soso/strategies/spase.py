@@ -1161,6 +1161,7 @@ def get_authors(
 
     :param metadata: The SPASE metadata object as an XML tree.
     :param file: The absolute path of the SPASE record being scraped.
+    
     :returns: The highest priority authors found within the SPASE record as a list
                 as well as a list of their roles, the publication date, publisher,
                 contributors, and the title of the publication. It also returns any contacts found,
