@@ -345,9 +345,8 @@ def test_get_observatory_returns_expected_value():
     # Positive case: The function will return the name, ResourceID, and InformationURL(s) for the
     # observatoryID(s) found in the SPASE file.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
-    kwargs = {"testing": "soso-spase/tests/data/"}
     assert get_observatory(
-        spase, str(get_example_metadata_file_path("SPASE")).replace("\\", "/"), **kwargs
+        spase, str(get_example_metadata_file_path("SPASE")).replace("\\", "/")
     ) == (
         [
             {
@@ -649,9 +648,8 @@ def test_get_orcid_and_affiliation_returns_expected_value():
     # Positive case: The function will return the ORCiD and organization (with its ror)
     #   associated with the given SPASE Person.
     person = "spase://SMWG/Person/David.T.Young"
-    kwargs = {"testing": "soso-spase/tests/data/"}
     spase = str(get_example_metadata_file_path("SPASE")).replace("\\", "/")
-    assert get_orcid_and_affiliation(person, spase, **kwargs) == (
+    assert get_orcid_and_affiliation(person, spase) == (
         "0000-0001-9473-7000",
         "Southwest Research Institute",
         "03tghng59",
@@ -978,7 +976,6 @@ def test_update_log_returns_expected_value():
     with open("./test_update_log.txt", "r", encoding="utf-8") as f:
         text = f.read()
     assert "testRepo" in text
-
 
     # Negative case: If there is no file nor attempt number present, the function will
     # return None.

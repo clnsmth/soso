@@ -679,7 +679,7 @@ class SPASE(StrategyInterface):
             spatial_coverage = None
         return delete_null_values(spatial_coverage)
 
-    def get_creator(self, **kwargs) -> Union[List[Dict], None]:
+    def get_creator(self) -> Union[List[Dict], None]:
         # Mapping: schema:creator = spase:ResourceHeader/spase:PublicationInfo/spase:Authors
         # OR schema:creator = spase:ResourceHeader/spase:Contact/spase:PersonID
         # Each item is:
@@ -751,18 +751,9 @@ class SPASE(StrategyInterface):
                             if not matching_contact:
                                 if person == val:
                                     matching_contact = True
-                                    # only if creating draft JSON, use SPASE
-                                    # record that includes ROR
-                                    if kwargs and (person == "Young, David T."):
-                                        orcid_id, affiliation, ror = (
-                                            get_orcid_and_affiliation(
-                                                key, self.file, **kwargs
-                                            )
-                                        )
-                                    else:
-                                        orcid_id, affiliation, ror = (
-                                            get_orcid_and_affiliation(key, self.file)
-                                        )
+                                    orcid_id, affiliation, ror = (
+                                        get_orcid_and_affiliation(key, self.file)
+                                    )
                                     creator_entry = person_format(
                                         "creator",
                                         author_role[index],
@@ -837,7 +828,7 @@ class SPASE(StrategyInterface):
             creator = None
         return delete_null_values(creator)
 
-    def get_contributor(self, **kwargs) -> Union[List[Dict], None]:
+    def get_contributor(self) -> Union[List[Dict], None]:
         # Mapping: schema:contributor = spase:ResourceHeader/spase:Contact/spase:PersonID
         # Each item is:
         #   {@type: Role, roleName: Contributor or curator role,
@@ -867,15 +858,7 @@ class SPASE(StrategyInterface):
                 # split contact into name, first name, and last name
                 contributor_str, given_name, family_name = name_splitter(key)
                 # attempt to get ORCiD and affiliation
-                # only if creating draft JSON, use SPASE record that includes ROR
-                if kwargs and ("Jolene.S.Pickett" in key):
-                    orcid_id, affiliation, ror = get_orcid_and_affiliation(
-                        key, self.file, **kwargs
-                    )
-                else:
-                    orcid_id, affiliation, ror = get_orcid_and_affiliation(
-                        key, self.file
-                    )
+                orcid_id, affiliation, ror = get_orcid_and_affiliation(key, self.file)
                 # if contact has more than 1 role
                 if len(contacts_list[key]) > 1:
                     individual = person_format(
@@ -1161,7 +1144,7 @@ def get_authors(
 
     :param metadata: The SPASE metadata object as an XML tree.
     :param file: The absolute path of the SPASE record being scraped.
-    
+
     :returns: The highest priority authors found within the SPASE record as a list
                 as well as a list of their roles, the publication date, publisher,
                 contributors, and the title of the publication. It also returns any contacts found,
@@ -1751,8 +1734,8 @@ def get_instrument(
             # get current working directory
             cwd = str(Path.cwd()).replace("\\", "/")
             # split path into needed substrings
-            if "soso-spase" in path:
-                abs_path, _, after = path.partition("soso-spase/")
+            if "src/soso/data/" in path:
+                abs_path, _, after = path.partition("src/soso/data/")
             else:
                 _, abs_path, after = path.partition(f"{home_dir}/")
             repo_name, _, after = after.partition("/")
@@ -1762,10 +1745,19 @@ def get_instrument(
             repo_name, _, after = item.replace("spase://", "").partition("/")
             update_log(cwd, repo_name, "requiredRepos")
             # format record
-            if kwargs:
+            if "src/soso/data/" in path:
                 # being called by testing function = change directory to xml file in tests folder
+                # only uncomment these lines if using snapshot creation script
+                """if "soso-spase/" in path:
+                    record = abs_path + item.replace("spase://", "") + ".xml"
+                else:"""
                 *_, file_name = item.rpartition("/")
-                record = abs_path + kwargs["testing"] + f"spase-{file_name}" + ".xml"
+                record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
+                # to ensure correct file path used for those not found in tests/data
+                if not os.path.isfile(record):
+                    if "soso-spase/" in path:
+                        abs_path, _, _ = path.partition("soso-spase/")
+                    record = abs_path + item.replace("spase://", "") + ".xml"
             else:
                 record = abs_path + item.replace("spase://", "") + ".xml"
             record = record.replace("'", "")
@@ -1802,9 +1794,7 @@ def get_instrument(
     return instrument
 
 
-def get_observatory(
-    metadata: etree.ElementTree, path: str, **kwargs: dict
-) -> Union[List[Dict], None]:
+def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict], None]:
     """
     Uses the get_instrument function to attempt to retrieve all relevant information
     associated with any ObservatoryID (and ObservatoryGroupID) fields
@@ -1841,18 +1831,18 @@ def get_observatory(
             # get current working directory
             cwd = str(Path.cwd()).replace("\\", "/")
             # split path into needed substrings
-            if "soso-spase" in path:
-                abs_path, _, after = path.partition("soso-spase/")
+            if "src/soso/data/" in path:
+                abs_path, _, after = path.partition("src/soso/data/")
             else:
                 _, abs_path, after = path.partition(f"{home_dir}/")
             repo_name, _, after = after.partition("/")
             # add original SPASE repo to log file that holds name of repos needed
             update_log(cwd, repo_name, "requiredRepos")
-            if kwargs:
+            if "src/soso/data/" in path:
                 # being called by testing function = change directory
                 #   to xml file in tests folder
                 *_, file_name = item.rpartition("/")
-                record = abs_path + kwargs["testing"] + f"spase-{file_name}" + ".xml"
+                record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
             else:
                 record = abs_path + item.replace("spase://", "") + ".xml"
             record = record.replace("'", "")
@@ -1873,11 +1863,11 @@ def get_observatory(
                 )
                 update_log(cwd, repo_name, "requiredRepos")
                 # use observatory_id as record to get observatory_group_id and other info
-                if kwargs:
+                if "src/soso/data/" in path:
                     # being called by test function = change directory to xml file in tests folder
                     *_, file_name = observatory_id.rpartition("/")
                     record = (
-                        abs_path + kwargs["testing"] + f"spase-MMS-{file_name}" + ".xml"
+                        abs_path + "tests/data/" + f"spase-MMS-{file_name}" + ".xml"
                     )
                 else:
                     record = abs_path + observatory_id.replace("spase://", "") + ".xml"
@@ -1902,15 +1892,12 @@ def get_observatory(
                         ).partition("/")
                         update_log(cwd, repo_name, "requiredRepos")
                         # format record
-                        if kwargs:
+                        if "src/soso/data/" in path:
                             # being called by test function = change directory to xml file in tests
                             #   folder
                             *_, file_name = observatory_group_id.rpartition("/")
                             record = (
-                                abs_path
-                                + kwargs["testing"]
-                                + f"spase-{file_name}"
-                                + ".xml"
+                                abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
                             )
                         else:
                             record = (
@@ -2112,9 +2099,7 @@ def get_is_part_of(
     return is_part_of
 
 
-def get_orcid_and_affiliation(
-    spase_id: str, file: str, **kwargs: dict
-) -> tuple[str, str, str]:
+def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
     """
     Uses the given PersonID to scrape the ORCiD and affiliation (and its ROR ID if provided)
     associated with this contact.
@@ -2137,8 +2122,8 @@ def get_orcid_and_affiliation(
         # get current working directory
         cwd = str(Path.cwd()).replace("\\", "/")
         # split record into needed substrings
-        if "soso-spase" in file:
-            abs_path, _, after = file.partition("soso-spase/")
+        if "src/soso/data/" in file:
+            abs_path, _, after = file.partition("src/soso/data/")
         else:
             _, abs_path, after = file.partition(f"{home_dir}/")
         repo_name, _, after = after.partition("/")
@@ -2148,10 +2133,19 @@ def get_orcid_and_affiliation(
         repo_name, _, after = spase_id.replace("spase://", "").partition("/")
         update_log(cwd, repo_name, "requiredRepos")
         # format record name
-        if kwargs:
+        if "src/soso/data/" in file:
             # being called by testing function = change directory to xml file in tests folder
+            # only uncomment these lines if using snapshot creation script
+            """if "soso-spase/" in file:
+                record = abs_path + spase_id.replace("spase://", "") + ".xml"
+            else:"""
             *_, file_name = spase_id.rpartition("/")
-            record = abs_path + kwargs["testing"] + f"spase-{file_name}" + ".xml"
+            record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
+            # to ensure correct file path used for those not found in tests/data
+            if not os.path.isfile(record):
+                if "soso-spase/" in file:
+                    abs_path, _, _ = file.partition("soso-spase/")
+                record = abs_path + spase_id.replace("spase://", "") + ".xml"
         else:
             record = abs_path + spase_id.replace("spase://", "") + ".xml"
         record = record.replace("'", "")
@@ -2674,15 +2668,32 @@ def get_relation(
                 repo_name, _, _ = record.replace("spase://", "").partition("/")
                 update_log(cwd, repo_name, "requiredRepos")
                 # format record
-                if ("soso-spase" in file) or kwargs:
+                if ("src/soso/data/" in file) or kwargs:
                     # being called by test function = change directory to xml file in tests folder
                     *_, file_name = record.rpartition("/")
-                    record = (
-                        f"{home_dir}/"
-                        + "soso-spase/tests/data/"
-                        + f"spase-{file_name}"
-                        + ".xml"
-                    )
+                    if "src/soso/data/" in file:
+                        # if called by snapshot creation script
+                        if "soso-spase/" in file:
+                            record = (
+                                f"{home_dir}/soso-spase/"
+                                + "tests/data/"
+                                + f"spase-{file_name}"
+                                + ".xml"
+                            )
+                        else:
+                            record = (
+                                f"{home_dir}/"
+                                + "tests/data/"
+                                + f"spase-{file_name}"
+                                + ".xml"
+                            )
+                    else:
+                        record = (
+                            f"{home_dir}/"
+                            + kwargs["testing"]
+                            + f"spase-{file_name}"
+                            + ".xml"
+                        )
                     # print(record)
                 else:
                     record = home_dir + "/" + record.replace("spase://", "") + ".xml"
@@ -2693,10 +2704,7 @@ def get_relation(
                     name = test_spase.get_name()
                     description = test_spase.get_description()
                     spase_license = test_spase.get_license()
-                    if kwargs:
-                        creators = test_spase.get_creator(**kwargs)
-                    else:
-                        creators = test_spase.get_creator()
+                    creators = test_spase.get_creator()
                     if creators is None:
                         creators = "No creators were found. View record for contacts."
                     relational_records[url] = {
