@@ -1163,6 +1163,8 @@ def get_authors(
     pi_child = None
     desired_root = None
     root = metadata.getroot()
+    if file:
+        file = file.replace("\\", "/")
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desired_root = elt
@@ -1708,6 +1710,8 @@ def get_instrument(
     desired_root = None
     instrument = []
     instrument_ids = {}
+    if path:
+        path = path.replace("\\", "/")
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desired_root = elt
@@ -1821,6 +1825,8 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
         observatory_id = ""
         recorded_ids = []
         instrument_ids = []
+        if path:
+            path = path.replace("\\", "/")
 
         for each in instrument:
             instrument_ids.append(each["identifier"]["value"])
@@ -2115,6 +2121,8 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
     affiliation = ""
     ror = ""
     desired_root = None
+    if file:
+        file = file.replace("\\", "/")
     if (spase_id is not None) and (file is not None):
         # get home directory
         home_dir = str(Path.home())
@@ -2136,7 +2144,7 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
         if "src/soso/data/" in file:
             # being called by testing function = change directory to xml file in tests folder
             # only uncomment these lines if using snapshot creation script
-            """if "soso-spase/" in file:
+            """if ("soso-spase/" in file) and ("David.T.Young" not in spase_id):
                 record = abs_path + spase_id.replace("spase://", "") + ".xml"
             else:"""
             *_, file_name = spase_id.rpartition("/")
@@ -2253,6 +2261,8 @@ def process_authors(
     # if no match found for person(s), leave in contacts_list for use in get_contributors
 
     author_str = str(author).replace("[", "").replace("]", "")
+    if file:
+        file = file.replace("\\", "/")
     # if creators were found in Contact/PersonID (no PubInfo)
     # remove author roles from contacts_list so not duplicated in contributors
     #   (since already in author list)
@@ -2640,6 +2650,8 @@ def get_relation(
     assoc_id = ""
     assoc_type = ""
     relational_records = {}
+    if file:
+        file = file.replace("\\", "/")
     # iterate thru xml to find desired info
     if desired_root is not None:
         for child in desired_root.iter(tag=etree.Element):
@@ -2662,6 +2674,7 @@ def get_relation(
                 # get home directory
                 home_dir = str(Path.home())
                 home_dir = home_dir.replace("\\", "/")
+                print(f"HomeDir is {home_dir} and file is {file}")
                 # get current working directory
                 cwd = str(Path.cwd()).replace("\\", "/")
                 # add SPASE repo that contains related SPASE record to log file
@@ -2681,6 +2694,7 @@ def get_relation(
                                 + ".xml"
                             )
                         else:
+                            print(f"The correct area has been accessed for {record}")
                             record = (
                                 f"{home_dir}/"
                                 + "tests/data/"
@@ -2699,6 +2713,7 @@ def get_relation(
                     record = home_dir + "/" + record.replace("spase://", "") + ".xml"
                 record = record.replace("'", "")
                 if os.path.isfile(record):
+                    print(f"{record} is a file")
                     test_spase = SPASE(record)
                     url = test_spase.get_url()
                     name = test_spase.get_name()
@@ -2731,6 +2746,7 @@ def get_relation(
             # not SPASE records
             if not relational_records:
                 for each in relations:
+                    print("This is the no relational_records part")
                     if "spase" not in each:
                         # most basic entry into relation
                         entry = {"@id": each, "identifier": each, "url": each}
