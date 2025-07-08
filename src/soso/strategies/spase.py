@@ -2693,10 +2693,12 @@ def get_relation(
                                 + f"spase-{file_name}"
                                 + ".xml"
                             )
+                        # being called by CI workflow
                         else:
                             print(f"The correct area has been accessed for {record}")
+                            abs_path, _, _ = file.partition("src/soso/data/")
                             record = (
-                                f"{home_dir}/"
+                                f"{abs_path}"
                                 + "tests/data/"
                                 + f"spase-{file_name}"
                                 + ".xml"
