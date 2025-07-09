@@ -424,7 +424,7 @@ def test_get_mentions_returns_expected_value():
     # AssociationType = "Other" found within the Association section of the SPASE record.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
     kwargs = {"testing": "soso-spase/tests/data/"}
-    assert get_mentions(spase, **kwargs) == (
+    assert get_mentions(spase, str(get_example_metadata_file_path("SPASE")), **kwargs) == (
         [
             {
                 "@id": "https://doi.org/10.48322/xhe6-5a16",
@@ -550,7 +550,7 @@ def test_get_mentions_returns_expected_value():
     # Negative case: If Other AssociationIDs are not present, the function will
     # return None.
     spase = etree.parse(get_empty_metadata_file_path("SPASE"))
-    assert get_mentions(spase) is None
+    assert get_mentions(spase, str(get_empty_metadata_file_path("SPASE"))) is None
 
 
 def test_get_is_part_of_returns_expected_value():
@@ -560,7 +560,7 @@ def test_get_is_part_of_returns_expected_value():
     # AssociationType = "PartOf" found within the Association section of the SPASE record.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
     kwargs = {"testing": "soso-spase/tests/data/"}
-    assert get_is_part_of(spase, **kwargs) == {
+    assert get_is_part_of(spase, str(get_example_metadata_file_path("SPASE")), **kwargs) == {
         "@id": "https://doi.org/10.48322/s9mg-he04",
         "@type": "Dataset",
         "creator": {
@@ -639,7 +639,7 @@ def test_get_is_part_of_returns_expected_value():
     # Negative case: If PartOf AssociationIDs are not present, the function will
     # return None.
     spase = etree.parse(get_empty_metadata_file_path("SPASE"))
-    assert get_is_part_of(spase) is None
+    assert get_is_part_of(spase, str(get_empty_metadata_file_path("SPASE"))) is None
 
 
 def test_get_orcid_and_affiliation_returns_expected_value():

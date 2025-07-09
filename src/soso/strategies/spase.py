@@ -2058,13 +2058,14 @@ def get_cadence_context(cadence: str) -> Union[str, None]:
 
 
 def get_mentions(
-    metadata: etree.ElementTree, **kwargs: dict
+    metadata: etree.ElementTree, file: str, **kwargs: dict
 ) -> Union[List[Dict], Dict, None]:
     """
     Scrapes any AssociationIDs with the AssociationType "Other" and formats them
     as dictionaries using the get_relation function.
 
     :param metadata: The SPASE metadata object as an XML tree.
+    :param file: The file path of the SPASE record being scraped.
     :param **kwargs: Allows for additional parameters to be passed (only to be used for testing).
 
     :returns: The ID's of other SPASE records related to this one in some way.
@@ -2077,18 +2078,19 @@ def get_mentions(
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desired_root = elt
-    mentions = get_relation(desired_root, ["Other"], **kwargs)
+    mentions = get_relation(desired_root, ["Other"], file, **kwargs)
     return mentions
 
 
 def get_is_part_of(
-    metadata: etree.ElementTree, **kwargs: dict
+    metadata: etree.ElementTree, file: str, **kwargs: dict
 ) -> Union[List[Dict], Dict, None]:
     """
     Scrapes any AssociationIDs with the AssociationType "PartOf" and formats them
     as dictionaries using the get_relation function.
 
     :param metadata: The SPASE metadata object as an XML tree.
+    :param file: The file path of the SPASE record being scraped.
     :param **kwargs: Allows for additional parameters to be passed (only to be used for testing).
 
     :returns: The ID(s) of the larger resource this SPASE record is a portion of, as a dictionary.
@@ -2101,7 +2103,7 @@ def get_is_part_of(
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desired_root = elt
-    is_part_of = get_relation(desired_root, ["PartOf"], **kwargs)
+    is_part_of = get_relation(desired_root, ["PartOf"], file, **kwargs)
     return is_part_of
 
 
@@ -2158,6 +2160,7 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
             record = abs_path + spase_id.replace("spase://", "") + ".xml"
         record = record.replace("'", "")
         if os.path.isfile(record):
+            print(f"{record} is a file")
             test_spase = SPASE(record)
             root = test_spase.metadata.getroot()
             # iterate thru xml to get desired info
@@ -2703,6 +2706,7 @@ def get_relation(
                                 + f"spase-{file_name}"
                                 + ".xml"
                             )
+                    # can probably be deleted
                     else:
                         record = (
                             f"{home_dir}/"
