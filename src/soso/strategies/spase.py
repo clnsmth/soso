@@ -63,9 +63,9 @@ class SPASE(StrategyInterface):
         super().__init__(metadata=etree.parse(file))
         self.file = file
         self.schema_version = get_schema_version(self.metadata)
-        self.namespaces = {"spase": "http://www.spase-group.org/data/schema"}
         self.kwargs = kwargs
         self.root = self.metadata.getroot()
+        self.namespaces = {"spase": list(self.root.nsmap.values())[0]}
         # find element in tree to iterate over
         for elt in self.root.iter(tag=etree.Element):
             if (
@@ -1098,7 +1098,12 @@ class SPASE(StrategyInterface):
         # prov:wasGeneratedBy found at https://www.w3.org/TR/prov-o/#wasGeneratedBy
 
         # commenting out observatories because of the email with Baptiste and Donny
-        instruments = get_instrument(self.metadata, self.file)
+        # if called locally, populate both instruments
+        if "soso-spase" in self.file:
+            instruments = get_instrument(self.metadata, self.file)
+        # if called by CI, only populate one instrument
+        else:
+            instruments = get_instrument(self.metadata, self.file, **{"testing": "soso-spase/tests/data/"})
         # observatories = get_observatory(self.metadata, self.file)
         was_generated_by = []
 
@@ -1302,7 +1307,7 @@ def get_access_urls(metadata: etree.ElementTree) -> tuple[Dict, Dict]:
         ".//spase:" + f"{desired_tag[1]}/spase:AccessInformation/spase:Format"
     )
     for item in metadata.findall(
-        spase_location, namespaces={"spase": "http://www.spase-group.org/data/schema"}
+        spase_location, namespaces={"spase": list(root.nsmap.values())[0]}
     ):
         encoding.append(item.text)
 
@@ -2175,6 +2180,7 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
                 elif child.tag.endswith("RORIdentifier"):
                     ror = child.text
         else:
+            print(f"{record} is not a file")
             # add file to log called 'problematic records/files'
             if not os.path.exists(f"{cwd}/problematicRecords.txt"):
                 with open(f"{cwd}/problematicRecords.txt", "w", encoding="utf-8") as f:
