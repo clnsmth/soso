@@ -65,7 +65,11 @@ class SPASE(StrategyInterface):
         self.schema_version = get_schema_version(self.metadata)
         self.kwargs = kwargs
         self.root = self.metadata.getroot()
-        self.namespaces = {"spase": list(self.root.nsmap.values())[0]}
+        namespace = ""
+        for ns in list(self.root.nsmap.values()):
+            if "spase-group" in ns:
+                namespace = ns
+        self.namespaces = {"spase": namespace}
         # find element in tree to iterate over
         for elt in self.root.iter(tag=etree.Element):
             if (
@@ -73,6 +77,7 @@ class SPASE(StrategyInterface):
                 or elt.tag.endswith("DisplayData")
                 or elt.tag.endswith("Observatory")
                 or elt.tag.endswith("Instrument")
+                or elt.tag.endswith("Collection")
             ):
                 self.desired_root = elt
         # if want to see entire xml file as a string
@@ -679,7 +684,7 @@ class SPASE(StrategyInterface):
             spatial_coverage = None
         return delete_null_values(spatial_coverage)
 
-    def get_creator(self, **kwargs: dict) -> Union[List[Dict], None]:
+    def get_creator(self) -> Union[List[Dict], None]:
         # Mapping: schema:creator = spase:ResourceHeader/spase:PublicationInfo/spase:Authors
         # OR schema:creator = spase:ResourceHeader/spase:Contact/spase:PersonID
         # Each item is:
@@ -716,16 +721,16 @@ class SPASE(StrategyInterface):
                         index = 0
                     # split text from Contact into properly formatted name fields
                     author_str, given_name, family_name = name_splitter(person)
-                    # get additional info if any
-                    # uncomment if making snapshot
-                    if not kwargs:
-                        orcid_id, affiliation, ror = get_orcid_and_affiliation(
-                            person, self.file
-                        )
-                    else:
+                    # get additional info (if any)
+                    # uncomment if making snapshot and also add '**kwargs: dict' as parameter
+                    # if not kwargs:
+                    orcid_id, affiliation, ror = get_orcid_and_affiliation(
+                        person, self.file
+                    )
+                    """else:
                         orcid_id = ""
                         ror = ""
-                        affiliation = ""
+                        affiliation = """
                     # create the dictionary entry for that person and append to list
                     creator_entry = person_format(
                         "creator",
@@ -758,14 +763,14 @@ class SPASE(StrategyInterface):
                                 if person == val:
                                     matching_contact = True
                                     # uncomment if making snapshot
-                                    if not kwargs:
-                                        orcid_id, affiliation, ror = (
-                                            get_orcid_and_affiliation(key, self.file)
-                                        )
-                                    else:
+                                    # if not kwargs:
+                                    orcid_id, affiliation, ror = (
+                                        get_orcid_and_affiliation(key, self.file)
+                                    )
+                                    """else:
                                         orcid_id = ""
                                         ror = ""
-                                        affiliation = ""
+                                        affiliation = """
                                     creator_entry = person_format(
                                         "creator",
                                         author_role[index],
@@ -805,16 +810,14 @@ class SPASE(StrategyInterface):
                                     if person == val:
                                         matching_contact = True
                                         # uncomment if making snapshot
-                                        if not kwargs:
-                                            orcid_id, affiliation, ror = (
-                                                get_orcid_and_affiliation(
-                                                    key, self.file
-                                                )
-                                            )
-                                        else:
+                                        # if not kwargs:
+                                        orcid_id, affiliation, ror = (
+                                            get_orcid_and_affiliation(key, self.file)
+                                        )
+                                        """else:
                                             orcid_id = ""
                                             ror = ""
-                                            affiliation = ""
+                                            affiliation = """
                                         creator_entry = person_format(
                                             "creator",
                                             author_role[0],
@@ -1118,11 +1121,11 @@ class SPASE(StrategyInterface):
         # prov:wasGeneratedBy found at https://www.w3.org/TR/prov-o/#wasGeneratedBy
 
         # commenting out observatories because of the email with Baptiste and Donny
-        # instruments = get_instrument(self.metadata, self.file)
+        instruments = get_instrument(self.metadata, self.file)
         # only uncomment if trying to generate snapshot spase.json
-        instruments = get_instrument(
+        """instruments = get_instrument(
             self.metadata, self.file, **{"testing": "soso-spase/tests/data/"}
-        )
+        )"""
         # observatories = get_observatory(self.metadata, self.file)
         was_generated_by = []
 
@@ -1150,9 +1153,11 @@ def get_schema_version(metadata: etree.ElementTree) -> str:
 
     :returns: The version of the SPASE schema used in the metadata record.
     """
-    schema_version = metadata.findtext(
-        f"{{{list(metadata.getroot().nsmap.values())[0]}}}Version"
-    )
+    namespace = ""
+    for ns in list(metadata.getroot().nsmap.values()):
+        if "spase-group" in ns:
+            namespace = ns
+    schema_version = metadata.findtext(f"{{{namespace}}}Version")
     return schema_version
 
 
@@ -1325,9 +1330,11 @@ def get_access_urls(metadata: etree.ElementTree) -> tuple[Dict, Dict]:
     spase_location = (
         ".//spase:" + f"{desired_tag[1]}/spase:AccessInformation/spase:Format"
     )
-    for item in metadata.findall(
-        spase_location, namespaces={"spase": list(root.nsmap.values())[0]}
-    ):
+    namespace = ""
+    for ns in list(root.nsmap.values()):
+        if "spase-group" in ns:
+            namespace = ns
+    for item in metadata.findall(spase_location, namespaces={"spase": namespace}):
         encoding.append(item.text)
 
     # traverse xml to extract needed info
@@ -1776,12 +1783,12 @@ def get_instrument(
             if "src/soso/data/" in path:
                 # being called by testing function = change directory to xml file in tests folder
                 # only uncomment these lines if using snapshot creation script
-                if "soso-spase/" in path:
+                """if "soso-spase/" in path:
                     record = abs_path + item.replace("spase://", "") + ".xml"
-                else:
-                    # if called by CI
-                    *_, file_name = item.rpartition("/")
-                    record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
+                else:"""
+                # if called by CI
+                *_, file_name = item.rpartition("/")
+                record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
                 # to ensure correct file path used for those not found in tests/data
                 if not os.path.isfile(record):
                     if "soso-spase/" in path:
@@ -2173,10 +2180,10 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
             record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
             # to ensure correct file path used for those not found in tests/data
             # comment these lines out if using snapshot creation script
-            """if not os.path.isfile(record):
+            if not os.path.isfile(record):
                 if "soso-spase/" in file:
                     abs_path, _, _ = file.partition("soso-spase/")
-                record = abs_path + spase_id.replace("spase://", "") + ".xml"""
+                record = abs_path + spase_id.replace("spase://", "") + ".xml"
         else:
             record = abs_path + spase_id.replace("spase://", "") + ".xml"
         record = record.replace("'", "")
@@ -2743,12 +2750,13 @@ def get_relation(
                     description = test_spase.get_description()
                     spase_license = test_spase.get_license()
                     # to ensure snapshot matches when running in local env
-                    if "soso-spase" in file:
+                    # uncomment if creating snapshot
+                    """if "soso-spase" in file:
                         creators = test_spase.get_creator(
                             **{"placeholder": "so that snapshot matches"}
                         )
-                    else:
-                        creators = test_spase.get_creator()
+                    else:"""
+                    creators = test_spase.get_creator()
                     if creators is None:
                         creators = "No creators were found. View record for contacts."
                     relational_records[url] = {
