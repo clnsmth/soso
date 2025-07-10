@@ -754,10 +754,6 @@ class SPASE(StrategyInterface):
                                     orcid_id, affiliation, ror = (
                                         get_orcid_and_affiliation(key, self.file)
                                     )
-                                    print(
-                                        f"""ORCID is {orcid_id}, affiliation is 
-                                        {affiliation}, and ROR is {ror}"""
-                                    )
                                     creator_entry = person_format(
                                         "creator",
                                         author_role[index],
@@ -768,7 +764,6 @@ class SPASE(StrategyInterface):
                                         orcid_id,
                                         ror,
                                     )
-                                    print(f"creator entry is {creator_entry}")
                         if not matching_contact:
                             creator_entry = person_format(
                                 "creator",
@@ -1103,14 +1098,11 @@ class SPASE(StrategyInterface):
         # prov:wasGeneratedBy found at https://www.w3.org/TR/prov-o/#wasGeneratedBy
 
         # commenting out observatories because of the email with Baptiste and Donny
-        # if called locally, populate both instruments
-        if "soso-spase" in self.file:
-            instruments = get_instrument(self.metadata, self.file)
-        # if called by CI, only populate one instrument
-        else:
-            instruments = get_instrument(
-                self.metadata, self.file, **{"testing": "soso-spase/tests/data/"}
-            )
+        instruments = get_instrument(self.metadata, self.file)
+        # only uncomment if trying to generate snapshot spase.json
+        """instruments = get_instrument(
+            self.metadata, self.file, **{"testing": "soso-spase/tests/data/"}
+        )"""
         # observatories = get_observatory(self.metadata, self.file)
         was_generated_by = []
 
@@ -1767,6 +1759,7 @@ def get_instrument(
                 """if "soso-spase/" in path:
                     record = abs_path + item.replace("spase://", "") + ".xml"
                 else:"""
+                # if called by CI
                 *_, file_name = item.rpartition("/")
                 record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
                 # to ensure correct file path used for those not found in tests/data
@@ -1783,7 +1776,6 @@ def get_instrument(
                 instrument_ids[item]["name"] = test_spase.get_name()
                 instrument_ids[item]["URL"] = test_spase.get_url()
             else:
-                print(f"{record} is not a valid instrument record")
                 # add file to log 'problematic records/files'
                 if not os.path.exists(f"{cwd}/problematicRecords.txt"):
                     with open(
@@ -2157,13 +2149,10 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
         # format record name
         if "src/soso/data/" in file:
             # being called by testing function = change directory to xml file in tests folder
-            # only uncomment these lines if using snapshot creation script
-            """if ("soso-spase/" in file) and ("David.T.Young" not in spase_id):
-                record = abs_path + spase_id.replace("spase://", "") + ".xml"
-            else:"""
             *_, file_name = spase_id.rpartition("/")
             record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
             # to ensure correct file path used for those not found in tests/data
+            # comment these lines out if using snapshot creation script
             if not os.path.isfile(record):
                 if "soso-spase/" in file:
                     abs_path, _, _ = file.partition("soso-spase/")
@@ -2172,7 +2161,6 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
             record = abs_path + spase_id.replace("spase://", "") + ".xml"
         record = record.replace("'", "")
         if os.path.isfile(record):
-            print(f"{record} is a file")
             test_spase = SPASE(record)
             root = test_spase.metadata.getroot()
             # iterate thru xml to get desired info
@@ -2187,7 +2175,6 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
                 elif child.tag.endswith("RORIdentifier"):
                     ror = child.text
         else:
-            print(f"{record} is not a file")
             # add file to log called 'problematic records/files'
             if not os.path.exists(f"{cwd}/problematicRecords.txt"):
                 with open(f"{cwd}/problematicRecords.txt", "w", encoding="utf-8") as f:
@@ -2690,7 +2677,6 @@ def get_relation(
                 # get home directory
                 home_dir = str(Path.home())
                 home_dir = home_dir.replace("\\", "/")
-                print(f"HomeDir is {home_dir} and file is {file}")
                 # get current working directory
                 cwd = str(Path.cwd()).replace("\\", "/")
                 # add SPASE repo that contains related SPASE record to log file
@@ -2711,7 +2697,6 @@ def get_relation(
                             )
                         # being called by CI workflow
                         else:
-                            print(f"The correct area has been accessed for {record}")
                             abs_path, _, _ = file.partition("src/soso/data/")
                             record = (
                                 f"{abs_path}"
@@ -2732,7 +2717,6 @@ def get_relation(
                     record = home_dir + "/" + record.replace("spase://", "") + ".xml"
                 record = record.replace("'", "")
                 if os.path.isfile(record):
-                    print(f"{record} is a file")
                     test_spase = SPASE(record)
                     url = test_spase.get_url()
                     name = test_spase.get_name()
@@ -2765,7 +2749,6 @@ def get_relation(
             # not SPASE records
             if not relational_records:
                 for each in relations:
-                    print("This is the no relational_records part")
                     if "spase" not in each:
                         # most basic entry into relation
                         entry = {"@id": each, "identifier": each, "url": each}

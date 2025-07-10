@@ -424,7 +424,9 @@ def test_get_mentions_returns_expected_value():
     # AssociationType = "Other" found within the Association section of the SPASE record.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
     kwargs = {"testing": "soso-spase/tests/data/"}
-    assert get_mentions(spase, str(get_example_metadata_file_path("SPASE")), **kwargs) == (
+    assert get_mentions(
+        spase, str(get_example_metadata_file_path("SPASE")).replace("\\", "/"), **kwargs
+    ) == (
         [
             {
                 "@id": "https://doi.org/10.48322/xhe6-5a16",
@@ -562,7 +564,11 @@ def test_get_is_part_of_returns_expected_value():
     kwargs = {"testing": "soso-spase/tests/data/"}
     # if called locally (with access to SMWG records), should return associations/RORs
     if "soso-spase" in str(get_example_metadata_file_path("SPASE")):
-        assert get_is_part_of(spase, str(get_example_metadata_file_path("SPASE")).replace("\\", "/"), **kwargs) == {
+        assert get_is_part_of(
+            spase,
+            str(get_example_metadata_file_path("SPASE")).replace("\\", "/"),
+            **kwargs
+        ) == {
             "@id": "https://doi.org/10.48322/s9mg-he04",
             "@type": "Dataset",
             "creator": {
@@ -639,7 +645,11 @@ def test_get_is_part_of_returns_expected_value():
         }
     # being called by CI workflow (which does not have access to SMWG) should not contain RORs
     else:
-        assert get_is_part_of(spase, str(get_example_metadata_file_path("SPASE")).replace("\\", "/"), **kwargs) == {
+        assert get_is_part_of(
+            spase,
+            str(get_example_metadata_file_path("SPASE")).replace("\\", "/"),
+            **kwargs
+        ) == {
             "@id": "https://doi.org/10.48322/s9mg-he04",
             "@type": "Dataset",
             "creator": {
@@ -880,7 +890,12 @@ def test_get_relation_returns_expected_value():
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desired_root = elt
 
-    assert get_relation(desired_root, ["Other"], str(get_example_metadata_file_path("SPASE")).replace("\\", "/"), **kwargs) == (
+    assert get_relation(
+        desired_root,
+        ["Other"],
+        str(get_example_metadata_file_path("SPASE")).replace("\\", "/"),
+        **kwargs
+    ) == (
         [
             {
                 "@id": "https://doi.org/10.48322/xhe6-5a16",
