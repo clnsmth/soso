@@ -754,7 +754,10 @@ class SPASE(StrategyInterface):
                                     orcid_id, affiliation, ror = (
                                         get_orcid_and_affiliation(key, self.file)
                                     )
-                                    print(f"ORCID is {orcid_id}, affiliation is {affiliation}, and ROR is {ror}")
+                                    print(
+                                        f"""ORCID is {orcid_id}, affiliation is 
+                                        {affiliation}, and ROR is {ror}"""
+                                    )
                                     creator_entry = person_format(
                                         "creator",
                                         author_role[index],
@@ -1105,7 +1108,9 @@ class SPASE(StrategyInterface):
             instruments = get_instrument(self.metadata, self.file)
         # if called by CI, only populate one instrument
         else:
-            instruments = get_instrument(self.metadata, self.file, **{"testing": "soso-spase/tests/data/"})
+            instruments = get_instrument(
+                self.metadata, self.file, **{"testing": "soso-spase/tests/data/"}
+            )
         # observatories = get_observatory(self.metadata, self.file)
         was_generated_by = []
 
@@ -1134,7 +1139,7 @@ def get_schema_version(metadata: etree.ElementTree) -> str:
     :returns: The version of the SPASE schema used in the metadata record.
     """
     schema_version = metadata.findtext(
-        f"{list(metadata.getroot().nsmap.values())[0]}Version"
+        f"{{{list(metadata.getroot().nsmap.values())[0]}}}Version"
     )
     return schema_version
 
