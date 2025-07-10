@@ -754,6 +754,7 @@ class SPASE(StrategyInterface):
                                     orcid_id, affiliation, ror = (
                                         get_orcid_and_affiliation(key, self.file)
                                     )
+                                    print(f"ORCID is {orcid_id}, affiliation is {affiliation}, and ROR is {ror}")
                                     creator_entry = person_format(
                                         "creator",
                                         author_role[index],
@@ -764,6 +765,7 @@ class SPASE(StrategyInterface):
                                         orcid_id,
                                         ror,
                                     )
+                                    print(f"creator entry is {creator_entry}")
                         if not matching_contact:
                             creator_entry = person_format(
                                 "creator",
@@ -1132,7 +1134,7 @@ def get_schema_version(metadata: etree.ElementTree) -> str:
     :returns: The version of the SPASE schema used in the metadata record.
     """
     schema_version = metadata.findtext(
-        "{http://www.spase-group.org/data/schema}Version"
+        f"{list(metadata.getroot().nsmap.values())[0]}Version"
     )
     return schema_version
 
@@ -1776,6 +1778,7 @@ def get_instrument(
                 instrument_ids[item]["name"] = test_spase.get_name()
                 instrument_ids[item]["URL"] = test_spase.get_url()
             else:
+                print(f"{record} is not a valid instrument record")
                 # add file to log 'problematic records/files'
                 if not os.path.exists(f"{cwd}/problematicRecords.txt"):
                     with open(
@@ -2132,8 +2135,7 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
         file = file.replace("\\", "/")
     if (spase_id is not None) and (file is not None):
         # get home directory
-        home_dir = str(Path.home())
-        home_dir = home_dir.replace("\\", "/")
+        home_dir = str(Path.home()).replace("\\", "/")
         # get current working directory
         cwd = str(Path.cwd()).replace("\\", "/")
         # split record into needed substrings
