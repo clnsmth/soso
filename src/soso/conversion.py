@@ -87,8 +87,8 @@ def find_requirements(folder: str) -> None:
                 try:
                     get_instrument(test_spase.metadata, record)
                     # get_observatory(test_spase.metadata, record)
-                    get_is_part_of(test_spase.metadata)
-                    get_mentions(test_spase.metadata)
+                    get_is_part_of(test_spase.metadata, record)
+                    get_mentions(test_spase.metadata, record)
                     test_spase.get_was_revision_of()
                     test_spase.get_is_based_on()
                 # to ensure that main script will still run in
@@ -177,8 +177,8 @@ def main(folder: str, additional_license_info: bool = None) -> None:
                 temporal = get_temporal(test_spase.metadata, test_spase.namespaces)
                 alternate_name = get_alternate_name(test_spase.metadata)
                 in_language = "en"
-                mentions = get_mentions(test_spase.metadata)
-                is_part_of = get_is_part_of(test_spase.metadata)
+                mentions = get_mentions(test_spase.metadata, record)
+                is_part_of = get_is_part_of(test_spase.metadata, record)
                 measurement_method = get_measurement_method(
                     test_spase.metadata, test_spase.namespaces
                 )

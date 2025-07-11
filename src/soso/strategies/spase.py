@@ -63,9 +63,13 @@ class SPASE(StrategyInterface):
         super().__init__(metadata=etree.parse(file))
         self.file = file
         self.schema_version = get_schema_version(self.metadata)
-        self.namespaces = {"spase": "http://www.spase-group.org/data/schema"}
         self.kwargs = kwargs
         self.root = self.metadata.getroot()
+        namespace = ""
+        for ns in list(self.root.nsmap.values()):
+            if "spase-group" in ns:
+                namespace = ns
+        self.namespaces = {"spase": namespace}
         # find element in tree to iterate over
         for elt in self.root.iter(tag=etree.Element):
             if (
@@ -73,6 +77,7 @@ class SPASE(StrategyInterface):
                 or elt.tag.endswith("DisplayData")
                 or elt.tag.endswith("Observatory")
                 or elt.tag.endswith("Instrument")
+                or elt.tag.endswith("Collection")
             ):
                 self.desired_root = elt
         # if want to see entire xml file as a string
@@ -716,10 +721,16 @@ class SPASE(StrategyInterface):
                         index = 0
                     # split text from Contact into properly formatted name fields
                     author_str, given_name, family_name = name_splitter(person)
-                    # get additional info if any
+                    # get additional info (if any)
+                    # uncomment if making snapshot and also add '**kwargs: dict' as parameter
+                    # if not kwargs:
                     orcid_id, affiliation, ror = get_orcid_and_affiliation(
                         person, self.file
                     )
+                    """else:
+                        orcid_id = ""
+                        ror = ""
+                        affiliation = """
                     # create the dictionary entry for that person and append to list
                     creator_entry = person_format(
                         "creator",
@@ -751,9 +762,15 @@ class SPASE(StrategyInterface):
                             if not matching_contact:
                                 if person == val:
                                     matching_contact = True
+                                    # uncomment if making snapshot
+                                    # if not kwargs:
                                     orcid_id, affiliation, ror = (
                                         get_orcid_and_affiliation(key, self.file)
                                     )
+                                    """else:
+                                        orcid_id = ""
+                                        ror = ""
+                                        affiliation = """
                                     creator_entry = person_format(
                                         "creator",
                                         author_role[index],
@@ -792,9 +809,15 @@ class SPASE(StrategyInterface):
                                 if not matching_contact:
                                     if person == val:
                                         matching_contact = True
+                                        # uncomment if making snapshot
+                                        # if not kwargs:
                                         orcid_id, affiliation, ror = (
                                             get_orcid_and_affiliation(key, self.file)
                                         )
+                                        """else:
+                                            orcid_id = ""
+                                            ror = ""
+                                            affiliation = """
                                         creator_entry = person_format(
                                             "creator",
                                             author_role[0],
@@ -1099,6 +1122,10 @@ class SPASE(StrategyInterface):
 
         # commenting out observatories because of the email with Baptiste and Donny
         instruments = get_instrument(self.metadata, self.file)
+        # only uncomment if trying to generate snapshot spase.json
+        """instruments = get_instrument(
+            self.metadata, self.file, **{"testing": "soso-spase/tests/data/"}
+        )"""
         # observatories = get_observatory(self.metadata, self.file)
         was_generated_by = []
 
@@ -1126,9 +1153,11 @@ def get_schema_version(metadata: etree.ElementTree) -> str:
 
     :returns: The version of the SPASE schema used in the metadata record.
     """
-    schema_version = metadata.findtext(
-        "{http://www.spase-group.org/data/schema}Version"
-    )
+    namespace = ""
+    for ns in list(metadata.getroot().nsmap.values()):
+        if "spase-group" in ns:
+            namespace = ns
+    schema_version = metadata.findtext(f"{{{namespace}}}Version")
     return schema_version
 
 
@@ -1163,6 +1192,8 @@ def get_authors(
     pi_child = None
     desired_root = None
     root = metadata.getroot()
+    if file:
+        file = file.replace("\\", "/")
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desired_root = elt
@@ -1299,9 +1330,11 @@ def get_access_urls(metadata: etree.ElementTree) -> tuple[Dict, Dict]:
     spase_location = (
         ".//spase:" + f"{desired_tag[1]}/spase:AccessInformation/spase:Format"
     )
-    for item in metadata.findall(
-        spase_location, namespaces={"spase": "http://www.spase-group.org/data/schema"}
-    ):
+    namespace = ""
+    for ns in list(root.nsmap.values()):
+        if "spase-group" in ns:
+            namespace = ns
+    for item in metadata.findall(spase_location, namespaces={"spase": namespace}):
         encoding.append(item.text)
 
     # traverse xml to extract needed info
@@ -1708,6 +1741,8 @@ def get_instrument(
     desired_root = None
     instrument = []
     instrument_ids = {}
+    if path:
+        path = path.replace("\\", "/")
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desired_root = elt
@@ -1751,6 +1786,7 @@ def get_instrument(
                 """if "soso-spase/" in path:
                     record = abs_path + item.replace("spase://", "") + ".xml"
                 else:"""
+                # if called by CI
                 *_, file_name = item.rpartition("/")
                 record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
                 # to ensure correct file path used for those not found in tests/data
@@ -1821,6 +1857,8 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
         observatory_id = ""
         recorded_ids = []
         instrument_ids = []
+        if path:
+            path = path.replace("\\", "/")
 
         for each in instrument:
             instrument_ids.append(each["identifier"]["value"])
@@ -2052,13 +2090,14 @@ def get_cadence_context(cadence: str) -> Union[str, None]:
 
 
 def get_mentions(
-    metadata: etree.ElementTree, **kwargs: dict
+    metadata: etree.ElementTree, file: str, **kwargs: dict
 ) -> Union[List[Dict], Dict, None]:
     """
     Scrapes any AssociationIDs with the AssociationType "Other" and formats them
     as dictionaries using the get_relation function.
 
     :param metadata: The SPASE metadata object as an XML tree.
+    :param file: The file path of the SPASE record being scraped.
     :param **kwargs: Allows for additional parameters to be passed (only to be used for testing).
 
     :returns: The ID's of other SPASE records related to this one in some way.
@@ -2071,18 +2110,19 @@ def get_mentions(
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desired_root = elt
-    mentions = get_relation(desired_root, ["Other"], **kwargs)
+    mentions = get_relation(desired_root, ["Other"], file, **kwargs)
     return mentions
 
 
 def get_is_part_of(
-    metadata: etree.ElementTree, **kwargs: dict
+    metadata: etree.ElementTree, file: str, **kwargs: dict
 ) -> Union[List[Dict], Dict, None]:
     """
     Scrapes any AssociationIDs with the AssociationType "PartOf" and formats them
     as dictionaries using the get_relation function.
 
     :param metadata: The SPASE metadata object as an XML tree.
+    :param file: The file path of the SPASE record being scraped.
     :param **kwargs: Allows for additional parameters to be passed (only to be used for testing).
 
     :returns: The ID(s) of the larger resource this SPASE record is a portion of, as a dictionary.
@@ -2095,7 +2135,7 @@ def get_is_part_of(
     for elt in root.iter(tag=etree.Element):
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desired_root = elt
-    is_part_of = get_relation(desired_root, ["PartOf"], **kwargs)
+    is_part_of = get_relation(desired_root, ["PartOf"], file, **kwargs)
     return is_part_of
 
 
@@ -2115,10 +2155,11 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
     affiliation = ""
     ror = ""
     desired_root = None
+    if file:
+        file = file.replace("\\", "/")
     if (spase_id is not None) and (file is not None):
         # get home directory
-        home_dir = str(Path.home())
-        home_dir = home_dir.replace("\\", "/")
+        home_dir = str(Path.home()).replace("\\", "/")
         # get current working directory
         cwd = str(Path.cwd()).replace("\\", "/")
         # split record into needed substrings
@@ -2135,13 +2176,10 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
         # format record name
         if "src/soso/data/" in file:
             # being called by testing function = change directory to xml file in tests folder
-            # only uncomment these lines if using snapshot creation script
-            """if "soso-spase/" in file:
-                record = abs_path + spase_id.replace("spase://", "") + ".xml"
-            else:"""
             *_, file_name = spase_id.rpartition("/")
             record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
             # to ensure correct file path used for those not found in tests/data
+            # comment these lines out if using snapshot creation script
             if not os.path.isfile(record):
                 if "soso-spase/" in file:
                     abs_path, _, _ = file.partition("soso-spase/")
@@ -2253,6 +2291,8 @@ def process_authors(
     # if no match found for person(s), leave in contacts_list for use in get_contributors
 
     author_str = str(author).replace("[", "").replace("]", "")
+    if file:
+        file = file.replace("\\", "/")
     # if creators were found in Contact/PersonID (no PubInfo)
     # remove author roles from contacts_list so not duplicated in contributors
     #   (since already in author list)
@@ -2640,6 +2680,8 @@ def get_relation(
     assoc_id = ""
     assoc_type = ""
     relational_records = {}
+    if file:
+        file = file.replace("\\", "/")
     # iterate thru xml to find desired info
     if desired_root is not None:
         for child in desired_root.iter(tag=etree.Element):
@@ -2680,20 +2722,23 @@ def get_relation(
                                 + f"spase-{file_name}"
                                 + ".xml"
                             )
+                        # being called by CI workflow
                         else:
+                            abs_path, _, _ = file.partition("src/soso/data/")
                             record = (
-                                f"{home_dir}/"
+                                f"{abs_path}"
                                 + "tests/data/"
                                 + f"spase-{file_name}"
                                 + ".xml"
                             )
-                    else:
+                    # can probably be deleted
+                    """else:
                         record = (
                             f"{home_dir}/"
                             + kwargs["testing"]
                             + f"spase-{file_name}"
                             + ".xml"
-                        )
+                        )"""
                     # print(record)
                 else:
                     record = home_dir + "/" + record.replace("spase://", "") + ".xml"
@@ -2704,6 +2749,13 @@ def get_relation(
                     name = test_spase.get_name()
                     description = test_spase.get_description()
                     spase_license = test_spase.get_license()
+                    # to ensure snapshot matches when running in local env
+                    # uncomment if creating snapshot
+                    """if "soso-spase" in file:
+                        creators = test_spase.get_creator(
+                            **{"placeholder": "so that snapshot matches"}
+                        )
+                    else:"""
                     creators = test_spase.get_creator()
                     if creators is None:
                         creators = "No creators were found. View record for contacts."

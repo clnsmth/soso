@@ -241,7 +241,7 @@ def test_get_measurement_method_returns_expected_value():
     # Positive case: The function will return the MeasurementType(s) found in the SPASE
     # file.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
-    namespaces = {"spase": "http://www.spase-group.org/data/schema"}
+    namespaces = {"spase": list(spase.getroot().nsmap.values())[0]}
     assert get_measurement_method(spase, namespaces) == [
         {
             "@type": "DefinedTerm",
@@ -424,7 +424,9 @@ def test_get_mentions_returns_expected_value():
     # AssociationType = "Other" found within the Association section of the SPASE record.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
     kwargs = {"testing": "soso-spase/tests/data/"}
-    assert get_mentions(spase, **kwargs) == (
+    assert get_mentions(
+        spase, str(get_example_metadata_file_path("SPASE")).replace("\\", "/"), **kwargs
+    ) == (
         [
             {
                 "@id": "https://doi.org/10.48322/xhe6-5a16",
@@ -550,7 +552,7 @@ def test_get_mentions_returns_expected_value():
     # Negative case: If Other AssociationIDs are not present, the function will
     # return None.
     spase = etree.parse(get_empty_metadata_file_path("SPASE"))
-    assert get_mentions(spase) is None
+    assert get_mentions(spase, str(get_empty_metadata_file_path("SPASE"))) is None
 
 
 def test_get_is_part_of_returns_expected_value():
@@ -560,86 +562,139 @@ def test_get_is_part_of_returns_expected_value():
     # AssociationType = "PartOf" found within the Association section of the SPASE record.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
     kwargs = {"testing": "soso-spase/tests/data/"}
-    assert get_is_part_of(spase, **kwargs) == {
-        "@id": "https://doi.org/10.48322/s9mg-he04",
-        "@type": "Dataset",
-        "creator": {
-            "@list": [
-                {
-                    "@type": "Person",
-                    "affiliation": {
-                        "@type": "Organization",
-                        "identifier": {
-                            "@id": "https://ror.org/01rmh9n78",
-                            "@type": "PropertyValue",
-                            "propertyID": "https://registry.identifiers.org/registry/ror",
-                            "url": "https://ror.org/01rmh9n78",
-                            "value": "ror:01rmh9n78",
+    # if called locally (with access to SMWG records), should return associations/RORs
+    if "soso-spase" in str(get_example_metadata_file_path("SPASE")):
+        assert get_is_part_of(
+            spase,
+            str(get_example_metadata_file_path("SPASE")).replace("\\", "/"),
+            **kwargs
+        ) == {
+            "@id": "https://doi.org/10.48322/s9mg-he04",
+            "@type": "Dataset",
+            "creator": {
+                "@list": [
+                    {
+                        "@type": "Person",
+                        "affiliation": {
+                            "@type": "Organization",
+                            "identifier": {
+                                "@id": "https://ror.org/01rmh9n78",
+                                "@type": "PropertyValue",
+                                "propertyID": "https://registry.identifiers.org/registry/ror",
+                                "url": "https://ror.org/01rmh9n78",
+                                "value": "ror:01rmh9n78",
+                            },
+                            "name": "University of New Hampshire",
                         },
-                        "name": "University of New Hampshire",
+                        "familyName": "McKibben",
+                        "givenName": "R. Bruce",
+                        "name": "McKibben, R. Bruce",
                     },
-                    "familyName": "McKibben",
-                    "givenName": "R. Bruce",
-                    "name": "McKibben, R. Bruce",
-                },
-                {
-                    "@type": "Person",
-                    "affiliation": {
-                        "@type": "Organization",
-                        "identifier": {
-                            "@id": "https://ror.org/01rmh9n78",
-                            "@type": "PropertyValue",
-                            "propertyID": "https://registry.identifiers.org/registry/ror",
-                            "url": "https://ror.org/01rmh9n78",
-                            "value": "ror:01rmh9n78",
+                    {
+                        "@type": "Person",
+                        "affiliation": {
+                            "@type": "Organization",
+                            "identifier": {
+                                "@id": "https://ror.org/01rmh9n78",
+                                "@type": "PropertyValue",
+                                "propertyID": "https://registry.identifiers.org/registry/ror",
+                                "url": "https://ror.org/01rmh9n78",
+                                "value": "ror:01rmh9n78",
+                            },
+                            "name": "Physics Department, University of New Hampshire",
                         },
-                        "name": "Physics Department, University of New Hampshire",
+                        "familyName": "Connell",
+                        "givenName": "James",
+                        "name": "Connell, James",
                     },
-                    "familyName": "Connell",
-                    "givenName": "James",
-                    "name": "Connell, James",
-                },
-                {
-                    "@type": "Person",
-                    "affiliation": {
-                        "@type": "Organization",
-                        "identifier": {
-                            "@id": "https://ror.org/04atsbb87",
-                            "@type": "PropertyValue",
-                            "propertyID": "https://registry.identifiers.org/registry/ror",
-                            "url": "https://ror.org/04atsbb87",
-                            "value": "ror:04atsbb87",
+                    {
+                        "@type": "Person",
+                        "affiliation": {
+                            "@type": "Organization",
+                            "identifier": {
+                                "@id": "https://ror.org/04atsbb87",
+                                "@type": "PropertyValue",
+                                "propertyID": "https://registry.identifiers.org/registry/ror",
+                                "url": "https://ror.org/04atsbb87",
+                                "value": "ror:04atsbb87",
+                            },
+                            "name": "Department of Physics and Space Sciences, Florida Institute "
+                            + "of Technology",
                         },
-                        "name": "Department of Physics and Space Sciences, Florida Institute "
-                        + "of Technology",
+                        "familyName": "Zhang",
+                        "givenName": "Ming",
+                        "name": "Zhang, Ming",
                     },
-                    "familyName": "Zhang",
-                    "givenName": "Ming",
-                    "name": "Zhang, Ming",
-                },
-                {
-                    "@type": "Person",
-                    "familyName": "Tranquille",
-                    "givenName": "Cecil",
-                    "name": "Tranquille, Cecil",
-                },
-            ]
-        },
-        "description": "This Data Set contains 10 min Average Ion and Electron Spin-Averaged "
-        + "Coincidence Counting Rates from the COSPIN High Energy Telescope (HET). The "
-        + "Parameter Keys in the Parameter Level Segments below are specifically relevant "
-        + "to the UFA accessible Versions of the Data.",
-        "identifier": "https://doi.org/10.48322/s9mg-he04",
-        "name": "Ulysses Cosmic Ray and Solar Particle Investigation (COSPIN) High Energy "
-        + "Telescope (HET) Ion and Electron Spin-Averaged Coincidence Counting Rates, "
-        + "10 min Data",
-        "url": "https://doi.org/10.48322/s9mg-he04",
-    }
+                    {
+                        "@type": "Person",
+                        "familyName": "Tranquille",
+                        "givenName": "Cecil",
+                        "name": "Tranquille, Cecil",
+                    },
+                ]
+            },
+            "description": "This Data Set contains 10 min Average Ion and Electron Spin-Averaged "
+            + "Coincidence Counting Rates from the COSPIN High Energy Telescope (HET). The "
+            + "Parameter Keys in the Parameter Level Segments below are specifically relevant "
+            + "to the UFA accessible Versions of the Data.",
+            "identifier": "https://doi.org/10.48322/s9mg-he04",
+            "name": "Ulysses Cosmic Ray and Solar Particle Investigation (COSPIN) High Energy "
+            + "Telescope (HET) Ion and Electron Spin-Averaged Coincidence Counting Rates, "
+            + "10 min Data",
+            "url": "https://doi.org/10.48322/s9mg-he04",
+        }
+    # being called by CI workflow (which does not have access to SMWG) should not contain RORs
+    else:
+        assert get_is_part_of(
+            spase,
+            str(get_example_metadata_file_path("SPASE")).replace("\\", "/"),
+            **kwargs
+        ) == {
+            "@id": "https://doi.org/10.48322/s9mg-he04",
+            "@type": "Dataset",
+            "creator": {
+                "@list": [
+                    {
+                        "@type": "Person",
+                        "familyName": "McKibben",
+                        "givenName": "R. Bruce",
+                        "name": "McKibben, R. Bruce",
+                    },
+                    {
+                        "@type": "Person",
+                        "familyName": "Connell",
+                        "givenName": "James",
+                        "name": "Connell, James",
+                    },
+                    {
+                        "@type": "Person",
+                        "familyName": "Zhang",
+                        "givenName": "Ming",
+                        "name": "Zhang, Ming",
+                    },
+                    {
+                        "@type": "Person",
+                        "familyName": "Tranquille",
+                        "givenName": "Cecil",
+                        "name": "Tranquille, Cecil",
+                    },
+                ]
+            },
+            "description": "This Data Set contains 10 min Average Ion and Electron Spin-Averaged "
+            + "Coincidence Counting Rates from the COSPIN High Energy Telescope (HET). The "
+            + "Parameter Keys in the Parameter Level Segments below are specifically relevant "
+            + "to the UFA accessible Versions of the Data.",
+            "identifier": "https://doi.org/10.48322/s9mg-he04",
+            "name": "Ulysses Cosmic Ray and Solar Particle Investigation (COSPIN) High Energy "
+            + "Telescope (HET) Ion and Electron Spin-Averaged Coincidence Counting Rates, "
+            + "10 min Data",
+            "url": "https://doi.org/10.48322/s9mg-he04",
+        }
 
     # Negative case: If PartOf AssociationIDs are not present, the function will
     # return None.
     spase = etree.parse(get_empty_metadata_file_path("SPASE"))
-    assert get_is_part_of(spase) is None
+    assert get_is_part_of(spase, str(get_empty_metadata_file_path("SPASE"))) is None
 
 
 def test_get_orcid_and_affiliation_returns_expected_value():
@@ -667,7 +722,7 @@ def test_get_temporal_returns_expected_value():
     # found within the TemporalDescription section of the SPASE record,
     # as well as a human-readable description of it.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
-    namespaces = {"spase": "http://www.spase-group.org/data/schema"}
+    namespaces = {"spase": list(spase.getroot().nsmap.values())[0]}
     assert get_temporal(spase, namespaces) == [
         "The time series is periodic with a 0.625 second cadence",
         "PT0.625S",
@@ -810,7 +865,7 @@ def test_get_resource_id_returns_expected_value():
     # Positive case: The function will return the Resource ID of the SPASE
     # dataset.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
-    namespaces = {"spase": "http://www.spase-group.org/data/schema"}
+    namespaces = {"spase": list(spase.getroot().nsmap.values())[0]}
     assert (
         get_resource_id(spase, namespaces)
         == "spase://NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S"
@@ -835,7 +890,12 @@ def test_get_relation_returns_expected_value():
         if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
             desired_root = elt
 
-    assert get_relation(desired_root, ["Other"], **kwargs) == (
+    assert get_relation(
+        desired_root,
+        ["Other"],
+        str(get_example_metadata_file_path("SPASE")).replace("\\", "/"),
+        **kwargs
+    ) == (
         [
             {
                 "@id": "https://doi.org/10.48322/xhe6-5a16",
