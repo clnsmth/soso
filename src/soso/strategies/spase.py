@@ -2836,14 +2836,14 @@ def update_log(cwd: str, addition: str, log_file_name: str) -> None:
     """
     if (cwd is not None) and (addition is not None):
         # create test requiredRepos.txt file for testing suite
-        if not os.path.isfile(f"{cwd}/{log_file_name}.txt"):
-            with open(f"{cwd}/{log_file_name}.txt", "w", encoding="utf-8") as f:
-                f.write("This is placeholder text.")
-        with open(f"{cwd}/{log_file_name}.txt", "r", encoding="utf-8") as f:
-            text = f.read()
-        if addition not in text:
-            with open(f"{cwd}/{log_file_name}.txt", "a", encoding="utf-8") as f:
-                f.write(f"\n{addition}")
+        if os.path.isfile(f"{cwd}/{log_file_name}.txt"):
+            """with open(f"{cwd}/{log_file_name}.txt", "w", encoding="utf-8") as f:
+            f.write("This is placeholder text.")"""
+            with open(f"{cwd}/{log_file_name}.txt", "r", encoding="utf-8") as f:
+                text = f.read()
+            if addition not in text:
+                with open(f"{cwd}/{log_file_name}.txt", "a", encoding="utf-8") as f:
+                    f.write(f"\n{addition}")
 
 
 def make_trial_start_and_stop(
