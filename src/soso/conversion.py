@@ -224,10 +224,17 @@ def main(folder: str, additional_license_info: bool = None) -> None:
             f"{str(Path.cwd())}/problematicRecords.txt", "r", encoding="utf-8"
         ) as f:
             num_of_problems = len(f.readlines())
-        print(
-            f"The script had issues accessing {num_of_problems} of these files. View the "
-            "problematicRecords.txt file for the file names."
-        )
+            problems = f.read()
+        if num_of_problems > 0:
+            print(
+                f"The script had issues accessing {num_of_problems} of these files,"
+                + f" which are: {problems}"
+            )
+        else:
+            print(f"The script had issues accessing {num_of_problems} of these files")
+        # delete temporary files
+        Path(f"{str(Path.cwd())}/requiredRepos.txt").unlink()
+        os.remove(f"{str(Path.cwd())}/problematicRecords.txt")
 
 
 # allow calls from the command line

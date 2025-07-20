@@ -1023,19 +1023,19 @@ def test_get_relation_returns_expected_value():
     assert get_relation(None, None, None) is None
 
 
-def test_update_log_returns_expected_value():
+def test_update_log_returns_expected_value(tmp_path):
     """Test that the update_log function returns the expected value."""
 
     # Positive case: The function will update the log file by adding the
     #   repository name given.
 
-    # create log file that holds the name(s) of the repos needed
-    with open("./test_update_log.txt", "w", encoding="utf-8") as f:
-        f.write("This is placeholder text for use in test_spase.py.")
-    update_log(".", "testRepo", "test_update_log")
-    with open("./test_update_log.txt", "r", encoding="utf-8") as f:
-        text = f.read()
-    assert "testRepo" in text
+    # create temp log file that holds the name(s) of the repos needed
+    d = tmp_path / "temp"
+    d.mkdir()
+    p = d / "test_update_log.txt"
+    p.write_text("This is placeholder text for use in test_spase.py.")
+    update_log(str(d), "testRepo", "test_update_log")
+    assert "testRepo" in p.read_text()
 
     # Negative case: If there is no file nor attempt number present, the function will
     # return None.
