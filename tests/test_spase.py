@@ -314,16 +314,16 @@ def test_get_instrument_returns_expected_value():
     ) == (
         [
             {
-                "@id": "https://hpde.io/SMWG/Instrument/MMS/4/FIELDS/FGM",
+                "@id": "https://spase-metadata.org/SMWG/Instrument/MMS/4/FIELDS/FGM",
                 "@type": ["IndividualProduct", "prov:Entity", "sosa:System"],
                 "identifier": {
-                    "@id": "https://hpde.io/SMWG/Instrument/MMS/4/FIELDS/FGM",
+                    "@id": "https://spase-metadata.org/SMWG/Instrument/MMS/4/FIELDS/FGM",
                     "@type": "PropertyValue",
                     "propertyID": "SPASE Resource ID",
                     "value": "spase://SMWG/Instrument/MMS/4/FIELDS/FGM",
                 },
                 "name": "MMS 4 FIELDS Suite, Fluxgate Magnetometer (FGM) Instrument",
-                "url": "https://hpde.io/SMWG/Instrument/MMS/4/FIELDS/FGM",
+                "url": "https://spase-metadata.org/SMWG/Instrument/MMS/4/FIELDS/FGM",
             }
         ]
     )
@@ -351,27 +351,27 @@ def test_get_observatory_returns_expected_value():
         [
             {
                 "@type": ["ResearchProject", "prov:Entity", "sosa:Platform"],
-                "@id": "https://hpde.io/SMWG/Observatory/MMS",
+                "@id": "https://spase-metadata.org/SMWG/Observatory/MMS",
                 "name": "MMS",
                 "identifier": {
-                    "@id": "https://hpde.io/SMWG/Observatory/MMS",
+                    "@id": "https://spase-metadata.org/SMWG/Observatory/MMS",
                     "@type": "PropertyValue",
                     "propertyID": "SPASE Resource ID",
                     "value": "spase://SMWG/Observatory/MMS",
                 },
-                "url": "https://hpde.io/SMWG/Observatory/MMS",
+                "url": "https://spase-metadata.org/SMWG/Observatory/MMS",
             },
             {
                 "@type": ["ResearchProject", "prov:Entity", "sosa:Platform"],
-                "@id": "https://hpde.io/SMWG/Observatory/MMS/4",
+                "@id": "https://spase-metadata.org/SMWG/Observatory/MMS/4",
                 "name": "MMS-4",
                 "identifier": {
-                    "@id": "https://hpde.io/SMWG/Observatory/MMS/4",
+                    "@id": "https://spase-metadata.org/SMWG/Observatory/MMS/4",
                     "@type": "PropertyValue",
                     "propertyID": "SPASE Resource ID",
                     "value": "spase://SMWG/Observatory/MMS/4",
                 },
-                "url": "https://hpde.io/SMWG/Observatory/MMS/4",
+                "url": "https://spase-metadata.org/SMWG/Observatory/MMS/4",
             },
         ]
     )
@@ -812,27 +812,27 @@ def test_verify_type_returns_expected_value():
     #   second values, depending on if the URL is a link to a Dataset or JournalArticle.
     #   It will also return a dictionary containing additional info pulled from the
     #   DataCite API if the link is to a non-NASA Dataset
-    # Case 1: hpde.io landing page URL to a Dataset is provided
+    # Case 1: spase-metadata.org landing page URL to a Dataset is provided
     url = (
-        "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst"
+        "https://spase-metadata.org/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst"
         "/Level2/Ion/PT0.625S.html"
     )
     assert verify_type(url) == (True, False, {})
 
-    # Case 2: DOI that resolves to an hpde.io landing page is provided
+    # Case 2: DOI that resolves to an spase-metadata.org landing page is provided
     url = "https://doi.org/10.48322/6cfb-rq65"
     assert verify_type(url) == (True, False, {})
 
-    # Case 3: DOI that does not resolve to an hpde.io landing page (nor is a
+    # Case 3: DOI that does not resolve to an spase-metadata.org landing page (nor is a
     #   Dataset) is provided
     url = "https://doi.org/10.5281/zenodo.13287868"
     assert verify_type(url) == (False, False, {})
 
-    # Case 4: hpde.io landing page URL to a non-Dataset is provided
-    url = "https://hpde.io/SMWG/Instrument/ACE/MAG.html"
+    # Case 4: spase-metadata.org landing page URL to a non-Dataset is provided
+    url = "https://spase-metadata.org/SMWG/Instrument/ACE/MAG.html"
     assert verify_type(url) == (False, False, {})
 
-    # Case 5: DOI that does not resolve to an hpde.io landing page (but still to
+    # Case 5: DOI that does not resolve to an spase-metadata.org landing page (but still to
     #   a Dataset) is provided
     url = "https://doi.org/10.5067/SeaBASS/TURBID9/DATA001"
     assert verify_type(url) == (
@@ -849,7 +849,7 @@ def test_verify_type_returns_expected_value():
         },
     )
 
-    # Case 6: DOI that does not resolve to an hpde.io landing page (but still
+    # Case 6: DOI that does not resolve to an spase-metadata.org landing page (but still
     #   to a JournalArticle) is provided
     url = "https://doi.org/10.1007/s11214-014-0119-6"
     assert verify_type(url) == (False, True, {})
