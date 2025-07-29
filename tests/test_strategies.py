@@ -20,10 +20,13 @@ indefinitely.
 
 import pytest
 from soso.interface import StrategyInterface
+from soso.strategies.eml import EML
+from soso.strategies.spase import SPASE
 from tests.conftest import is_property_type
 from tests.conftest import is_not_null
 
 
+@pytest.mark.parametrize_strategies
 def test_strategy_inherits_strategy_interface(strategy_instance):
     """Test that each strategy inherits the StrategyInterface class."""
     assert isinstance(strategy_instance, StrategyInterface)
@@ -33,11 +36,13 @@ def test_strategy_inherits_strategy_interface(strategy_instance):
 # for class methods to access.
 
 
+@pytest.mark.parametrize_strategies
 def test_strategy_reads_metadata(strategy_instance):
     """Test that each strategy reads a metadata document."""
     assert strategy_instance.metadata is not None
 
 
+@pytest.mark.parametrize_strategies
 def test_strategy_reads_schema_version(strategy_instance, strategy_instance_no_meta):
     """Test that each strategy reads the metadata schema version."""
     assert isinstance(strategy_instance.schema_version, str)
@@ -52,7 +57,8 @@ def test_strategy_reads_schema_version(strategy_instance, strategy_instance_no_m
 # consistent test suite.
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(EML, reason="Property not in schema")
 def test_get_id_returns_expected_type(strategy_instance, strategy_instance_no_meta):
     """Test that the get_id method returns the expected type."""
     # Positive case
@@ -64,6 +70,7 @@ def test_get_id_returns_expected_type(strategy_instance, strategy_instance_no_me
     assert res is None
 
 
+@pytest.mark.parametrize_strategies
 def test_get_name_returns_expected_type(strategy_instance, strategy_instance_no_meta):
     """Test that the get_name method returns the expected type."""
     # Positive case
@@ -75,6 +82,7 @@ def test_get_name_returns_expected_type(strategy_instance, strategy_instance_no_
     assert res is None
 
 
+@pytest.mark.parametrize_strategies
 def test_get_description_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -88,7 +96,8 @@ def test_get_description_returns_expected_type(
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(EML, reason="Property not in schema")
 def test_get_url_returns_expected_type(strategy_instance, strategy_instance_no_meta):
     """Test that the get_url method returns the expected type."""
     # Positive case
@@ -100,7 +109,9 @@ def test_get_url_returns_expected_type(strategy_instance, strategy_instance_no_m
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(EML, reason="Property not in schema")
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
 def test_get_same_as_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -114,8 +125,9 @@ def test_get_same_as_returns_expected_type(
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="SPASE", reason="Not yet implemented")
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
+@pytest.mark.skip_strategy(EML, reason="Property not in schema")
 def test_get_version_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -129,8 +141,9 @@ def test_get_version_returns_expected_type(
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="SPASE", reason="Not yet implemented")
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
+@pytest.mark.skip_strategy(EML, reason="Property not in schema")
 def test_get_is_accessible_for_free_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -145,6 +158,8 @@ def test_get_is_accessible_for_free_returns_expected_type(
     assert res is None
 
 
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
 def test_get_keywords_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -158,6 +173,8 @@ def test_get_keywords_returns_expected_type(
     assert res is None
 
 
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
 def test_get_identifier_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -174,7 +191,9 @@ def test_get_identifier_returns_expected_type(
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
+@pytest.mark.skip_strategy(EML, reason="Property not in schema")
 def test_get_citation_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -188,6 +207,8 @@ def test_get_citation_returns_expected_type(
     assert res is None
 
 
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
 def test_get_variable_measured_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -201,8 +222,9 @@ def test_get_variable_measured_returns_expected_type(
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="SPASE", reason="Not yet implemented")
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
+@pytest.mark.skip_strategy(EML, reason="Property not in schema")
 def test_get_included_in_data_catalog_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -217,7 +239,9 @@ def test_get_included_in_data_catalog_returns_expected_type(
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
+@pytest.mark.skip_strategy(EML, reason="Property not in schema")
 def test_get_subject_of_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -231,6 +255,8 @@ def test_get_subject_of_returns_expected_type(
     assert res is None
 
 
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
 def test_get_distribution_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -244,7 +270,9 @@ def test_get_distribution_returns_expected_type(
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
+@pytest.mark.skip_strategy(EML, reason="Property not in schema")
 def test_get_potential_action_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -258,7 +286,9 @@ def test_get_potential_action_returns_expected_type(
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
+@pytest.mark.skip_strategy(EML, reason="Property not in schema")
 def test_get_date_created_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -272,6 +302,8 @@ def test_get_date_created_returns_expected_type(
     assert res is None
 
 
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
 def test_get_date_modified_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -285,6 +317,8 @@ def test_get_date_modified_returns_expected_type(
     assert res is None
 
 
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
 def test_get_date_published_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -298,8 +332,9 @@ def test_get_date_published_returns_expected_type(
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="SPASE", reason="Not yet implemented")
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
+@pytest.mark.skip_strategy(EML, reason="Property not in schema")
 def test_get_expires_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -313,6 +348,8 @@ def test_get_expires_returns_expected_type(
     assert res is None
 
 
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
 def test_get_temporal_coverage_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -335,6 +372,7 @@ def test_get_temporal_coverage_returns_expected_type(
     assert res is None
 
 
+@pytest.mark.parametrize_strategies
 def test_get_spatial_coverage_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -348,6 +386,8 @@ def test_get_spatial_coverage_returns_expected_type(
     assert res is None
 
 
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
 def test_get_creator_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -364,6 +404,8 @@ def test_get_creator_returns_expected_type(
     assert res is None
 
 
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
 def test_get_contributor_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -380,8 +422,9 @@ def test_get_contributor_returns_expected_type(
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="SPASE", reason="Not yet implemented")
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
+@pytest.mark.skip_strategy(EML, reason="Property not in schema")
 def test_get_provider_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -395,7 +438,9 @@ def test_get_provider_returns_expected_type(
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
+@pytest.mark.skip_strategy(EML, reason="Property not in schema")
 def test_get_publisher_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -409,6 +454,8 @@ def test_get_publisher_returns_expected_type(
     assert res is None
 
 
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
 def test_get_funding_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -422,6 +469,8 @@ def test_get_funding_returns_expected_type(
     assert res is None
 
 
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
 def test_get_license_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -435,7 +484,9 @@ def test_get_license_returns_expected_type(
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
+@pytest.mark.skip_strategy(EML, reason="Property not in schema")
 def test_get_was_revision_of_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -449,6 +500,8 @@ def test_get_was_revision_of_returns_expected_type(
     assert res is None
 
 
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
 def test_get_was_derived_from_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -462,6 +515,8 @@ def test_get_was_derived_from_returns_expected_type(
     assert res is None
 
 
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
 def test_get_is_based_on_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):
@@ -475,7 +530,9 @@ def test_get_is_based_on_returns_expected_type(
     assert res is None
 
 
-@pytest.mark.skipif(strategy_instance="EML", reason="Property not in schema")
+@pytest.mark.parametrize_strategies
+@pytest.mark.skip_strategy(SPASE, reason="Not yet implemented")
+@pytest.mark.skip_strategy(EML, reason="Property not in schema")
 def test_get_was_generated_by_returns_expected_type(
     strategy_instance, strategy_instance_no_meta
 ):

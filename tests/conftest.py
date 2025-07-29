@@ -10,6 +10,62 @@ from soso.strategies.eml import EML
 from soso.strategies.spase import SPASE
 from soso.utilities import get_example_metadata_file_path, get_empty_metadata_file_path
 
+# Define the shared parameter set for strategy_instance and
+# strategy_instance_no_meta fixtures and the pytest hook. This allows for
+# parameterization of tests that use these fixtures.
+STRATEGY_PARAMS = [
+    (EML, EML),
+    (SPASE, SPASE),
+]
+
+
+def pytest_generate_tests(metafunc):
+    """
+    Applies shared parameters to any test marked with
+    @parametrize_strategies, adapting to the fixtures requested.
+    """
+    if "parametrize_strategies" in metafunc.definition.keywords:
+        requested_fixtures = ["strategy_instance", "strategy_instance_no_meta"]
+        argnames = [
+            name for name in requested_fixtures if name in metafunc.fixturenames
+        ]
+
+        final_params = []
+        if len(argnames) == 2:
+            final_params = STRATEGY_PARAMS
+        elif len(argnames) == 1:
+            # Note the comma inside the brackets: (params[0],)
+            final_params = [(params[0],) for params in STRATEGY_PARAMS]
+
+        if final_params:
+            metafunc.parametrize(argnames, final_params, indirect=True)
+
+
+def pytest_collection_modifyitems(config, items):
+    """
+    Called after all tests are collected; allows modification.
+    This version correctly handles multiple markers on a single test.
+    """
+    strategies_to_parametrize = ["strategy_instance", "strategy_instance_no_meta"]
+
+    for item in items:
+        # Use iter_markers to find ALL skip_strategy markers on the test.
+        for marker in item.iter_markers("skip_strategy"):
+            strategy_to_skip = marker.args[0]
+
+            # Now, check against all possible strategy parameter names.
+            for fixture_name in strategies_to_parametrize:
+                if item.callspec.params.get(fixture_name) == strategy_to_skip:
+                    reason = marker.kwargs.get(
+                        "reason", f"Skipped for strategy {strategy_to_skip}"
+                    )
+                    item.add_marker(pytest.mark.skip(reason=reason))
+                    # Once we mark for skipping, break the inner loops.
+                    break
+            else:
+                continue
+            break
+
 
 @pytest.fixture
 def strategy_names() -> list:
@@ -19,10 +75,11 @@ def strategy_names() -> list:
     return ["eml", "spase"]
 
 
-@pytest.fixture(params=[EML, SPASE])
+@pytest.fixture
 def strategy_instance(request) -> Union[Type, None]:
     """
-    :returns: The strategy instances.
+    :param request: A strategy name (str) from the parametrize hook.
+    :returns: The instantiated strategy object.
     """
     res = None
     if request.param is EML:
@@ -32,9 +89,10 @@ def strategy_instance(request) -> Union[Type, None]:
     return res
 
 
-@pytest.fixture(params=[EML, SPASE])
+@pytest.fixture
 def strategy_instance_no_meta(request) -> Union[Type, None]:
     """
+    :param request: A strategy name (str) from the parametrize hook.
     :returns:   The strategy instances parameterized with an empty metadata
                 file. This is useful for testing negative cases.
     """
