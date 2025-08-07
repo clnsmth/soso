@@ -1,4 +1,4 @@
-Welcome to `soso`
+SOSO: Science On Schema.Org
 ==============================================
 
 Release v\ |version|. (:ref:`Installation <quickstart>`)
@@ -15,7 +15,7 @@ Release v\ |version|. (:ref:`Installation <quickstart>`)
     :target: https://codecov.io/github/clnsmth/soso
     :alt: Code coverage status
 
-For converting metadata records into `Science-On-Schema.Org`_ markup.
+For converting metadata into `Science-On-Schema.Org`_.
 
 .. _Science-On-Schema.Org: https://github.com/ESIPFed/science-on-schema.org
 
