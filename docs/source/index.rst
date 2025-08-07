@@ -15,9 +15,9 @@ Release v\ |version|. (:ref:`Installation <quickstart>`)
     :target: https://codecov.io/github/clnsmth/soso
     :alt: Code coverage status
 
-For converting metadata into `Science-On-Schema.Org`_.
+For converting metadata into `Science On Schema.Org`_.
 
-.. _Science-On-Schema.Org: https://github.com/ESIPFed/science-on-schema.org
+.. _Science On Schema.Org: https://github.com/ESIPFed/science-on-schema.org
 
 -------------------
 

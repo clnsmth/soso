@@ -9,7 +9,7 @@ We encourage you to explore this document and reach out with any questions or su
 
 Introduction
 ------------
-This software converts scientific metadata standards into Science-On-schema.Org (SOSO) JSON-LD, which can be embedded in the landing pages of data repository datasets for harvesting by search engines (like Google) and other applications.
+This software converts scientific metadata standards into Science On Schema.Org (SOSO) JSON-LD, which can be embedded in the landing pages of data repository datasets for harvesting by search engines (like Google) and other applications.
 
 Currently, most repositories have their own implementations, however, a shared implementation offers some advantages:
 
