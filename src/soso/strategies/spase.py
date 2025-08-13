@@ -85,7 +85,7 @@ class SPASE(StrategyInterface):
 
     def get_id(self) -> str:
         # Mapping: schema:identifier = spase:ResourceHeader/spase:DOI
-        #   OR hpde.io landing page for the SPASE record
+        #   OR spase-metadata.org landing page for the SPASE record
         url = self.get_url()
         if url:
             spase_id = url
@@ -120,7 +120,7 @@ class SPASE(StrategyInterface):
 
     def get_url(self) -> str:
         # Mapping: schema:url = spase:ResourceHeader/spase:DOI
-        #   (or https://hpde.io landing page, if no DOI)
+        #   (or https://spase-metadata.org landing page, if no DOI)
         desired_tag = self.desired_root.tag.split("}")
         spase_location = (
             ".//spase:" + f"{desired_tag[1]}/spase:ResourceHeader/spase:DOI"
@@ -132,7 +132,7 @@ class SPASE(StrategyInterface):
         if delete_null_values(url) is None:
             resource_id = get_resource_id(self.metadata, self.namespaces)
             if resource_id:
-                url = resource_id.replace("spase://", "https://hpde.io/")
+                url = resource_id.replace("spase://", "https://spase-metadata.org/")
         return delete_null_values(url)
 
     def get_same_as(self) -> Union[List, None]:
@@ -191,7 +191,7 @@ class SPASE(StrategyInterface):
 
     def get_identifier(self) -> Union[Dict, List[Dict], None]:
         # Mapping: schema:identifier = spase:ResourceHeader/spase:DOI
-        #   (or https://hpde.io landing page, if no DOI)
+        #   (or https://spase-metadata.org landing page, if no DOI)
         # Each item is: {@id: URL, @type: schema:PropertyValue,
         #   propertyID: URI for identifier scheme, value: identifier value, url: URL}
         # Uses identifier scheme URI, provided at: https://schema.org/identifier
@@ -201,7 +201,9 @@ class SPASE(StrategyInterface):
         if url:
             # if SPASE record has a DOI
             if "doi" in url:
-                hpde_url = spase_id.replace("spase://", "https://hpde.io/")
+                landing_page_url = spase_id.replace(
+                    "spase://", "https://spase-metadata.org/"
+                )
                 temp = url.split("/")
                 value = "doi:" + "/".join(temp[3:])
                 identifier = {
@@ -217,7 +219,7 @@ class SPASE(StrategyInterface):
                             "@type": "PropertyValue",
                             "propertyID": "SPASE",
                             "value": spase_id,
-                            "url": hpde_url,
+                            "url": landing_page_url,
                         },
                     ]
                 }
@@ -325,7 +327,7 @@ class SPASE(StrategyInterface):
         if "doi" in content_url:
             doi = True
             resource_id = get_resource_id(self.metadata, self.namespaces)
-            content_url = resource_id.replace("spase://", "https://hpde.io/")
+            content_url = resource_id.replace("spase://", "https://spase-metadata.org/")
         # small lookup table for commonly used licenses in SPASE
         #   (CC0 for NASA, CC-BY-NC-3.0 for ESA, etc)
         common_licenses = [
@@ -372,7 +374,7 @@ class SPASE(StrategyInterface):
                 "contentUrl": content_url,
                 "identifier": content_url,
             }
-            # if hpde.io landing page not used as top-level @id, include here as @id
+            # if spase-metadata.org landing page not used as top-level @id, include here as @id
             if doi:
                 entry["@id"] = content_url
             if metadata_license:
@@ -1123,9 +1125,9 @@ class SPASE(StrategyInterface):
         # commenting out observatories because of the email with Baptiste and Donny
         instruments = get_instrument(self.metadata, self.file)
         # only uncomment if trying to generate snapshot spase.json
-        """instruments = get_instrument(
-            self.metadata, self.file, **{"testing": "soso-spase/tests/data/"}
-        )"""
+        # instruments = get_instrument(
+        # self.metadata, self.file, **{"testing": "soso-spase/tests/data/"}
+        # )
         # observatories = get_observatory(self.metadata, self.file)
         was_generated_by = []
 
@@ -1426,7 +1428,8 @@ def get_dates(
     desired_root = None
     root = metadata.getroot()
     for elt in root.iter(tag=etree.Element):
-        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+        if (elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData")
+            or elt.tag.endswith("Collection")):
             desired_root = elt
     revision_history = []
     release_date = ""
@@ -1680,6 +1683,7 @@ def get_information_url(metadata: etree.ElementTree) -> Union[List[Dict], None]:
             or elt.tag.endswith("DisplayData")
             or elt.tag.endswith("Observatory")
             or elt.tag.endswith("Instrument")
+            or elt.tag.endswith("Collection")
         ):
             desired_root = elt
     # traverse xml to extract needed info
@@ -1783,9 +1787,9 @@ def get_instrument(
             if "src/soso/data/" in path:
                 # being called by testing function = change directory to xml file in tests folder
                 # only uncomment these lines if using snapshot creation script
-                """if "soso-spase/" in path:
-                    record = abs_path + item.replace("spase://", "") + ".xml"
-                else:"""
+                # if "soso-spase/" in path:
+                # record = abs_path + item.replace("spase://", "") + ".xml"
+                # else:
                 # if called by CI
                 *_, file_name = item.rpartition("/")
                 record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
@@ -2025,7 +2029,8 @@ def get_alternate_name(metadata: etree.ElementTree) -> Union[str, None]:
     alternate_name = None
     desired_root = None
     for elt in root.iter(tag=etree.Element):
-        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+        if (elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData")
+            or elt.tag.endswith("Collection")):
             desired_root = elt
     for child in desired_root.iter(tag=etree.Element):
         if child.tag.endswith("ResourceHeader"):
@@ -2108,7 +2113,8 @@ def get_mentions(
     root = metadata.getroot()
     desired_root = None
     for elt in root.iter(tag=etree.Element):
-        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+        if (elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData")
+            or elt.tag.endswith("Collection")):
             desired_root = elt
     mentions = get_relation(desired_root, ["Other"], file, **kwargs)
     return mentions
@@ -2133,7 +2139,8 @@ def get_is_part_of(
     root = metadata.getroot()
     desired_root = None
     for elt in root.iter(tag=etree.Element):
-        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+        if (elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData")
+            or elt.tag.endswith("Collection")):
             desired_root = elt
     is_part_of = get_relation(desired_root, ["PartOf"], file, **kwargs)
     return is_part_of
@@ -2475,14 +2482,14 @@ def verify_type(url: str) -> tuple[bool, bool, dict]:
     is_article = False
     non_spase_info = {}
     if url is not None:
-        if "hpde.io" in url:
+        if "spase-metadata.org" in url:
             if "Data" in url:
                 is_dataset = True
         # case where url provided is a DOI
         else:
             link = requests.head(url, timeout=30)
-            # check to make sure doi resolved to an hpde.io page
-            if "hpde.io" in link.headers["location"]:
+            # check to make sure doi resolved to an spase-metadata.org page
+            if "spase-metadata.org" in link.headers["location"]:
                 if "Data" in link.headers["location"]:
                     is_dataset = True
             # if not, call DataCite API to check resourceTypeGeneral
@@ -2595,6 +2602,7 @@ def get_resource_id(metadata: etree.ElementTree, namespaces: Dict) -> Union[str,
             or elt.tag.endswith("Observatory")
             or elt.tag.endswith("Instrument")
             or elt.tag.endswith("Person")
+            or elt.tag.endswith("Collection")
         ):
             desired_root = elt
 
@@ -2731,14 +2739,6 @@ def get_relation(
                                 + f"spase-{file_name}"
                                 + ".xml"
                             )
-                    # can probably be deleted
-                    """else:
-                        record = (
-                            f"{home_dir}/"
-                            + kwargs["testing"]
-                            + f"spase-{file_name}"
-                            + ".xml"
-                        )"""
                     # print(record)
                 else:
                     record = home_dir + "/" + record.replace("spase://", "") + ".xml"
@@ -2751,11 +2751,11 @@ def get_relation(
                     spase_license = test_spase.get_license()
                     # to ensure snapshot matches when running in local env
                     # uncomment if creating snapshot
-                    """if "soso-spase" in file:
-                        creators = test_spase.get_creator(
-                            **{"placeholder": "so that snapshot matches"}
-                        )
-                    else:"""
+                    # if "soso-spase" in file:
+                    # creators = test_spase.get_creator(
+                    # **{"placeholder": "so that snapshot matches"}
+                    #    )
+                    # else:
                     creators = test_spase.get_creator()
                     if creators is None:
                         creators = "No creators were found. View record for contacts."

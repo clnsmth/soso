@@ -34,17 +34,6 @@
             ],
             "contributor": {
                "@type": "Person",
-               "affiliation": {
-                  "@type": "Organization",
-                  "identifier": {
-                     "@id": "https://ror.org/036jqmy94",
-                     "@type": "PropertyValue",
-                     "propertyID": "https://registry.identifiers.org/registry/ror",
-                     "url": "https://ror.org/036jqmy94",
-                     "value": "ror:036jqmy94"
-                  },
-                  "name": "University of Iowa"
-               },
                "familyName": "Pickett",
                "givenName": "Jolene S.",
                "name": "Jolene S. Pickett"
@@ -65,10 +54,6 @@
             ],
             "contributor": {
                "@type": "Person",
-               "affiliation": {
-                  "@type": "Organization",
-                  "name": "Magnetospheric Multiscale (MMS) Science Operations Center (SOC)"
-               },
                "name": "MMS_SDC_POC"
             },
             "inDefinedTermSet": {
@@ -83,10 +68,6 @@
       "@list": [
          {
             "@type": "Person",
-            "affiliation": {
-               "@type": "Organization",
-               "name": "Southwest Research Institute, also affiliated with the University of Texas at San Antonio"
-            },
             "familyName": "Fuselier",
             "givenName": "Stephen A.",
             "name": "Fuselier, Stephen A."
@@ -117,36 +98,13 @@
             "name": "Young, David T."
          },
          {
-            "@id": "https://orcid.org/0000-0001-7888-668X",
             "@type": "Person",
-            "affiliation": {
-               "@type": "Organization",
-               "name": "Southwest Research Institute"
-            },
             "familyName": "Gomez",
             "givenName": "Roman G.",
-            "identifier": {
-               "@id": "https://orcid.org/0000-0001-7888-668X",
-               "@type": "PropertyValue",
-               "propertyID": "https://registry.identifiers.org/registry/orcid",
-               "url": "https://orcid.org/0000-0001-7888-668X",
-               "value": "orcid:0000-0001-7888-668X"
-            },
             "name": "Gomez, Roman G."
          },
          {
             "@type": "Person",
-            "affiliation": {
-               "@type": "Organization",
-               "identifier": {
-                  "@id": "https://ror.org/03tghng59",
-                  "@type": "PropertyValue",
-                  "propertyID": "https://registry.identifiers.org/registry/ror",
-                  "url": "https://ror.org/03tghng59",
-                  "value": "ror:03tghng59"
-               },
-               "name": "Southwest Research Institute"
-            },
             "familyName": "Burch",
             "givenName": "James L.",
             "name": "Burch, James L."
@@ -184,7 +142,7 @@
          {
             "@type": "PropertyValue",
             "propertyID": "SPASE",
-            "url": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
+            "url": "https://spase-metadata.org/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
             "value": "spase://NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S"
          }
       ]
@@ -196,17 +154,6 @@
       "creator": [
          {
             "@type": "Person",
-            "affiliation": {
-               "@type": "Organization",
-               "identifier": {
-                  "@id": "https://ror.org/036jqmy94",
-                  "@type": "PropertyValue",
-                  "propertyID": "https://registry.identifiers.org/registry/ror",
-                  "url": "https://ror.org/036jqmy94",
-                  "value": "ror:036jqmy94"
-               },
-               "name": "University of Iowa"
-            },
             "familyName": "Gurnett",
             "givenName": " Donald A.",
             "name": "Gurnett, Donald A."
@@ -224,51 +171,18 @@
          "@list": [
             {
                "@type": "Person",
-               "affiliation": {
-                  "@type": "Organization",
-                  "identifier": {
-                     "@id": "https://ror.org/01rmh9n78",
-                     "@type": "PropertyValue",
-                     "propertyID": "https://registry.identifiers.org/registry/ror",
-                     "url": "https://ror.org/01rmh9n78",
-                     "value": "ror:01rmh9n78"
-                  },
-                  "name": "University of New Hampshire"
-               },
                "familyName": "McKibben",
                "givenName": "R. Bruce",
                "name": "McKibben, R. Bruce"
             },
             {
                "@type": "Person",
-               "affiliation": {
-                  "@type": "Organization",
-                  "identifier": {
-                     "@id": "https://ror.org/01rmh9n78",
-                     "@type": "PropertyValue",
-                     "propertyID": "https://registry.identifiers.org/registry/ror",
-                     "url": "https://ror.org/01rmh9n78",
-                     "value": "ror:01rmh9n78"
-                  },
-                  "name": "Physics Department, University of New Hampshire"
-               },
                "familyName": "Connell",
                "givenName": "James",
                "name": "Connell, James"
             },
             {
                "@type": "Person",
-               "affiliation": {
-                  "@type": "Organization",
-                  "identifier": {
-                     "@id": "https://ror.org/04atsbb87",
-                     "@type": "PropertyValue",
-                     "propertyID": "https://registry.identifiers.org/registry/ror",
-                     "url": "https://ror.org/04atsbb87",
-                     "value": "ror:04atsbb87"
-                  },
-                  "name": "Department of Physics and Space Sciences, Florida Institute of Technology"
-               },
                "familyName": "Zhang",
                "givenName": "Ming",
                "name": "Zhang, Ming"
@@ -504,17 +418,6 @@
       "creator": [
          {
             "@type": "Person",
-            "affiliation": {
-               "@type": "Organization",
-               "identifier": {
-                  "@id": "https://ror.org/036jqmy94",
-                  "@type": "PropertyValue",
-                  "propertyID": "https://registry.identifiers.org/registry/ror",
-                  "url": "https://ror.org/036jqmy94",
-                  "value": "ror:036jqmy94"
-               },
-               "name": "University of Iowa"
-            },
             "familyName": "Gurnett",
             "givenName": " Donald A.",
             "name": "Gurnett, Donald A."
@@ -532,42 +435,20 @@
             "prov:Activity"
          ],
          "prov:used": {
-            "@id": "https://hpde.io/SMWG/Instrument/MMS/4/FIELDS/FGM",
+            "@id": "https://spase-metadata.org/SMWG/Instrument/MMS/4/FIELDS/FGM",
             "@type": [
                "IndividualProduct",
                "prov:Entity",
                "sosa:System"
             ],
             "identifier": {
-               "@id": "https://hpde.io/SMWG/Instrument/MMS/4/FIELDS/FGM",
+               "@id": "https://spase-metadata.org/SMWG/Instrument/MMS/4/FIELDS/FGM",
                "@type": "PropertyValue",
                "propertyID": "SPASE Resource ID",
                "value": "spase://SMWG/Instrument/MMS/4/FIELDS/FGM"
             },
             "name": "MMS 4 FIELDS Suite, Fluxgate Magnetometer (FGM) Instrument",
-            "url": "https://hpde.io/SMWG/Instrument/MMS/4/FIELDS/FGM"
-         }
-      },
-      {
-         "@type": [
-            "ResearchProject",
-            "prov:Activity"
-         ],
-         "prov:used": {
-            "@id": "https://hpde.io/SMWG/Instrument/MMS/4/HotPlasmaCompositionAnalyzer",
-            "@type": [
-               "IndividualProduct",
-               "prov:Entity",
-               "sosa:System"
-            ],
-            "identifier": {
-               "@id": "https://hpde.io/SMWG/Instrument/MMS/4/HotPlasmaCompositionAnalyzer",
-               "@type": "PropertyValue",
-               "propertyID": "SPASE Resource ID",
-               "value": "spase://SMWG/Instrument/MMS/4/HotPlasmaCompositionAnalyzer"
-            },
-            "name": "MMS 4 Hot Plasma Composition Analyzer (HPCA) Instrument",
-            "url": "https://hpde.io/SMWG/Instrument/MMS/4/HotPlasmaCompositionAnalyzer"
+            "url": "https://spase-metadata.org/SMWG/Instrument/MMS/4/FIELDS/FGM"
          }
       }
    ],
@@ -577,17 +458,6 @@
       "creator": [
          {
             "@type": "Person",
-            "affiliation": {
-               "@type": "Organization",
-               "identifier": {
-                  "@id": "https://ror.org/036jqmy94",
-                  "@type": "PropertyValue",
-                  "propertyID": "https://registry.identifiers.org/registry/ror",
-                  "url": "https://ror.org/036jqmy94",
-                  "value": "ror:036jqmy94"
-               },
-               "name": "University of Iowa"
-            },
             "familyName": "Gurnett",
             "givenName": " Donald A.",
             "name": "Gurnett, Donald A."
@@ -697,13 +567,13 @@
       }
    ],
    "subjectOf": {
-      "@id": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
+      "@id": "https://spase-metadata.org/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
       "@type": "DataDownload",
-      "contentUrl": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
+      "contentUrl": "https://spase-metadata.org/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
       "dateModified": "2023-03-04T12:34:56",
       "description": "The SPASE metadata describing the indicated dataset.",
       "encodingFormat": "application/xml",
-      "identifier": "https://hpde.io/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
+      "identifier": "https://spase-metadata.org/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S",
       "license": "https://spdx.org/licenses/CC0-1.0.html",
       "name": "SPASE metadata for dataset"
    },
