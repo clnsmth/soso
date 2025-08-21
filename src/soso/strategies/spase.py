@@ -1428,8 +1428,11 @@ def get_dates(
     desired_root = None
     root = metadata.getroot()
     for elt in root.iter(tag=etree.Element):
-        if (elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData")
-            or elt.tag.endswith("Collection")):
+        if (
+            elt.tag.endswith("NumericalData")
+            or elt.tag.endswith("DisplayData")
+            or elt.tag.endswith("Collection")
+        ):
             desired_root = elt
     revision_history = []
     release_date = ""
@@ -2029,8 +2032,11 @@ def get_alternate_name(metadata: etree.ElementTree) -> Union[str, None]:
     alternate_name = None
     desired_root = None
     for elt in root.iter(tag=etree.Element):
-        if (elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData")
-            or elt.tag.endswith("Collection")):
+        if (
+            elt.tag.endswith("NumericalData")
+            or elt.tag.endswith("DisplayData")
+            or elt.tag.endswith("Collection")
+        ):
             desired_root = elt
     for child in desired_root.iter(tag=etree.Element):
         if child.tag.endswith("ResourceHeader"):
@@ -2113,8 +2119,11 @@ def get_mentions(
     root = metadata.getroot()
     desired_root = None
     for elt in root.iter(tag=etree.Element):
-        if (elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData")
-            or elt.tag.endswith("Collection")):
+        if (
+            elt.tag.endswith("NumericalData")
+            or elt.tag.endswith("DisplayData")
+            or elt.tag.endswith("Collection")
+        ):
             desired_root = elt
     mentions = get_relation(desired_root, ["Other"], file, **kwargs)
     return mentions
@@ -2139,8 +2148,11 @@ def get_is_part_of(
     root = metadata.getroot()
     desired_root = None
     for elt in root.iter(tag=etree.Element):
-        if (elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData")
-            or elt.tag.endswith("Collection")):
+        if (
+            elt.tag.endswith("NumericalData")
+            or elt.tag.endswith("DisplayData")
+            or elt.tag.endswith("Collection")
+        ):
             desired_root = elt
     is_part_of = get_relation(desired_root, ["PartOf"], file, **kwargs)
     return is_part_of
@@ -2595,6 +2607,7 @@ def get_resource_id(metadata: etree.ElementTree, namespaces: Dict) -> Union[str,
     root = metadata.getroot()
     desired_root = None
     dataset_id = None
+    # pylint: disable=too-many-boolean-expressions
     for elt in root.iter(tag=etree.Element):
         if (
             elt.tag.endswith("NumericalData")
