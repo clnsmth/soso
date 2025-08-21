@@ -41,7 +41,7 @@ def pytest_generate_tests(metafunc):
             metafunc.parametrize(argnames, final_params, indirect=True)
 
 
-def pytest_collection_modifyitems(config, items):
+def pytest_collection_modifyitems(items):
     """
     Called after all tests are collected; allows modification.
     This version correctly handles multiple markers on a single test.
