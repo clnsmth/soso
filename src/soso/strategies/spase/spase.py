@@ -1776,8 +1776,8 @@ def get_instrument(
             # get current working directory
             cwd = str(Path.cwd()).replace("\\", "/")
             # split path into needed substrings
-            if "src/soso/data/" in path:
-                abs_path, _, after = path.partition("src/soso/data/")
+            if "src/soso/strategies/spase/" in path:
+                abs_path, _, after = path.partition("src/soso/strategies/spase/")
             else:
                 _, abs_path, after = path.partition(f"{home_dir}/")
             repo_name, _, after = after.partition("/")
@@ -1787,7 +1787,7 @@ def get_instrument(
             repo_name, _, after = item.replace("spase://", "").partition("/")
             update_log(cwd, repo_name, "requiredRepos")
             # format record
-            if "src/soso/data/" in path:
+            if "src/soso/strategies/spase/" in path:
                 # being called by testing function = change directory to xml file in tests folder
                 # only uncomment these lines if using snapshot creation script
                 # if "soso-spase/" in path:
@@ -1876,14 +1876,14 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
             # get current working directory
             cwd = str(Path.cwd()).replace("\\", "/")
             # split path into needed substrings
-            if "src/soso/data/" in path:
-                abs_path, _, after = path.partition("src/soso/data/")
+            if "src/soso/strategies/spase/" in path:
+                abs_path, _, after = path.partition("src/soso/strategies/spase/")
             else:
                 _, abs_path, after = path.partition(f"{home_dir}/")
             repo_name, _, after = after.partition("/")
             # add original SPASE repo to log file that holds name of repos needed
             update_log(cwd, repo_name, "requiredRepos")
-            if "src/soso/data/" in path:
+            if "src/soso/strategies/spase/" in path:
                 # being called by testing function = change directory
                 #   to xml file in tests folder
                 *_, file_name = item.rpartition("/")
@@ -1908,7 +1908,7 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                 )
                 update_log(cwd, repo_name, "requiredRepos")
                 # use observatory_id as record to get observatory_group_id and other info
-                if "src/soso/data/" in path:
+                if "src/soso/strategies/spase/" in path:
                     # being called by test function = change directory to xml file in tests folder
                     *_, file_name = observatory_id.rpartition("/")
                     record = (
@@ -1937,7 +1937,7 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                         ).partition("/")
                         update_log(cwd, repo_name, "requiredRepos")
                         # format record
-                        if "src/soso/data/" in path:
+                        if "src/soso/strategies/spase/" in path:
                             # being called by test function = change directory to xml file in tests
                             #   folder
                             *_, file_name = observatory_group_id.rpartition("/")
@@ -2182,8 +2182,8 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
         # get current working directory
         cwd = str(Path.cwd()).replace("\\", "/")
         # split record into needed substrings
-        if "src/soso/data/" in file:
-            abs_path, _, after = file.partition("src/soso/data/")
+        if "src/soso/strategies/spase/" in file:
+            abs_path, _, after = file.partition("src/soso/strategies/spase/")
         else:
             _, abs_path, after = file.partition(f"{home_dir}/")
         repo_name, _, after = after.partition("/")
@@ -2193,7 +2193,7 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
         repo_name, _, after = spase_id.replace("spase://", "").partition("/")
         update_log(cwd, repo_name, "requiredRepos")
         # format record name
-        if "src/soso/data/" in file:
+        if "src/soso/strategies/spase/" in file:
             # being called by testing function = change directory to xml file in tests folder
             *_, file_name = spase_id.rpartition("/")
             record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
@@ -2731,10 +2731,10 @@ def get_relation(
                 repo_name, _, _ = record.replace("spase://", "").partition("/")
                 update_log(cwd, repo_name, "requiredRepos")
                 # format record
-                if ("src/soso/data/" in file) or kwargs:
+                if ("src/soso/strategies/spase/" in file) or kwargs:
                     # being called by test function = change directory to xml file in tests folder
                     *_, file_name = record.rpartition("/")
-                    if "src/soso/data/" in file:
+                    if "src/soso/strategies/spase/" in file:
                         # if called by snapshot creation script
                         if "soso-spase/" in file:
                             record = (
@@ -2745,7 +2745,9 @@ def get_relation(
                             )
                         # being called by CI workflow
                         else:
-                            abs_path, _, _ = file.partition("src/soso/data/")
+                            abs_path, _, _ = file.partition(
+                                "src/soso/strategies/spase/"
+                            )
                             record = (
                                 f"{abs_path}"
                                 + "tests/data/"

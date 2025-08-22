@@ -77,7 +77,7 @@ def get_example_metadata_file_path(strategy: str) -> pathlib.Path:
     if strategy.lower() == "eml":
         file_path = resources.files("soso.strategies.eml").joinpath("eml.xml")
     elif strategy.lower() == "spase":
-        file_path = resources.files("soso.data").joinpath("spase.xml")
+        file_path = resources.files("soso.strategies.spase").joinpath("spase.xml")
     else:
         raise ValueError("Invalid choice!")
     return file_path
@@ -92,7 +92,7 @@ def get_empty_metadata_file_path(strategy: str) -> pathlib.Path:
     if strategy.lower() == "eml":
         file_path = resources.files("soso.strategies.eml").joinpath("eml_empty.xml")
     elif strategy.lower() == "spase":
-        file_path = resources.files("soso.data").joinpath("spase_empty.xml")
+        file_path = resources.files("soso.strategies.spase").joinpath("spase_empty.xml")
     else:
         raise ValueError("Invalid choice!")
     return file_path

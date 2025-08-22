@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from lxml import etree
-from soso.strategies.spase import (
+from soso.strategies.spase.spase import (
     get_schema_version,
     get_authors,
     get_access_urls,

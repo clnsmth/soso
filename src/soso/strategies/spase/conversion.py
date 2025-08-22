@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import json
 from soso.main import convert
-from soso.strategies.spase import (
+from soso.strategies.spase.spase import (
     get_temporal,
     get_measurement_method,
     SPASE,
