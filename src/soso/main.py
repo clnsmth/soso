@@ -2,7 +2,7 @@
 
 from json import dumps
 from soso.strategies.eml.eml import EML
-from soso.strategies.spase import SPASE
+from soso.strategies.spase.spase import SPASE
 from soso.utilities import delete_unused_vocabularies
 
 
