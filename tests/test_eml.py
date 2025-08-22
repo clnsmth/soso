@@ -2,7 +2,7 @@
 
 from importlib import resources
 from lxml import etree
-from soso.strategies.eml import (
+from soso.strategies.eml.eml import (
     get_content_url,
     get_content_size,
     convert_single_date_time_type,

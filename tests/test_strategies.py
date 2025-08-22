@@ -24,7 +24,7 @@ following explanations (other rationales may be used as necessary):
 
 import pytest
 from soso.interface import StrategyInterface
-from soso.strategies.eml import EML
+from soso.strategies.eml.eml import EML
 from soso.strategies.spase import SPASE
 from tests.conftest import is_property_type
 from tests.conftest import is_not_null

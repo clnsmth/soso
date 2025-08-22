@@ -1,7 +1,7 @@
 """The converter module."""
 
 from json import dumps
-from soso.strategies.eml import EML
+from soso.strategies.eml.eml import EML
 from soso.strategies.spase import SPASE
 from soso.utilities import delete_unused_vocabularies
 
