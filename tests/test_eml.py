@@ -718,7 +718,7 @@ def test_get_checksum():
 
 def test_eml_file_input_must_be_xml():
     """Test that the EML() class raises an error if the file input is not XML."""
-    not_xml = resources.files("soso.data").joinpath("soso-eml.sssom.tsv")
+    not_xml = resources.files("soso.strategies.eml").joinpath("soso-eml.sssom.tsv")
     try:
         EML(file=not_xml)
     except ValueError as error:
