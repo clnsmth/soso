@@ -49,12 +49,14 @@ def test_convert_verify_strategy_results(strategy_names):
     the risk of unexpected deviations. We maintain a static snapshot of
     `main.convert` results (JSON-LD file) captured at the time of the most
     recent modification to a strategy and stored at
-    `tests/data/[strategy].json`.
+    `tests/data/[strategy]/[strategy].json`.
     Developers are responsible for updating this snapshot when changes occur
     and are reminded to manually inspect and validate the anticipated changes
     to this file before committing a new snapshot to the test suite."""
     for strategy in strategy_names:
-        with open("tests/data/" + strategy + ".json", "r", encoding="utf-8") as file:
+        with open(
+            f"tests/data/{strategy}/{strategy}.json", "r", encoding="utf-8"
+        ) as file:
             expected_results = file.read()
             res = convert(
                 file=get_example_metadata_file_path(strategy), strategy=strategy
