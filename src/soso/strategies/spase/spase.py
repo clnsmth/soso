@@ -1126,7 +1126,7 @@ class SPASE(StrategyInterface):
         instruments = get_instrument(self.metadata, self.file)
         # only uncomment if trying to generate snapshot spase.json
         # instruments = get_instrument(
-        # self.metadata, self.file, **{"testing": "soso-spase/tests/data/"}
+        # self.metadata, self.file, **{"testing": "soso-spase/tests/data/spase/"}
         # )
         # observatories = get_observatory(self.metadata, self.file)
         was_generated_by = []
