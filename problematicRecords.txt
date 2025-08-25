@@ -20,3 +20,9 @@
 spase://NASA/NumericalData/ACE/EPAM/LEFS150/MFSA/SolarWindFrame/Sectored/Proton/Fluxes/PT17M
 spase://NASA/NumericalData/ACE/EPAM/LEFS150/MFSA/SolarWindFrame/Sectored/Proton/Fluxes/P1D
 spase://NASA/NumericalData/Ulysses/COSPIN/HET/Rates/SpinAveraged/PT10M
+/Users/csmith/Code/soso/SMWG/Person/David.T.Young.xml
+/Users/csmith/Code/soso/tests/data/spase-PT8S.xml
+/Users/csmith/Code/soso/SMWG/Instrument/MMS/4/FIELDS/FGM.xml
+/Users/csmith/Code/soso/tests/data/spase-PT17M.xml
+/Users/csmith/Code/soso/tests/data/spase-P1D.xml
+/Users/csmith/Code/soso/tests/data/spase-PT10M.xml

@@ -1795,7 +1795,7 @@ def get_instrument(
                 # else:
                 # if called by CI
                 *_, file_name = item.rpartition("/")
-                record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
+                record = abs_path + "tests/data/spase/" + f"spase-{file_name}" + ".xml"
                 # to ensure correct file path used for those not found in tests/data
                 if not os.path.isfile(record):
                     if "soso-spase/" in path:
@@ -1887,7 +1887,7 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                 # being called by testing function = change directory
                 #   to xml file in tests folder
                 *_, file_name = item.rpartition("/")
-                record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
+                record = abs_path + "tests/data/spase/" + f"spase-{file_name}" + ".xml"
             else:
                 record = abs_path + item.replace("spase://", "") + ".xml"
             record = record.replace("'", "")
@@ -1912,7 +1912,10 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                     # being called by test function = change directory to xml file in tests folder
                     *_, file_name = observatory_id.rpartition("/")
                     record = (
-                        abs_path + "tests/data/" + f"spase-MMS-{file_name}" + ".xml"
+                        abs_path
+                        + "tests/data/spase/"
+                        + f"spase-MMS-{file_name}"
+                        + ".xml"
                     )
                 else:
                     record = abs_path + observatory_id.replace("spase://", "") + ".xml"
@@ -1942,7 +1945,10 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                             #   folder
                             *_, file_name = observatory_group_id.rpartition("/")
                             record = (
-                                abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
+                                abs_path
+                                + "tests/data/spase/"
+                                + f"spase-{file_name}"
+                                + ".xml"
                             )
                         else:
                             record = (
@@ -2196,7 +2202,7 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
         if "src/soso/strategies/spase/" in file:
             # being called by testing function = change directory to xml file in tests folder
             *_, file_name = spase_id.rpartition("/")
-            record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
+            record = abs_path + "tests/data/spase/" + f"spase-{file_name}" + ".xml"
             # to ensure correct file path used for those not found in tests/data
             # comment these lines out if using snapshot creation script
             if not os.path.isfile(record):
@@ -2739,7 +2745,7 @@ def get_relation(
                         if "soso-spase/" in file:
                             record = (
                                 f"{home_dir}/soso-spase/"
-                                + "tests/data/"
+                                + "tests/data/spase/"
                                 + f"spase-{file_name}"
                                 + ".xml"
                             )
@@ -2750,7 +2756,7 @@ def get_relation(
                             )
                             record = (
                                 f"{abs_path}"
-                                + "tests/data/"
+                                + "tests/data/spase/"
                                 + f"spase-{file_name}"
                                 + ".xml"
                             )
