@@ -15,6 +15,10 @@ Release v\ |version|. (:ref:`Installation <quickstart>`)
     :target: https://codecov.io/github/clnsmth/soso
     :alt: Code coverage status
 
+.. image:: https://zenodo.org/badge/666558073.svg
+    :target: https://zenodo.org/badge/latestdoi/666558073
+    :alt: Latest Zenodo DOI
+
 For converting metadata into `Science On Schema.Org`_.
 
 .. _Science On Schema.Org: https://github.com/ESIPFed/science-on-schema.org
