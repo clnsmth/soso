@@ -69,6 +69,11 @@ class SPASE(StrategyInterface):
             - version
             - expires
             - provider
+
+        :ref:`A shared conversion script <spase_HowToConvert>` is available for
+        this standard. It is designed for repositories that supplement SPASE
+        metadata with shared infrastructure, using the ancillary information
+        to generate a richer SOSO record.
     """
 
     def __init__(self, file: str, **kwargs: dict):

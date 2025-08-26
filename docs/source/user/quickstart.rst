@@ -95,7 +95,13 @@ The `soso` package is designed to be both flexible and extensible. By following 
             return r
 
 
-If you have any questions or need help, please don't hesitate to reach out.
+
+Shared Conversion Scripts
+-------------------------
+
+When data repositories use a common metadata standard and adopt shared infrastructure, such as databases containing ancillary information, a shared conversion script can be used. These scripts reliably reference the shared infrastructure to create a richer SOSO record by incorporating this additional information. Below is a list of available scripts and their usage examples:
+
+- :doc:`SPASE-schema.org Conversion Script <examples/spase-HowToConvert>`
 
 Notes
 -----

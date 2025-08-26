@@ -26,7 +26,7 @@ First, the script iterates through all SPASE records provided by the user to det
 Installation
 ------------
 
-First, ensure that you have installed the latest soso package. Instructions are given at `https://soso.readthedocs.io/en/latest/user/quickstart.html <https://soso.readthedocs.io/en/latest/user/quickstart.html>`_.
+First, ensure that you have installed the latest soso package. Instructions are given at :doc:`Quick Start <../quickstart>`.
 
 Next, in order for the script to be able to harvest metadata, it needs access to a local directory of your chosen SPASE repository. No matter which repo you choose, you will likely need the `SMWG repo <https://github.com/hpde>`_ as well, since it contains additional information about creators, contributors, instruments, observatories, etc. You must clone all needed repositories in your HOME directory in order for the script to work as intended.
 
