@@ -146,6 +146,15 @@ These cases can be addressed by providing information as `kwargs` to the convert
 
 .. _setting-up-a-new-metadata-conversion-strategy:
 
+Shared Conversion Scripts
+-------------------------
+
+When a community of repositories utilize a common metadata standard and shared infrastructure, it becomes feasible to develop conversion scripts that yield a more information-rich SOSO record than what the strict standard based conversion strategies can provide. This is achieved by allowing these scripts to reference shared databases or other document stores containing additional relevant information.
+
+This approach carries the risk of increasing maintenance overhead and the potential for scope creep within this software package. These risks will be carefully managed. We are currently accepting this functionality but will actively monitor the maintenance burden. Should it become too significant, we will consider relocating this code elsewhere.
+
+For an example of this implementation, refer to the SPASE Strategy.
+
 Setting Up a New Metadata Conversion Strategy
 ---------------------------------------------
 
