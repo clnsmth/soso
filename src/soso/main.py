@@ -11,8 +11,8 @@ def convert(file: str, strategy: str, **kwargs: dict) -> str:
 
     :param file:    The path to the metadata file. Refer to the strategy's
                     documentation for a list of supported file types.
-    :param strategy:    The conversion strategy to be employed. Available
-                        strategies include: "EML".
+    :param strategy:    The conversion strategy to use. Available
+                        strategies include: EML and SPASE.
     :param kwargs:  Additional keyword arguments for passing information to
                     the chosen `strategy`. This can help in the case of
                     unmappable properties. See the Notes section in the

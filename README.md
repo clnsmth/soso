@@ -5,24 +5,30 @@
 [![codecov](https://codecov.io/github/clnsmth/soso/graph/badge.svg?token=2J4MNIXCTD)](https://codecov.io/github/clnsmth/soso)
 [![DOI](https://zenodo.org/badge/666558073.svg)](https://zenodo.org/badge/latestdoi/666558073)
 
-For converting metadata records into [Science On Schema.Org](https://github.com/ESIPFed/science-on-schema.org) markup.
+For converting dataset metadata into [Science On Schema.Org](https://github.com/ESIPFed/science-on-schema.org) markup.
 
-## Installation
+## Quick Start
+
+### Installation
 
 Currently, `soso` is only available on GitHub.  To install it, you need to have [pip](https://pip.pypa.io/en/stable/installation/) installed. Once pip is installed, you can install `soso` by running the following command in your terminal:
 
     $ pip install git+https://github.com/clnsmth/soso.git@main
 
-## Metadata Conversion
+### Metadata Conversion
 
-The primary function is to convert metadata records into SOSO markup. To perform a conversion, specify the file path of the metadata and the desired conversion strategy. Each metadata standard corresponds to a specific strategy.
+To perform a conversion, specify the file path of the metadata and the desired conversion strategy. Each metadata standard corresponds to a specific strategy.
 
     >>> from soso.main import convert
     >>> r = convert(file='metadata.xml', strategy='EML')
     >>> r
     '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
 
-Some SOSO properties may not be derived from metadata records alone. In such cases, additional information can be provided via `kwargs`, where keys match the property name, and values are the property value.
+For a list of available strategies, please refer to the documentation of the `convert` function.
+
+### Adding Unmappable Properties
+
+Some SOSO properties may not be derived from metadata records alone. In such cases, additional information can be provided via `kwargs`, where keys match the top level property name, and values are the property value.
 
 For example, the `url` property representing the landing page URL does not exist in an EML metadata record. But this information is known to the repository hosting the dataset.
 
@@ -34,6 +40,10 @@ For example, the `url` property representing the landing page URL does not exist
 It's worth noting that this `kwargs` approach is not limited to supplying unmappable properties; it can be utilized to override any top-level SOSO property.
 
 Unmappable properties are listed in the strategy documentation.
+
+### Other Modifications
+
+Any additional modifications can be made to the resulting JSON-LD string before it is used. Simply parse the string into a Python dictionary, make the necessary changes, and then convert it back to a JSON-LD string.
 
 ## API Reference and User Guide
 

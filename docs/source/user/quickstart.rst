@@ -22,7 +22,7 @@ For the latest development version::
 Metadata Conversion
 -------------------
 
-The primary function is to convert metadata records into SOSO markup. To perform a conversion, specify the file path of the metadata and the desired conversion strategy. Each metadata standard corresponds to a specific strategy.
+To perform a conversion, specify the file path of the metadata and the desired conversion strategy. Each metadata standard corresponds to a specific strategy.
 
     >>> from soso.main import convert
     >>> r = convert(file='metadata.xml', strategy='EML')
@@ -35,7 +35,7 @@ For a list of available strategies, please refer to the documentation of the `co
 Adding Unmappable Properties
 ----------------------------
 
-Some SOSO properties may not be derived from metadata records alone. In such cases, additional information can be provided via `kwargs`, where keys match the property name, and values are the property value.
+Some SOSO properties may not be derived from metadata records alone. In such cases, additional information can be provided via `kwargs`, where keys match the top level property name, and values are the property value.
 
 For example, the `url` property representing the landing page URL does not exist in an EML metadata record. But this information is known to the repository hosting the dataset.
 
@@ -44,60 +44,14 @@ For example, the `url` property representing the landing page URL does not exist
     >>> r
     '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
 
+It's worth noting that this `kwargs` approach is not limited to supplying unmappable properties; it can be utilized to override any top-level SOSO property.
+
 Unmappable properties are listed in the strategy documentation.
 
-Overwriting Properties
-----------------------
+Other Modifications
+-------------------
 
-Any top level property of the SOSO graph can be overwritten using `kwargs`, where keys match the property name, and values are the property value.
-
-For example, the `description` property, providing a short summary of a dataset can be overwritten with a new value.
-
-    >>> kwargs = {'description': 'New description of the dataset'}
-    >>> r = convert(file='metadata.xml', strategy='EML', **kwargs)
-    >>> r
-    '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
-
-Overriding Property Methods
----------------------------
-
-In some cases you may wish to change only a part of the return value of a property method. This can be done by overriding the method in the strategy class, with your modifications, and calling the original method with the same arguments.
-
-For example, in the EML standard, there is no built-in way to define the Spatial Reference System (SRS) for spatial coverage. However, if you have this information for a collection of metadata records, you can add it to the `get_spatial_coverage` method.
-
-.. code-block:: python
-
-    # Import the EML strategy
-    from soso.strategies.eml import EML
-
-    # Modify the get_spatial_coverage method
-    def get_spatial_coverage(self) -> Union[list, None]:
-        geo = []
-        for item in self.metadata.xpath(".//dataset/coverage/geographicCoverage"):
-            object_type = get_spatial_type(item)
-            if object_type == "Point":
-                geo.append(get_point(item))
-            elif object_type == "Box":
-                geo.append(get_box(item))
-            elif object_type == "Polygon":
-                geo.append(get_polygon(item))
-        if geo:
-            spatial_coverage = {"@type": "Place", "geo": geo}
-            # Add Spatial Reference System ---------------------
-            spatial_coverage["additionalProperty"] = {
-                "@type": "PropertyValue",
-                "propertyID": "http://dbpedia.org/resource/Spatial_reference_system",
-                "value": "https://spatialreference.org/ref/epsg/wgs-84-nsidc-sea-ice-polar-stereographic-north/",
-            }
-            # --------------------------------------------------
-            return delete_null_values(spatial_coverage)
-        return None
-
-    # Override the method in the EML strategy
-    EML.get_spatial_coverage = get_spatial_coverage
-
-    # Convert metadata
-    r = convert(file='metadata.xml', strategy='EML')
+Any additional modifications can be made to the resulting JSON-LD string before it is used. Simply parse the string into a Python dictionary, make the necessary changes, and then convert it back to a JSON-LD string.
 
 Wrapping it All Up
 ------------------
@@ -129,25 +83,7 @@ The `soso` package is designed to be both flexible and extensible. By following 
             provider = {"@id": "https://www.sample-data-repository.org"}
             publisher = {"@id": "https://www.sample-data-repository.org"}
 
-            # Modify the get_subject_of method to return the contentUrl
-            def get_subject_of(self):
-                encoding_format = get_encoding_format(self.metadata)
-                date_modified = self.get_date_modified()
-                if encoding_format and date_modified:
-                    subject_of = {
-                        "@type": "DataDownload",
-                        "name": "EML metadata for dataset",
-                        "description": "EML metadata describing the dataset",
-                        "encodingFormat": encoding_format,
-                        "contentUrl": "https://www.sample-data-repository/metadata/"
-                                      + self.file.split("/")[-1],  # Add the contentUrl
-                        "dateModified": date_modified,
-                    }
-                    return delete_null_values(subject_of)
-                return None
-            EML.get_subject_of = get_subject_of  # Override the method
-
-            # Call convert to process data with additional properties and overridden method
+            # Call convert to process data with additional properties
             additional_properties = {
                 "url": url,
                 "version": version,
@@ -176,5 +112,5 @@ The `convert` function only recognizes vocabularies that are specified within it
 
 **Leverage Partial Property Method Implementations**
 
-Before creating methods for unmappable properties, check for partial implementations that you can build upon and that can save you time. For instance, the `get_subject_of` method in the EML strategy is mostly complete; it only lacks the `contentUrl`.
+Before creating functions for unmappable properties, check for partial implementations that you can build upon and that can save you time. For instance, the `get_subject_of` method in the EML strategy is mostly complete; it only lacks the `contentUrl`.
 
