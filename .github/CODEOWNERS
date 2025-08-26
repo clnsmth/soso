@@ -1,0 +1,23 @@
+# These owners are the default owners for everything in the repo. Unless a
+# later match takes precedence.
+* @clnsmth
+
+# SPASE files
+spase-HowToConvert.rst @Kurokio
+spase.py @Kurokio
+conversion.py @Kurokio
+test_spase.py @Kurokio
+soso-spase.sssom.yml @Kurokio
+soso-spase.sssom.tsv @Kurokio
+spase.xml @Kurokio
+spase_empty.xml @Kurokio
+spase.json @Kurokio
+spase-David.T.Young.xml @Kurokio
+spase-FGM.xml @Kurokio
+spase-MMS.xml @Kurokio
+spase-MMS-4.xml @Kurokio
+spase-P1D.xml @Kurokio
+spase-PT0.25S.xml @Kurokio
+spase-PT8S.xml @Kurokio
+spase-PT10M.xml @Kurokio
+spase-PT17M.xml @Kurokio
