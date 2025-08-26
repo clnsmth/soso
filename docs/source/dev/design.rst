@@ -142,7 +142,7 @@ The Strategy Pattern employed in this application enables a high degree of user 
 * Properties that don’t map from a metadata standard but require external data, such as dataset landing page URLs.
 * Properties requiring custom processing due to community-specific application of metadata standards.
 
-These cases can be addressed by providing information as `kwargs` to the convert function, which overrides properties corresponding to `kwargs` key names, or by modifying existing strategy methods through method overrides. For further details, refer to the user :ref:`quickstart`.
+These cases can be addressed by providing information as `kwargs` to the convert function, which overrides properties corresponding to `kwargs` key names, or by applying any additional modifications to the resulting JSON-LD. For further details, refer to the user :ref:`quickstart`.
 
 .. _setting-up-a-new-metadata-conversion-strategy:
 
