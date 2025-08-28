@@ -4,6 +4,7 @@
 ![example workflow](https://github.com/clnsmth/soso/actions/workflows/ci-cd.yml/badge.svg)
 [![codecov](https://codecov.io/github/clnsmth/soso/graph/badge.svg?token=2J4MNIXCTD)](https://codecov.io/github/clnsmth/soso)
 [![DOI](https://zenodo.org/badge/666558073.svg)](https://zenodo.org/badge/latestdoi/666558073)
+![PyPI - Version](https://img.shields.io/pypi/v/soso?color=blue)
 
 For converting dataset metadata into [Science On Schema.Org](https://github.com/ESIPFed/science-on-schema.org) markup.
 
@@ -11,9 +12,9 @@ For converting dataset metadata into [Science On Schema.Org](https://github.com/
 
 ### Installation
 
-Currently, `soso` is only available on GitHub.  To install it, you need to have [pip](https://pip.pypa.io/en/stable/installation/) installed. Once pip is installed, you can install `soso` by running the following command in your terminal:
+Install from PyPI:
 
-    $ pip install git+https://github.com/clnsmth/soso.git@main
+    $ pip install soso
 
 ### Metadata Conversion
 

@@ -19,11 +19,22 @@ Release v\ |version|. (:ref:`Installation <quickstart>`)
     :target: https://zenodo.org/badge/latestdoi/666558073
     :alt: Latest Zenodo DOI
 
+.. image:: https://img.shields.io/pypi/v/soso?color=blue&label=pypi
+    :target: https://pypi.org/project/geoenv/
+    :alt: Package version
+
 For converting dataset metadata into `Science On Schema.Org`_ markup.
 
 .. _Science On Schema.Org: https://github.com/ESIPFed/science-on-schema.org
 
 -------------------
+
+**Installation**
+
+Install from PyPI::
+
+   $ pip install soso
+
 
 **Metadata Conversion**
 
