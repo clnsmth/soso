@@ -26,7 +26,7 @@ First, the script iterates through all SPASE records provided by the user to det
 Installation
 ------------
 
-First, ensure that you have installed the latest soso package. Instructions are given at `https://soso.readthedocs.io/en/latest/user/quickstart.html <https://soso.readthedocs.io/en/latest/user/quickstart.html>`_.
+First, ensure that you have installed the latest soso package. Instructions are given at :doc:`Quick Start <../quickstart>`.
 
 Next, in order for the script to be able to harvest metadata, it needs access to a local directory of your chosen SPASE repository. No matter which repo you choose, you will likely need the `SMWG repo <https://github.com/hpde>`_ as well, since it contains additional information about creators, contributors, instruments, observatories, etc. You must clone all needed repositories in your HOME directory in order for the script to work as intended.
 
@@ -52,8 +52,8 @@ The meaning of ``folder`` and ``additional_license_info`` (which is optional) is
 
 For example, the output of the command to run the main ``conversion.py`` script using a folder containing a well-populated SPASE record is given below. This command uses *\<HOMEDIR\>/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion* as the argument to ``<folder>``.
 
-.. image:: ..images/conversionOutput.png
-    :width: 400
+.. image:: ../images/conversionOutput.png
+    :width: 100%
     :alt: Screenshot of running the conversion.py script in the terminal.
 
 After this command is completed, you should notice that the associated JSON, ``NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S.json``, is now created within the *SPASE_JSONs* folder.

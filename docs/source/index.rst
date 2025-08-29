@@ -66,6 +66,12 @@ Unmappable properties are listed in the strategy documentation.
 
 Any additional modifications can be made to the resulting JSON-LD string before it is used. Simply parse the string into a Python dictionary, make the necessary changes, and then convert it back to a JSON-LD string.
 
+**Shared Conversion Scripts**
+
+When data repositories use a common metadata standard and adopt shared infrastructure, such as databases containing ancillary information, a shared conversion script can be used. These scripts reliably reference the shared infrastructure to create a richer SOSO record by incorporating this additional information. Below is a list of available scripts and their usage examples:
+
+- :doc:`SPASE-schema.org Conversion Script <user/examples/spase-HowToConvert>`
+
 The User Guide
 --------------
 

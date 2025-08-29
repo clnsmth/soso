@@ -19,14 +19,14 @@ Strategy Interface
 EML Strategy
 ------------
 
-.. autoclass:: soso.strategies.eml.EML
+.. autoclass:: soso.strategies.eml.eml.EML
     :members:
     :noindex:
 
 SPASE Strategy
 --------------
 
-.. autoclass:: soso.strategies.spase.SPASE
+.. autoclass:: soso.strategies.spase.spase.SPASE
     :members:
     :noindex:
 
