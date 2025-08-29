@@ -36,9 +36,11 @@ temp_file = tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8")
 temp_file_path = temp_file.name
 # print("Temp file exists?: " + str(os.path.exists(temp_file_path)) + ':' + temp_file_path)
 
+
 def cleanup_temp_file():
     if not temp_file.closed:
         temp_file.close()
+
 
 atexit.register(cleanup_temp_file)
 
