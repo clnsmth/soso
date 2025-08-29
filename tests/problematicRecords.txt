@@ -1,0 +1,4 @@
+/Users/csmith/Code/soso/SMWG/Instrument/MMS/4/HotPlasmaCompositionAnalyzer.xml
+/Users/csmith/Code/soso/SMWG/Observatory/MMS.xml
+spase://NASA/NumericalData/ACE/EPAM/LEFS150/MFSA/SolarWindFrame/Sectored/Proton/Fluxes/PT17M
+spase://NASA/NumericalData/ACE/EPAM/LEFS150/MFSA/SolarWindFrame/Sectored/Proton/Fluxes/P1D

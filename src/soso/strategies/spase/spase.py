@@ -3,6 +3,7 @@
 import json
 import re
 import os
+import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Union, List, Dict
@@ -25,6 +26,14 @@ from soso.utilities import delete_null_values
 # pylint: disable=consider-using-dict-items
 # pylint: disable=consider-iterating-dictionary
 # pylint: disable=no-else-return
+# pylint: disable=consider-using-with
+
+
+# create temp file which holds problematic records encountered during script
+# Create a named temporary file which is deleted via garbage collection
+temp_file = tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8")
+temp_file_path = temp_file.name
+# print("Temp file exists?: " + str(os.path.exists(temp_file_path)) + ':' + temp_file_path)
 
 
 class SPASE(StrategyInterface):
@@ -799,7 +808,9 @@ class SPASE(StrategyInterface):
                     person = author_str.replace("'", "")
                     # determine if creator is a consortium
                     with open(
-                        "./spase-ignoreCreatorSplit.txt", "r", encoding="utf-8"
+                        "./src/soso/strategies/spase/spase-ignoreCreatorSplit.txt",
+                        "r",
+                        encoding="utf-8",
                     ) as f:
                         do_not_split = f.read()
                     if ", " in person:
@@ -1126,7 +1137,7 @@ class SPASE(StrategyInterface):
         instruments = get_instrument(self.metadata, self.file)
         # only uncomment if trying to generate snapshot spase.json
         # instruments = get_instrument(
-        # self.metadata, self.file, **{"testing": "soso-spase/tests/data/"}
+        # self.metadata, self.file, **{"testing": "soso-spase/tests/data/spase/"}
         # )
         # observatories = get_observatory(self.metadata, self.file)
         was_generated_by = []
@@ -1776,8 +1787,8 @@ def get_instrument(
             # get current working directory
             cwd = str(Path.cwd()).replace("\\", "/")
             # split path into needed substrings
-            if "src/soso/data/" in path:
-                abs_path, _, after = path.partition("src/soso/data/")
+            if "src/soso/strategies/spase/" in path:
+                abs_path, _, after = path.partition("src/soso/strategies/spase/")
             else:
                 _, abs_path, after = path.partition(f"{home_dir}/")
             repo_name, _, after = after.partition("/")
@@ -1787,7 +1798,7 @@ def get_instrument(
             repo_name, _, after = item.replace("spase://", "").partition("/")
             update_log(cwd, repo_name, "requiredRepos")
             # format record
-            if "src/soso/data/" in path:
+            if "src/soso/strategies/spase/" in path:
                 # being called by testing function = change directory to xml file in tests folder
                 # only uncomment these lines if using snapshot creation script
                 # if "soso-spase/" in path:
@@ -1795,7 +1806,7 @@ def get_instrument(
                 # else:
                 # if called by CI
                 *_, file_name = item.rpartition("/")
-                record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
+                record = abs_path + "tests/data/spase/" + f"spase-{file_name}" + ".xml"
                 # to ensure correct file path used for those not found in tests/data
                 if not os.path.isfile(record):
                     if "soso-spase/" in path:
@@ -1810,14 +1821,13 @@ def get_instrument(
                 instrument_ids[item]["name"] = test_spase.get_name()
                 instrument_ids[item]["URL"] = test_spase.get_url()
             else:
-                # add file to log 'problematic records/files'
-                if not os.path.exists(f"{cwd}/problematicRecords.txt"):
-                    with open(
-                        f"{cwd}/problematicRecords.txt", "w", encoding="utf-8"
-                    ) as f:
-                        f.write(f"{record}")
-                else:
-                    update_log(cwd, record, "problematicRecords")
+                # add file to log containing problematic records/files
+                if os.path.exists(temp_file_path):
+                    temp_file.seek(0)
+                    if temp_file.read():
+                        temp_file.write(f", {record}")
+                    else:
+                        temp_file.write(f"{record}")
         for k in instrument_ids.keys():
             if instrument_ids[k]["URL"]:
                 instrument.append(
@@ -1876,18 +1886,18 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
             # get current working directory
             cwd = str(Path.cwd()).replace("\\", "/")
             # split path into needed substrings
-            if "src/soso/data/" in path:
-                abs_path, _, after = path.partition("src/soso/data/")
+            if "src/soso/strategies/spase/" in path:
+                abs_path, _, after = path.partition("src/soso/strategies/spase/")
             else:
                 _, abs_path, after = path.partition(f"{home_dir}/")
             repo_name, _, after = after.partition("/")
             # add original SPASE repo to log file that holds name of repos needed
             update_log(cwd, repo_name, "requiredRepos")
-            if "src/soso/data/" in path:
+            if "src/soso/strategies/spase/" in path:
                 # being called by testing function = change directory
                 #   to xml file in tests folder
                 *_, file_name = item.rpartition("/")
-                record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
+                record = abs_path + "tests/data/spase/" + f"spase-{file_name}" + ".xml"
             else:
                 record = abs_path + item.replace("spase://", "") + ".xml"
             record = record.replace("'", "")
@@ -1908,11 +1918,14 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                 )
                 update_log(cwd, repo_name, "requiredRepos")
                 # use observatory_id as record to get observatory_group_id and other info
-                if "src/soso/data/" in path:
+                if "src/soso/strategies/spase/" in path:
                     # being called by test function = change directory to xml file in tests folder
                     *_, file_name = observatory_id.rpartition("/")
                     record = (
-                        abs_path + "tests/data/" + f"spase-MMS-{file_name}" + ".xml"
+                        abs_path
+                        + "tests/data/spase/"
+                        + f"spase-MMS-{file_name}"
+                        + ".xml"
                     )
                 else:
                     record = abs_path + observatory_id.replace("spase://", "") + ".xml"
@@ -1937,12 +1950,15 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                         ).partition("/")
                         update_log(cwd, repo_name, "requiredRepos")
                         # format record
-                        if "src/soso/data/" in path:
+                        if "src/soso/strategies/spase/" in path:
                             # being called by test function = change directory to xml file in tests
                             #   folder
                             *_, file_name = observatory_group_id.rpartition("/")
                             record = (
-                                abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
+                                abs_path
+                                + "tests/data/spase/"
+                                + f"spase-{file_name}"
+                                + ".xml"
                             )
                         else:
                             record = (
@@ -1978,16 +1994,13 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                                     )
                                     recorded_ids.append(observatory_group_id)
                         else:
-                            # add obsGrp to log file 'problematic records/files'
-                            if not os.path.exists(f"{cwd}/problematicRecords.txt"):
-                                with open(
-                                    f"{cwd}/problematicRecords.txt",
-                                    "w",
-                                    encoding="utf-8",
-                                ) as f:
-                                    f.write(f"{record}")
-                            else:
-                                update_log(cwd, record, "problematicRecords")
+                            # add obsGrp to log file containing problematic records/files
+                            if os.path.exists(temp_file_path):
+                                temp_file.seek(0)
+                                if temp_file.read():
+                                    temp_file.write(f", {record}")
+                                else:
+                                    temp_file.write(f"{record}")
                     if url and (observatory_id not in recorded_ids):
                         observatory.append(
                             {
@@ -2009,14 +2022,12 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                         )
                         recorded_ids.append(observatory_id)
                 else:
-                    # add obs to log file 'problematic records/files'
-                    if not os.path.exists(f"{cwd}/problematicRecords.txt"):
-                        with open(
-                            f"{cwd}/problematicRecords.txt", "w", encoding="utf-8"
-                        ) as f:
-                            f.write(f"{record}")
-                    else:
-                        update_log(cwd, record, "problematicRecords")
+                    if os.path.exists(temp_file_path):
+                        temp_file.seek(0)
+                        if temp_file.read():
+                            temp_file.write(f", {record}")
+                        else:
+                            temp_file.write(f"{record}")
     else:
         observatory = None
     return observatory
@@ -2182,8 +2193,8 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
         # get current working directory
         cwd = str(Path.cwd()).replace("\\", "/")
         # split record into needed substrings
-        if "src/soso/data/" in file:
-            abs_path, _, after = file.partition("src/soso/data/")
+        if "src/soso/strategies/spase/" in file:
+            abs_path, _, after = file.partition("src/soso/strategies/spase/")
         else:
             _, abs_path, after = file.partition(f"{home_dir}/")
         repo_name, _, after = after.partition("/")
@@ -2193,10 +2204,10 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
         repo_name, _, after = spase_id.replace("spase://", "").partition("/")
         update_log(cwd, repo_name, "requiredRepos")
         # format record name
-        if "src/soso/data/" in file:
+        if "src/soso/strategies/spase/" in file:
             # being called by testing function = change directory to xml file in tests folder
             *_, file_name = spase_id.rpartition("/")
-            record = abs_path + "tests/data/" + f"spase-{file_name}" + ".xml"
+            record = abs_path + "tests/data/spase/" + f"spase-{file_name}" + ".xml"
             # to ensure correct file path used for those not found in tests/data
             # comment these lines out if using snapshot creation script
             if not os.path.isfile(record):
@@ -2221,12 +2232,13 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
                 elif child.tag.endswith("RORIdentifier"):
                     ror = child.text
         else:
-            # add file to log called 'problematic records/files'
-            if not os.path.exists(f"{cwd}/problematicRecords.txt"):
-                with open(f"{cwd}/problematicRecords.txt", "w", encoding="utf-8") as f:
-                    f.write(f"{record}")
-            else:
-                update_log(cwd, record, "problematicRecords")
+            # add file to log containing problematic records/files
+            if os.path.exists(temp_file_path):
+                temp_file.seek(0)
+                if temp_file.read():
+                    temp_file.write(f", {record}")
+                else:
+                    temp_file.write(f"{record}")
     return orcid_id, affiliation, ror
 
 
@@ -2336,7 +2348,11 @@ def process_authors(
     # if all creators were found in PublicationInfo/Authors
     else:
         # determine if authors are a consortium
-        with open("./spase-ignoreCreatorSplit.txt", "r", encoding="utf-8") as f:
+        with open(
+            "./src/soso/strategies/spase/spase-ignoreCreatorSplit.txt",
+            "r",
+            encoding="utf-8",
+        ) as f:
             do_not_split = f.read()
         # if file is not in list of ones to not have their creators split
         # and there are multiple authors
@@ -2731,24 +2747,26 @@ def get_relation(
                 repo_name, _, _ = record.replace("spase://", "").partition("/")
                 update_log(cwd, repo_name, "requiredRepos")
                 # format record
-                if ("src/soso/data/" in file) or kwargs:
+                if ("src/soso/strategies/spase/" in file) or kwargs:
                     # being called by test function = change directory to xml file in tests folder
                     *_, file_name = record.rpartition("/")
-                    if "src/soso/data/" in file:
+                    if "src/soso/strategies/spase/" in file:
                         # if called by snapshot creation script
                         if "soso-spase/" in file:
                             record = (
                                 f"{home_dir}/soso-spase/"
-                                + "tests/data/"
+                                + "tests/data/spase/"
                                 + f"spase-{file_name}"
                                 + ".xml"
                             )
                         # being called by CI workflow
                         else:
-                            abs_path, _, _ = file.partition("src/soso/data/")
+                            abs_path, _, _ = file.partition(
+                                "src/soso/strategies/spase/"
+                            )
                             record = (
                                 f"{abs_path}"
-                                + "tests/data/"
+                                + "tests/data/spase/"
                                 + f"spase-{file_name}"
                                 + ".xml"
                             )
@@ -2781,14 +2799,12 @@ def get_relation(
                         relational_records[url]["license"] = spase_license
 
                 else:
-                    # add file to log called 'problematic records/files'
-                    if not os.path.exists(f"{cwd}/problematicRecords.txt"):
-                        with open(
-                            f"{cwd}/problematicRecords.txt", "w", encoding="utf-8"
-                        ) as f:
-                            f.write(f"{record}")
-                    else:
-                        update_log(cwd, record, "problematicRecords")
+                    if os.path.exists(temp_file_path):
+                        temp_file.seek(0)
+                        if temp_file.read():
+                            temp_file.write(f", {record}")
+                        else:
+                            temp_file.write(f"{record}")
                 i += 1
             # add correct type
             if len(relations) > 1:
@@ -2968,3 +2984,15 @@ def find_match(
                     f"{last_name}, {first_name} {initial}."
                 )
     return contacts_list, author_role
+
+
+def get_problematic_records() -> str:
+    """Saves input from various functions to the temp file containing problematic
+    records found during script, closes the file, and returns the content."""
+    problematic_records = ""
+    if os.path.exists(temp_file_path):
+        temp_file.seek(0)
+        problematic_records = temp_file.read()
+        # print("Records are: " + problematic_records)
+        temp_file.close()  # Close and remove the temp file object
+    return problematic_records

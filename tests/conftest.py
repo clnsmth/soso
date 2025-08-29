@@ -6,8 +6,8 @@ from urllib.parse import urlparse
 from numbers import Number
 from copy import deepcopy
 import pytest
-from soso.strategies.eml import EML
-from soso.strategies.spase import SPASE
+from soso.strategies.eml.eml import EML
+from soso.strategies.spase.spase import SPASE
 from soso.utilities import get_example_metadata_file_path, get_empty_metadata_file_path
 
 # Define the shared parameter set for strategy_instance and

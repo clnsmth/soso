@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from lxml import etree
-from soso.strategies.spase import (
+from soso.strategies.spase.spase import (
     get_schema_version,
     get_authors,
     get_access_urls,
@@ -308,7 +308,7 @@ def test_get_instrument_returns_expected_value():
     # Positive case: The function will return the name, ResourceID, and InformationURL(s) for the
     # InstrumentID(s) found in the SPASE file.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
-    kwargs = {"testing": "soso-spase/tests/data/"}
+    kwargs = {"testing": "soso-spase/tests/data/spase/"}
     assert get_instrument(
         spase, str(get_example_metadata_file_path("SPASE")).replace("\\", "/"), **kwargs
     ) == (
@@ -423,7 +423,7 @@ def test_get_mentions_returns_expected_value():
     # Positive case: The function will return info about the SPASE ResourceIDs with the
     # AssociationType = "Other" found within the Association section of the SPASE record.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
-    kwargs = {"testing": "soso-spase/tests/data/"}
+    kwargs = {"testing": "soso-spase/tests/data/spase/"}
     assert get_mentions(
         spase, str(get_example_metadata_file_path("SPASE")).replace("\\", "/"), **kwargs
     ) == (
@@ -561,7 +561,7 @@ def test_get_is_part_of_returns_expected_value():
     # Positive case: The function will return info about the SPASE ResourceIDs with the
     # AssociationType = "PartOf" found within the Association section of the SPASE record.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
-    kwargs = {"testing": "soso-spase/tests/data/"}
+    kwargs = {"testing": "soso-spase/tests/data/spase/"}
     # if called locally (with access to SMWG records), should return associations/RORs
     if "soso-spase" in str(get_example_metadata_file_path("SPASE")):
         assert get_is_part_of(
@@ -883,7 +883,7 @@ def test_get_relation_returns_expected_value():
     # Positive case: The function will return info about the SPASE ResourceIDs with the
     # given AssociationType found within the Association section of the SPASE record.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
-    kwargs = {"testing": "soso-spase/tests/data/"}
+    kwargs = {"testing": "soso-spase/tests/data/spase/"}
     root = spase.getroot()
     desired_root = None
     for elt in root.iter(tag=etree.Element):
