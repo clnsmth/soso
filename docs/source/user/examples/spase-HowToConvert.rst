@@ -52,8 +52,8 @@ The meaning of ``folder`` and ``additional_license_info`` (which is optional) is
 
 For example, the output of the command to run the main ``conversion.py`` script using a folder containing a well-populated SPASE record is given below. This command uses *\<HOMEDIR\>/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion* as the argument to ``<folder>``.
 
-.. image:: ..images/conversionOutput.png
-    :width: 400
+.. image:: ../images/conversionOutput.png
+    :width: 100%
     :alt: Screenshot of running the conversion.py script in the terminal.
 
 After this command is completed, you should notice that the associated JSON, ``NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion/PT0.625S.json``, is now created within the *SPASE_JSONs* folder.
