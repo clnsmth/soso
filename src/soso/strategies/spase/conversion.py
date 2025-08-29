@@ -12,10 +12,12 @@ from soso.strategies.spase.spase import (
     get_mentions,
     get_is_part_of,
     get_instrument,
+    get_problematic_records,
 )
 
 # pylint: disable=too-many-locals
 # pylint: disable=raise-missing-from
+# pylint: disable=too-many-statements
 
 
 def get_paths(entry: str, paths: list) -> list:
@@ -164,10 +166,6 @@ def main(folder: str, additional_license_info: bool = None) -> None:
     find_requirements(folder)
     input("Once these are cloned, type anything to begin the main script. ")
 
-    # create log file to keep track of problematic records
-    with open(f"{str(Path.cwd())}/problematicRecords.txt", "w", encoding="utf-8"):
-        pass
-
     # list that holds SPASE records already checked
     searched = []
 
@@ -176,6 +174,8 @@ def main(folder: str, additional_license_info: bool = None) -> None:
     spase_paths = get_paths(folder, spase_paths)
     # print("You entered " + folder)
     num = 0
+    problematic_records = ""
+
     if len(spase_paths) == 0:
         print(
             "No records found. Make sure the directory path is correct and try again."
@@ -208,6 +208,7 @@ def main(folder: str, additional_license_info: bool = None) -> None:
                 measurement_method = get_measurement_method(
                     test_spase.metadata, test_spase.namespaces
                 )
+                problematic_records = get_problematic_records()
                 # add record to searched
                 searched.append(record)
 
@@ -246,22 +247,24 @@ def main(folder: str, additional_license_info: bool = None) -> None:
                 # finalDict = updated_dict | kwargs
                 # pprint(finalDict)
         print(f"{num + 1} records successfully converted to schema.org JSONs")
-        with open(
-            f"{str(Path.cwd())}/problematicRecords.txt", "r", encoding="utf-8"
-        ) as f:
-            num_of_problems = len(f.readlines())
-            problems = f.read()
+        # print(problematic_records)
+        if problematic_records:
+            if "," in problematic_records:
+                num_of_problems = problematic_records.count(",") + 1
+            else:
+                num_of_problems = 1
+        else:
+            num_of_problems = 0
         # Let user know which SPASE records caused issues for further analysis
         if num_of_problems > 0:
             print(
                 f"The script had issues accessing {num_of_problems} of these files,"
-                + f" which are: {problems}"
+                + f" which are: {problematic_records}"
             )
         else:
             print(f"The script had issues accessing {num_of_problems} of these files")
-        # delete temporary files
+        # delete temporary file
         Path(f"{str(Path.cwd())}/requiredRepos.txt").unlink()
-        os.remove(f"{str(Path.cwd())}/problematicRecords.txt")
 
 
 # allow calls from the command line
