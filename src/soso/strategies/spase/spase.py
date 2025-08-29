@@ -3,6 +3,7 @@
 import json
 import re
 import os
+import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Union, List, Dict
@@ -25,6 +26,14 @@ from soso.utilities import delete_null_values
 # pylint: disable=consider-using-dict-items
 # pylint: disable=consider-iterating-dictionary
 # pylint: disable=no-else-return
+# pylint: disable=consider-using-with
+
+
+# create temp file which holds problematic records encountered during script
+# Create a named temporary file which is deleted via garbage collection
+temp_file = tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8")
+temp_file_path = temp_file.name
+# print("Temp file exists?: " + str(os.path.exists(temp_file_path)) + ':' + temp_file_path)
 
 
 class SPASE(StrategyInterface):
@@ -799,7 +808,9 @@ class SPASE(StrategyInterface):
                     person = author_str.replace("'", "")
                     # determine if creator is a consortium
                     with open(
-                        "./spase-ignoreCreatorSplit.txt", "r", encoding="utf-8"
+                        "./src/soso/strategies/spase/spase-ignoreCreatorSplit.txt",
+                        "r",
+                        encoding="utf-8",
                     ) as f:
                         do_not_split = f.read()
                     if ", " in person:
@@ -1810,14 +1821,13 @@ def get_instrument(
                 instrument_ids[item]["name"] = test_spase.get_name()
                 instrument_ids[item]["URL"] = test_spase.get_url()
             else:
-                # add file to log 'problematic records/files'
-                if not os.path.exists(f"{cwd}/problematicRecords.txt"):
-                    with open(
-                        f"{cwd}/problematicRecords.txt", "w", encoding="utf-8"
-                    ) as f:
-                        f.write(f"{record}")
-                else:
-                    update_log(cwd, record, "problematicRecords")
+                # add file to log containing problematic records/files
+                if os.path.exists(temp_file_path):
+                    temp_file.seek(0)
+                    if temp_file.read():
+                        temp_file.write(f", {record}")
+                    else:
+                        temp_file.write(f"{record}")
         for k in instrument_ids.keys():
             if instrument_ids[k]["URL"]:
                 instrument.append(
@@ -1984,16 +1994,13 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                                     )
                                     recorded_ids.append(observatory_group_id)
                         else:
-                            # add obsGrp to log file 'problematic records/files'
-                            if not os.path.exists(f"{cwd}/problematicRecords.txt"):
-                                with open(
-                                    f"{cwd}/problematicRecords.txt",
-                                    "w",
-                                    encoding="utf-8",
-                                ) as f:
-                                    f.write(f"{record}")
-                            else:
-                                update_log(cwd, record, "problematicRecords")
+                            # add obsGrp to log file containing problematic records/files
+                            if os.path.exists(temp_file_path):
+                                temp_file.seek(0)
+                                if temp_file.read():
+                                    temp_file.write(f", {record}")
+                                else:
+                                    temp_file.write(f"{record}")
                     if url and (observatory_id not in recorded_ids):
                         observatory.append(
                             {
@@ -2015,14 +2022,12 @@ def get_observatory(metadata: etree.ElementTree, path: str) -> Union[List[Dict],
                         )
                         recorded_ids.append(observatory_id)
                 else:
-                    # add obs to log file 'problematic records/files'
-                    if not os.path.exists(f"{cwd}/problematicRecords.txt"):
-                        with open(
-                            f"{cwd}/problematicRecords.txt", "w", encoding="utf-8"
-                        ) as f:
-                            f.write(f"{record}")
-                    else:
-                        update_log(cwd, record, "problematicRecords")
+                    if os.path.exists(temp_file_path):
+                        temp_file.seek(0)
+                        if temp_file.read():
+                            temp_file.write(f", {record}")
+                        else:
+                            temp_file.write(f"{record}")
     else:
         observatory = None
     return observatory
@@ -2227,12 +2232,13 @@ def get_orcid_and_affiliation(spase_id: str, file: str) -> tuple[str, str, str]:
                 elif child.tag.endswith("RORIdentifier"):
                     ror = child.text
         else:
-            # add file to log called 'problematic records/files'
-            if not os.path.exists(f"{cwd}/problematicRecords.txt"):
-                with open(f"{cwd}/problematicRecords.txt", "w", encoding="utf-8") as f:
-                    f.write(f"{record}")
-            else:
-                update_log(cwd, record, "problematicRecords")
+            # add file to log containing problematic records/files
+            if os.path.exists(temp_file_path):
+                temp_file.seek(0)
+                if temp_file.read():
+                    temp_file.write(f", {record}")
+                else:
+                    temp_file.write(f"{record}")
     return orcid_id, affiliation, ror
 
 
@@ -2342,7 +2348,11 @@ def process_authors(
     # if all creators were found in PublicationInfo/Authors
     else:
         # determine if authors are a consortium
-        with open("./spase-ignoreCreatorSplit.txt", "r", encoding="utf-8") as f:
+        with open(
+            "./src/soso/strategies/spase/spase-ignoreCreatorSplit.txt",
+            "r",
+            encoding="utf-8",
+        ) as f:
             do_not_split = f.read()
         # if file is not in list of ones to not have their creators split
         # and there are multiple authors
@@ -2789,14 +2799,12 @@ def get_relation(
                         relational_records[url]["license"] = spase_license
 
                 else:
-                    # add file to log called 'problematic records/files'
-                    if not os.path.exists(f"{cwd}/problematicRecords.txt"):
-                        with open(
-                            f"{cwd}/problematicRecords.txt", "w", encoding="utf-8"
-                        ) as f:
-                            f.write(f"{record}")
-                    else:
-                        update_log(cwd, record, "problematicRecords")
+                    if os.path.exists(temp_file_path):
+                        temp_file.seek(0)
+                        if temp_file.read():
+                            temp_file.write(f", {record}")
+                        else:
+                            temp_file.write(f"{record}")
                 i += 1
             # add correct type
             if len(relations) > 1:
@@ -2976,3 +2984,15 @@ def find_match(
                     f"{last_name}, {first_name} {initial}."
                 )
     return contacts_list, author_role
+
+
+def get_problematic_records() -> str:
+    """Saves input from various functions to the temp file containing problematic
+    records found during script, closes the file, and returns the content."""
+    problematic_records = ""
+    if os.path.exists(temp_file_path):
+        temp_file.seek(0)
+        problematic_records = temp_file.read()
+        # print("Records are: " + problematic_records)
+        temp_file.close()  # Close and remove the temp file object
+    return problematic_records
