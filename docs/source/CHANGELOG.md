@@ -2,6 +2,19 @@
 
 
 
+## v0.5.1 (2025-09-02)
+
+
+### Bug fixes
+
+* fix: conditionally run release steps in workflow ([`3c83694`](https://github.com/clnsmth/soso/commit/3c83694a649fdf5e14a44b2f602f42591386dddd)) 
+
+### Continuous integration
+
+* ci: revert to previous PyPI release method ([`d470cbc`](https://github.com/clnsmth/soso/commit/d470cbc5e37c4f5c6249fbede2a5f52713699cfd)) 
+* ci: add role and type to .zenodo.json contributors ([`ef32646`](https://github.com/clnsmth/soso/commit/ef326468d601b2f1dda3db6312d093d1168c9ac5)) 
+* ci: use Trusted Publishing in CD ([`1508e28`](https://github.com/clnsmth/soso/commit/1508e282191ff5154e9e78026e1ab07bd5e4fb02)) 
+
 ## v0.5.0 (2025-09-02)
 
 
