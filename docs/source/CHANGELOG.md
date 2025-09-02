@@ -2,6 +2,13 @@
 
 
 
+## v0.5.3 (2025-09-02)
+
+
+### Bug fixes
+
+* fix: update sidebar HTML _template/ reference ([`8217482`](https://github.com/clnsmth/soso/commit/8217482fdb4cd59121de0a86e835d473cb0fbcad)) 
+
 ## v0.5.2 (2025-09-02)
 
 
