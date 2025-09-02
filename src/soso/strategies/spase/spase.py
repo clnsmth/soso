@@ -38,6 +38,7 @@ temp_file_path = temp_file.name
 
 
 def cleanup_temp_file():
+    """Cleanup the temporary file on exit."""
     if not temp_file.closed:
         temp_file.close()
 
