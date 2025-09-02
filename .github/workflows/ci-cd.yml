@@ -59,6 +59,8 @@ jobs:
 
     # Set up operating system
     runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.semantic.outputs.released }}
 
     # Define job steps
     steps:
@@ -100,7 +102,7 @@ jobs:
   pypi-publish:
     name: Upload release to PyPI
     needs: cd
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: needs.cd.outputs.released == 'true'
     runs-on: ubuntu-latest
     environment:
       name: pypi
