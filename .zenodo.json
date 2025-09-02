@@ -23,25 +23,33 @@
     {
       "name": "Cecconi, Baptiste",
       "orcid": "0000-0001-7915-5571",
-      "affiliation": "Observatoire de Paris, Université de Recherche Paris Sciences et Lettres"
+      "affiliation": "Observatoire de Paris, Université de Recherche Paris Sciences et Lettres",
+      "type": "Person",
+      "role": "Researcher"
     },
     {
       "name": "Helvey, Tressa",
       "orcid": "0009-0001-1714-839X",
       "affiliation": "Heliophysics Data and Modeling Consortium",
-      "ror": "04xbq1n92"
+      "ror": "04xbq1n92",
+      "type": "Person",
+      "role": "Researcher"
     },
     {
       "name": "Koval, Andriy",
       "orcid": "0000-0003-1398-1752",
       "affiliation": "University of Maryland, Baltimore County",
-      "ror": "02qskvh78"
+      "ror": "02qskvh78",
+      "type": "Person",
+      "role": "Researcher"
     },
     {
       "name": "Byrd, Catherine",
       "orcid": "0009-0006-6661-0938",
       "affiliation": "University of Maryland, Baltimore County",
-      "ror": "02qskvh78"
+      "ror": "02qskvh78",
+      "type": "Person",
+      "role": "Researcher"
     }
   ],
   "title": "SOSO: For Converting Metadata Records into Science-On-Schema.Org Markup",
