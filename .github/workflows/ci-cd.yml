@@ -9,103 +9,90 @@ on:
 jobs:
 
   ci:
+    # Set up operating system
     runs-on: ubuntu-latest
-    steps:
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-      - name: Check-out repository
-        uses: actions/checkout@v4
-      - name: Install poetry
-        uses: snok/install-poetry@v1
-      - name: Install package
-        run: poetry install --sync --with dev
-      - name: Run Black formatter
-        run: poetry run black src/ tests/
-      - name: Analyze code with pylint
-        run: |
-          poetry run pylint src/ --exit-zero --disable=C0103,W0621,R0904
-          poetry run pylint tests/ --exit-zero --disable=C0103,W0621,R0904
-      - name: Test with pytest
-        run: poetry run pytest tests/ --cov=soso --cov-report=xml
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4.0.1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-      - name: Build documentation
-        run: poetry run make html --directory docs/
 
-
-  cd:
-    needs: ci
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    outputs:
-      released: ${{ steps.semantic.outputs.released }}
+    # Define job steps
     steps:
+      # Set up job requirements
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: "3.11"
     - name: Check-out repository
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        token: ${{ secrets.RELEASE_TOKEN }}
     - name: Install poetry
       uses: snok/install-poetry@v1
     - name: Install package
+      run: poetry install --sync --with dev
+
+      # Format code and error on issues. This is an easy check to pass.
+    - name: Run Black formatter
+      run: poetry run black src/ tests/
+
+      # Analyze code but don't error on issues. This check encourages best
+      # practices and offers flexibility in adoption.
+    - name: Analyze code with pylint
+      run: |
+        poetry run pylint src/ --exit-zero --disable=C0103,W0621,R0904
+        poetry run pylint tests/ --exit-zero --disable=C0103,W0621,R0904
+
+    # Test
+    - name: Test with pytest
+      run: poetry run pytest tests/ --cov=soso --cov-report=xml
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4.0.1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+    # Build docs
+    - name: Build documentation
+      run: poetry run make html --directory docs/
+
+
+  cd:
+    # Only run this job if the "ci" job passes
+    needs: ci
+
+    # Only run this job if new work is pushed to "main"
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    # Set up operating system
+    runs-on: ubuntu-latest
+
+    # Define job steps
+    steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Check-out repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.RELEASE_TOKEN }}
+
+    - name: Install poetry
+      uses: snok/install-poetry@v1
+
+    - name: Install package
       run: poetry install
+
     - name: Use Python Semantic Release to prepare release
-      id: semantic
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          # Run publish and capture the new version number it outputs.
-          # If no release is made, this variable will be empty.
-          new_version=$(poetry run semantic-release publish)
-          # Check if a new version was outputted
-          if [ -n "$new_version" ]; then
-            echo "A new version was released: $new_version"
-            echo "released=true" >> $GITHUB_OUTPUT
-          else
-            echo "No new version was released."
-            echo "released=false" >> $GITHUB_OUTPUT
-          fi
-    - name: Upload distributions
-      if: steps.semantic.outputs.released == 'true'
-      uses: actions/upload-artifact@v4
-      with:
-        name: dist
-        path: dist/
-    - name: Merge main back into development
-      if: steps.semantic.outputs.released == 'true'
-      run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          poetry run semantic-release version
+          poetry run semantic-release publish
           git checkout development
           git merge main
           git push origin development
 
-  pypi-publish:
-    name: Upload release to PyPI
-    needs: cd
-    if: needs.cd.outputs.released == 'true'
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/soso
-    permissions:
-      id-token: write
-    steps:
-      - name: Download distributions
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
-      - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}
