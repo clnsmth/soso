@@ -2,59 +2,6 @@
 
 
 
-## v0.5.0 (2025-09-02)
-
-
-### Bug fixes
-
-* fix: ensure temporary SPASE file is properly closed ([`8532d89`](https://github.com/clnsmth/soso/commit/8532d890f18a5b7737f0eea467d4e2a7f75a1107)) 
-* fix: standardize MIME type guessing with fallback (#263) ([`bb2906f`](https://github.com/clnsmth/soso/commit/bb2906f93cf5775583b09e853229122e6aa3af53)) 
-* fix: use platform-agnostic pathlib.Path type (#261) ([`7db7198`](https://github.com/clnsmth/soso/commit/7db719843a374338f8a3c6f21e6c0c4c87284737)) 
-* fix: subject/object order in EML SSSOM is reversed (#240) ([`990ab8a`](https://github.com/clnsmth/soso/commit/990ab8aa22e4e05960767558748150eabb150d12)) 
-
-### Build system
-
-* build: remove deprecated Poetry dev dependencies (#255) ([`d4615ab`](https://github.com/clnsmth/soso/commit/d4615abe65f770cf901e34597d78bb4db7818c1f)) 
-
-### Continuous integration
-
-* ci: add to PyPI on release ([`f1e5c24`](https://github.com/clnsmth/soso/commit/f1e5c2481f7d244ae70cda2ee4d68e54b6cd51fc)) 
-* ci: add CODEOWNERS to streamline maintenance (#235) ([`bd90e6a`](https://github.com/clnsmth/soso/commit/bd90e6ac94b0d25ef7bf4e325d5c4ab3da47bcb7)) 
-* ci: run CI on pull requests to any branch ([`aa2454e`](https://github.com/clnsmth/soso/commit/aa2454e40a3b0d7a7212648adaf3d67a6da3a8c8)) 
-* ci: remove redundant Poetry and package installation (#257) ([`25acabd`](https://github.com/clnsmth/soso/commit/25acabdf007f58d4be9c2844b2f5a7f0b4135c9c)) 
-* ci: harmonize black formatting versions (#252) ([`e57d7b4`](https://github.com/clnsmth/soso/commit/e57d7b4272e475534d72b732cafbbdff619cd350)) 
-
-### Documentation
-
-* docs: add missing docstring ([`d7eaea0`](https://github.com/clnsmth/soso/commit/d7eaea0dd16f44e3f000abd4e09dbcd99be23da1)) 
-* docs: remove text from logo to be DRY ([`9b98e21`](https://github.com/clnsmth/soso/commit/9b98e21d288def757b94ddc822c8f28c7027948b)) 
-* docs: add example vignette for more complex cases (#237) ([`f76cbda`](https://github.com/clnsmth/soso/commit/f76cbda58e22ab266cfb980d6c3dabef6008788c)) 
-* docs: support unrecognized properties in SOSO records (#243) ([`adcf6af`](https://github.com/clnsmth/soso/commit/adcf6af615b73b9b7fb54fe5ae26bbbecc582456)) 
-* docs: accommodating shared infrastructure code (#237) ([`913deb5`](https://github.com/clnsmth/soso/commit/913deb5f780e98db29d9a099209043e47a16dffd)) 
-* docs: add Zenodo DOI badge (#241) ([`e2b730b`](https://github.com/clnsmth/soso/commit/e2b730be0f575120125868b349e8b35f9b2c1987)) 
-* docs: update the documentation on skipping tests ([`ca734f4`](https://github.com/clnsmth/soso/commit/ca734f41d74e0880d5a321ccb3c59ef993042c0f)) 
-* docs: fix sidebar, changelog, and logo references ([`eac4ff1`](https://github.com/clnsmth/soso/commit/eac4ff1bb93d77385c1dff7083f7273c2951fbdc)) 
-* docs: make minor editing for consistency ([`4133086`](https://github.com/clnsmth/soso/commit/4133086df3a5bd3e3a06278a27ba57b08f367f20)) 
-* docs: add a logo for branding ([`40b12b8`](https://github.com/clnsmth/soso/commit/40b12b845c16956cebc6983cd467229af91ee8f0)) 
-* docs: improve the visibility of the Code of Conduct (#239) ([`fead0ee`](https://github.com/clnsmth/soso/commit/fead0eeec0ce629dce0755850b6245e026e23095)) 
-* docs: enhance contributing guidelines for clarity (#238) ([`1565297`](https://github.com/clnsmth/soso/commit/156529762c5a6075b6e38077b40b030b7be2a1e8)) 
-* docs: refine project scope for clarity and focus (#236) ([`4cf2b23`](https://github.com/clnsmth/soso/commit/4cf2b23b1a0efc9339e6a7d7df1026ffa1b68bbc)) 
-* docs: update pyproject.toml with SPASE authors (#234) ([`abf7963`](https://github.com/clnsmth/soso/commit/abf796318da0dbb9126d795fc56305be0e2c20d7)) 
-
-### Features
-
-* feat: complete SPASE strategy implementation ([`df49632`](https://github.com/clnsmth/soso/commit/df49632279933b477e6b9e49f961b1874b93469d)) 
-
-### Refactoring
-
-* refactor: add strategy specific directories (#242) ([`d331dac`](https://github.com/clnsmth/soso/commit/d331dac435759e0d914c73dc7c9094697a79cae7)) 
-* refactor: ensure SPASE strategy passes linting ([`5eca6bd`](https://github.com/clnsmth/soso/commit/5eca6bde642c8ea4b3e8c8cb069ed198a8691b7a)) 
-
-### Testing
-
-* test: remove unused argument to fix pylint issue ([`38ad988`](https://github.com/clnsmth/soso/commit/38ad9886dd71acc895da3561478c15ae78362705)) 
-* test: fix pytest.skipif declarations ([`595b2a5`](https://github.com/clnsmth/soso/commit/595b2a5f0e362c206aa79e7e683f316ef95b441e)) 
-
 ## v0.4.0 (2025-01-17)
 
 
