@@ -2,6 +2,17 @@
 
 
 
+## v0.5.2 (2025-09-02)
+
+
+### Bug fixes
+
+* fix: bump Zenodo release workflow ([`828fa5f`](https://github.com/clnsmth/soso/commit/828fa5f3b693c2c20c8366f457a3e43531fd35bb)) 
+
+### Continuous integration
+
+* ci: fix .zenodo.json contributor types ([`ef66b31`](https://github.com/clnsmth/soso/commit/ef66b31788ed2cff9b5ae667a103b04827a3ea62)) 
+
 ## v0.5.1 (2025-09-02)
 
 
