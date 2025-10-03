@@ -1671,6 +1671,18 @@ def name_splitter(person: str) -> tuple[str, str, str]:
         name_str = name_str.replace("'", "")
         if "." in name_str:
             given_name, _, family_name = name_str.partition(".")
+            # if first name is also initial
+            if len(given_name) == 1:
+                given_name += "."
+            # if person has a generational suffix
+            if (
+                family_name.endswith(".II")
+                or family_name.endswith(".III")
+                or family_name.endswith(".Jr")
+                or family_name.endswith(".Sr")
+            ):
+                family_name, _, suffix = family_name.rpartition(".")
+                family_name = family_name + " " + suffix
             # if name has initial(s)
             while "." in family_name:
                 initial, _, family_name = family_name.partition(".")
