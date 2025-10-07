@@ -2,6 +2,13 @@
 
 
 
+## v0.5.4 (2025-10-07)
+
+
+### Bug fixes
+
+* fix: address suffixes and first name initials ([`5041016`](https://github.com/clnsmth/soso/commit/5041016883d10bb16f54e54c2a8d1e70af78ae18)) 
+
 ## v0.5.3 (2025-09-02)
 
 
