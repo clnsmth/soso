@@ -12,6 +12,7 @@ python = "^3.11"
 pyshacl = "^0.26.0"
 requests = "^2.32.0"
 lxml = "^5.0.0"
+daiquiri = "^3.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"

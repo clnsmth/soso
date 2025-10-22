@@ -15,4 +15,5 @@ dependencies:
   - sphinx-autoapi
   - myst-parser
   - python-semantic-release
+  - daiquiri
 prefix: /opt/miniconda3/envs/soso-test
