@@ -36,3 +36,10 @@ Utilities
 .. automodule:: soso.utilities
     :members:
     :noindex:
+
+Validation
+----------
+
+.. automodule:: soso.validation
+    :members:
+    :noindex:
