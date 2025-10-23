@@ -2,6 +2,24 @@
 
 
 
+## v0.6.0 (2025-10-23)
+
+
+### Continuous integration
+
+* ci: check for release before uploading to PyPI ([`a2ecce9`](https://github.com/clnsmth/soso/commit/a2ecce9c645467179e246117b18a408b37dcab1d)) 
+
+### Features
+
+* feat: support bundled and local SHACL shape files (#302) ([`1e06fc4`](https://github.com/clnsmth/soso/commit/1e06fc45c4990985ce8f9d9e31a1853ba7747da9)) 
+* feat: implement daiquiri for structured logging (#302) ([`cedf21f`](https://github.com/clnsmth/soso/commit/cedf21fb0638d147f8a97aa33f8babaf11b4556d)) 
+* feat: reorganize validation code into dedicated module (#302) ([`52e285c`](https://github.com/clnsmth/soso/commit/52e285c428755679dedc76781cfa9ac3b7d6b2fe)) 
+
+### Refactoring
+
+* refactor: group validation code into a single file module (#302) ([`bc9ba6f`](https://github.com/clnsmth/soso/commit/bc9ba6f2c79fe3d7caa81ad9fd65ebdb2a9718b1)) 
+* refactor: return dictionary with provenance and report (#302) ([`c2bedd9`](https://github.com/clnsmth/soso/commit/c2bedd9fbaa8558706dfad2701f63e71edeee718)) 
+
 ## v0.5.4 (2025-10-07)
 
 
