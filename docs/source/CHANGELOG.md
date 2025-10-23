@@ -2,6 +2,13 @@
 
 
 
+## v0.6.1 (2025-10-23)
+
+
+### Bug fixes
+
+* fix: fix reference to soso PyPI listing ([`71c4781`](https://github.com/clnsmth/soso/commit/71c47816f8fe4d4fd9a7b53cc5aa31642b4733ff)) 
+
 ## v0.6.0 (2025-10-23)
 
 
