@@ -1,4 +1,4 @@
-"""The converter module."""
+"""The validation module."""
 
 from json import dumps
 from soso.strategies.eml.eml import EML

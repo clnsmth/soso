@@ -1,4 +1,4 @@
-"""Core validation functions."""
+"""The validation module."""
 
 from importlib import resources
 import pathlib
@@ -24,8 +24,8 @@ def validate(data_graph: str, shacl_graph: str = None) -> dict:
         ``report``: Full SHACL validation report as text.
     """
     if not shacl_graph:
-        shacl_graph = get_shacl_file_path()
-    shape_file = resolve_shacl_shape(shacl_graph)
+        shacl_graph = _get_shacl_file_path()
+    shape_file = _resolve_shacl_shape(shacl_graph)
     conforms, _, results_text = pyshacl.validate(
         data_graph=data_graph,
         shacl_graph=shape_file,
@@ -42,7 +42,7 @@ def validate(data_graph: str, shacl_graph: str = None) -> dict:
     }
 
 
-def get_shacl_file_path() -> pathlib.Path:
+def _get_shacl_file_path() -> pathlib.Path:
     """Return the SHACL shape file path for the SOSO dataset graph.
 
     The shape file is for the current release version of the SOSO dataset
@@ -54,7 +54,7 @@ def get_shacl_file_path() -> pathlib.Path:
     return file_path
 
 
-def resolve_shacl_shape(shacl_shape: str = None) -> str:
+def _resolve_shacl_shape(shacl_shape: str = None) -> str:
     """Resolve the SHACL shape to a usable file path.
 
     If `shacl_shape` is a valid file path it is returned. If it matches a bundled
