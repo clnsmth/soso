@@ -2,10 +2,10 @@
 
 from pathlib import Path
 import pytest
-from soso.validation.core import (
+from soso.validation import (
     validate,
-    get_shacl_file_path,
-    resolve_shacl_shape,
+    _get_shacl_file_path,
+    _resolve_shacl_shape,
 )
 
 
@@ -31,34 +31,34 @@ def temp_shacl_file(tmp_path):
 
 
 def test_get_shacl_file_path_returns_path():
-    """Test that get_shacl_file_path returns a path."""
-    file_path = get_shacl_file_path()
+    """Test that _get_shacl_file_path returns a path."""
+    file_path = _get_shacl_file_path()
     assert isinstance(file_path, Path)
 
 
 def test_resolve_shacl_shape_bundled():
     """Should resolve to a path for the bundled shape"""
-    shape_path = resolve_shacl_shape("soso_common_v1.2.3.ttl")
+    shape_path = _resolve_shacl_shape("soso_common_v1.2.3.ttl")
     assert "soso_common_v1.2.3.ttl" in shape_path
 
 
 def test_resolve_shacl_shape_local(shacl_file_path):
     """Should resolve to the local file path"""
-    shape_path = resolve_shacl_shape(shacl_file_path)
+    shape_path = _resolve_shacl_shape(shacl_file_path)
     assert shape_path == shacl_file_path
 
 
 def test_resolve_shacl_shape_missing_raises_file_not_found():
     """Should raise FileNotFoundError for a non-existent resource"""
     with pytest.raises(FileNotFoundError):
-        resolve_shacl_shape("this_shape_does_not_exist.ttl")
+        _resolve_shacl_shape("this_shape_does_not_exist.ttl")
 
 
 @pytest.mark.internet_required
 def test_validate_with_bundled_shape():
     """Validate using a bundled SHACL shape."""
     bundled_shape = "soso_common_v1.2.3.ttl"
-    shape_path = resolve_shacl_shape(bundled_shape)
+    shape_path = _resolve_shacl_shape(bundled_shape)
     result = validate("tests/incomplete.jsonld", shacl_graph=shape_path)
     assert isinstance(result, dict)
     assert result["shacl_graph"] == shape_path
