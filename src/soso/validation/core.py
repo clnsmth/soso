@@ -1,39 +1,45 @@
 """Core validation functions."""
 
-import urllib.error
 from importlib import resources
 import pathlib
-import warnings
 import pyshacl.validate
 
 
-def validate(graph: str) -> bool:
-    """Validate a graph against the SOSO dataset SHACL shape.
-
-    :param graph: File path of the JSON-LD graph to validate.
-
-    :returns:   Whether the graph conforms to the SOSO shape. If no internet
-                connection is available, None is returned.
-
-    Notes:
-        This function wraps `pyshacl.validate`, which requires an internet
-        connection.
+def validate(data_graph: str, shacl_graph: str = None) -> dict:
     """
-    try:
-        res = pyshacl.validate(
-            data_graph=graph,
-            shacl_graph=str(get_shacl_file_path()),
-            data_graph_format="json-ld",
-            shacl_graph_format="turtle",
-        )
-        conforms = res[0]
-        results_text = res[2]
-        if not conforms:
-            warnings.warn(results_text)
-        return conforms
-    except urllib.error.URLError as errors:
-        warnings.warn(errors)
-        return None
+    Validate a data graph against a SHACL shape graph.
+
+    This is a simple wrapper around `pyshacl.validate`.
+
+    :param data_graph: The path to the data graph file in JSON-LD format.
+    :param shacl_graph: The path to the SHACL shape graph file in Turtle format.
+        If shacl_graph is a valid file path,use it. If it matches a known
+        resource, resolve from package. If `None`, a default SOSO SHACL shape is
+        used. Available package resources include: ``soso_common_v1.2.3.ttl``.
+
+    :returns: A dictionary with validation results, including:
+        ``data_graph``: The input data graph path.
+        ``shacl_graph``: The resolved SHACL shape graph path.
+        ``conforms``: Boolean indicating if the data graph conforms to the SHACL shape.
+        ``report``: Full SHACL validation report as text.
+    """
+    if not shacl_graph:
+        shacl_graph = get_shacl_file_path()
+    shape_file = resolve_shacl_shape(shacl_graph)
+    conforms, _, results_text = pyshacl.validate(
+        data_graph=data_graph,
+        shacl_graph=shape_file,
+        data_graph_format="json-ld",
+        shacl_graph_format="turtle",
+        inference="none",
+        debug=False,
+    )
+    return {
+        "data_graph": data_graph,
+        "shacl_graph": shape_file,
+        "conforms": conforms,
+        "report": results_text,
+    }
 
 
 def get_shacl_file_path() -> pathlib.Path:
