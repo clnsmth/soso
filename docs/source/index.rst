@@ -20,7 +20,7 @@ Release v\ |version|. (:ref:`Installation <quickstart>`)
     :alt: Latest Zenodo DOI
 
 .. image:: https://img.shields.io/pypi/v/soso?color=blue&label=pypi
-    :target: https://pypi.org/project/geoenv/
+    :target: https://pypi.org/project/soso/
     :alt: Package version
 
 For converting dataset metadata into `Science On Schema.Org`_ markup.
