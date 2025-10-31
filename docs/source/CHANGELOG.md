@@ -2,6 +2,13 @@
 
 
 
+## v0.6.2 (2025-10-31)
+
+
+### Bug fixes
+
+* fix: rename logging.py to avoid standard library conflict ([`66295f9`](https://github.com/clnsmth/soso/commit/66295f980bff12c3bb3fb917919f79274920784a)) 
+
 ## v0.6.1 (2025-10-23)
 
 
