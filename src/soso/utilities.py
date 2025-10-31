@@ -2,6 +2,7 @@
 
 import mimetypes
 import re
+import logging
 from urllib.parse import urlparse
 from importlib import resources
 from numbers import Number
@@ -10,6 +11,7 @@ import pathlib
 from typing import Any, Union
 import warnings
 import requests
+import daiquiri
 
 
 def get_sssom_file_path(strategy: str) -> pathlib.Path:
@@ -300,3 +302,19 @@ def guess_mime_type_with_fallback(filename: str) -> str | None:
     )
     system_guess, _ = mimetypes.guess_type(filename)
     return system_guess
+
+
+def setup_logging(level: str = "INFO", log_file: str = None):
+    """
+    Set up global Daiquiri logging for the application.
+
+    Configures logging to output to the console (with color formatting) and optionally to a file.
+    Should be called once at application startup (e.g., in main.py or CLI entry point).
+
+    :param level: Logging level to use (e.g., "DEBUG", "INFO", "WARNING", "ERROR").
+    :param log_file: If provided, log output will also be written to this file.
+    """
+    outputs = [daiquiri.output.Stream(formatter=daiquiri.formatter.ColorFormatter())]
+    if log_file:
+        outputs.append(daiquiri.output.File(log_file, formatter=logging.Formatter()))
+    daiquiri.setup(level=level, outputs=tuple(outputs))
