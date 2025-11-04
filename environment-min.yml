@@ -3,17 +3,17 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.11
-  - pyshacl
-  - lxml
-  - pytest
-  - pylint
-  - black
-  - requests
   - pytest-cov
-  - sphinx
-  - sphinx-autoapi
+  - black
   - myst-parser
-  - python-semantic-release
+  - sphinx
+  - pylint
+  - pyshacl
+  - requests
   - daiquiri
-prefix: /opt/miniconda3/envs/soso-test
+  - python-semantic-release
+  - python=3.11
+  - pytest
+  - sphinx-autoapi
+  - lxml
+prefix: /opt/miniconda3/envs/soso
