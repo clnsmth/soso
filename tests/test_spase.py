@@ -39,7 +39,7 @@ def test_get_schema_version_returns_expected_value():
     # Positive case: The function will return the schema version of the SPASE
     # file.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
-    assert get_schema_version(spase) == "2.5.0"
+    assert get_schema_version(spase) == "2.7.1"
 
     # Negative case: If the schema version is not present, the function will
     # return None.
@@ -740,7 +740,7 @@ def test_get_metadata_license_returns_expected_value():
     # Positive case: The function will return the metadata license found
     # in the top-level SPASE line as an attribute.
     spase = etree.parse(get_example_metadata_file_path("SPASE"))
-    assert get_metadata_license(spase) == "Creative Commons Zero v1.0 Universal"
+    assert get_metadata_license(spase) == ["Creative Commons Zero v1.0 Universal"]
 
     # Negative case: If the metadata license is not present, the function will
     # return None.

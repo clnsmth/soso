@@ -5,6 +5,7 @@ import json
 import re
 import os
 import tempfile
+import importlib.resources
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Union, List, Dict
@@ -403,10 +404,11 @@ class SPASE(StrategyInterface):
                 entry["@id"] = content_url
             if metadata_license:
                 # find URL associated w license found in top-level SPASE line
-                license_url = ""
-                for each in common_licenses:
-                    if each["fullName"] == metadata_license:
-                        license_url = each["url"]
+                license_url = []
+                for meta_license in metadata_license:
+                    for each in common_licenses:
+                        if each["fullName"] == meta_license:
+                            license_url.append(each["url"])
                 # if license is not in lookup table
                 if not license_url:
                     # find license info from SPDX data file at
@@ -661,10 +663,11 @@ class SPASE(StrategyInterface):
 
         if start:
             if stop:
-                temporal_coverage = {
-                    "@type": "DateTime",
-                    "temporalCoverage": f"{start.strip()}/{stop.strip()}",
-                }
+                # temporal_coverage = {
+                # "@type": "DateTime",
+                # "temporalCoverage": f"{start.strip()}/{stop.strip()}",
+                # }
+                temporal_coverage = f"{start.strip()}/{stop.strip()}"
             # in case there is a RelativeStopDate
             else:
                 temporal_coverage = f"{start}/.."
@@ -749,7 +752,7 @@ class SPASE(StrategyInterface):
                     author_str, given_name, family_name = name_splitter(person)
                     # get additional info (if any)
                     # uncomment if making snapshot and also add '**kwargs: dict' as parameter
-                    # if not kwargs:
+                    #if not kwargs:
                     orcid_id, affiliation, ror = get_orcid_and_affiliation(
                         person, self.file
                     )
@@ -789,7 +792,7 @@ class SPASE(StrategyInterface):
                                 if person == val:
                                     matching_contact = True
                                     # uncomment if making snapshot
-                                    # if not kwargs:
+                                    #if not kwargs:
                                     orcid_id, affiliation, ror = (
                                         get_orcid_and_affiliation(key, self.file)
                                     )
@@ -823,7 +826,9 @@ class SPASE(StrategyInterface):
                     person = author_str.replace("'", "")
                     # determine if creator is a consortium
                     with open(
-                        "./src/soso/strategies/spase/spase-ignoreCreatorSplit.txt",
+                        importlib.resources.files("soso.strategies.spase").joinpath(
+                            "spase-ignoreCreatorSplit.txt"
+                        ),
                         "r",
                         encoding="utf-8",
                     ) as f:
@@ -831,14 +836,14 @@ class SPASE(StrategyInterface):
                     if ", " in person:
                         # if file is not in list of ones to not have their creators split
                         if self.file.replace(home_dir, "") not in do_not_split:
-                            family_name, _, given_name = person.partition(",")
+                            family_name, _, given_name = person.partition(", ")
                             # find matching person in contacts, if any, to get affiliation and ORCiD
                             for key, val in contacts_list.items():
                                 if not matching_contact:
                                     if person == val:
                                         matching_contact = True
                                         # uncomment if making snapshot
-                                        # if not kwargs:
+                                        #if not kwargs:
                                         orcid_id, affiliation, ror = (
                                             get_orcid_and_affiliation(key, self.file)
                                         )
@@ -911,10 +916,10 @@ class SPASE(StrategyInterface):
                 # attempt to get ORCiD and affiliation
                 orcid_id, affiliation, ror = get_orcid_and_affiliation(key, self.file)
                 # if contact has more than 1 role
-                if len(contacts_list[key]) > 1:
+                if len(val) > 1:
                     individual = person_format(
                         "contributor",
-                        contacts_list[key],
+                        val,
                         contributor_str,
                         given_name,
                         family_name,
@@ -926,7 +931,7 @@ class SPASE(StrategyInterface):
                 else:
                     individual = person_format(
                         "contributor",
-                        contacts_list[key][0],
+                        val[0],
                         contributor_str,
                         given_name,
                         family_name,
@@ -1094,9 +1099,22 @@ class SPASE(StrategyInterface):
     def get_license(self) -> Union[List, None]:
         # Mapping: schema:license = spase:AccessInformation/spase:RightsList/spase:Rights
         # Using schema:license as defined in: https://schema.org/license
-        license_url = []
+        licenses = []
+
+        """<RightsList>
+            <Rights>
+                <SchemeURI>https://spdx.org/licenses/</SchemeURI>
+                <RightsIdentifierScheme>SPDX</RightsIdentifierScheme>
+                <RightsIdentifier>CC0-1.0</RightsIdentifier>
+                <RightsURI>https://spdx.org/licenses/CC0-1.0.html</RightsURI>
+                <RightsName>Creative Commons Zero v1.0 Universal</RightsName>
+                <Note>CC0 1.0 Universal is the Creative Commons license applicable 
+                    to all publicly available NASA Heliophysics data products</Note>
+            </Rights>
+        </RightsList>"""
 
         desired_tag = self.desired_root.tag.split("}")
+        rights_uri = None
         spase_location = (
             ".//spase:"
             + f"{desired_tag[1]}/spase:AccessInformation/spase:RightsList/spase:Rights"
@@ -1105,13 +1123,16 @@ class SPASE(StrategyInterface):
             spase_location,
             namespaces=self.namespaces,
         ):
-            if [item.get("rightsURI")] not in license_url:
-                license_url.append(item.get("rightsURI"))
-        if not license_url:
-            license_url = None
-        elif len(license_url) == 1:
-            license_url = license_url[0]
-        return delete_null_values(license_url)
+            for child in item.iter(tag=etree.Element):
+                if child.tag.endswith("RightsURI"):
+                    rights_uri = child.text
+            if rights_uri not in licenses:
+                licenses.append(rights_uri)
+        if not licenses:
+            licenses = None
+        # elif len(licenses) == 1:
+        #    licenses = licenses[0]
+        return delete_null_values(licenses)
 
     def get_was_revision_of(self) -> Union[List[Dict], Dict, None]:
         # Mapping: prov:wasRevisionOf = spase:Association/spase:AssociationID
@@ -1151,9 +1172,9 @@ class SPASE(StrategyInterface):
         # commenting out observatories because of the email with Baptiste and Donny
         instruments = get_instrument(self.metadata, self.file)
         # only uncomment if trying to generate snapshot spase.json
-        # instruments = get_instrument(
-        # self.metadata, self.file, **{"testing": "soso-spase/tests/data/spase/"}
-        # )
+        #instruments = get_instrument(
+        #    self.metadata, self.file, **{"testing": "soso-spase/tests/data/spase/"}
+        #    )
         # observatories = get_observatory(self.metadata, self.file)
         was_generated_by = []
 
@@ -1549,27 +1570,51 @@ def person_format(
         if person_type == "creator":
             entry = {"@type": item_type, "name": name}
             if (given_name and family_name) and item_type == "Person":
-                entry["familyName"] = family_name
-                entry["givenName"] = given_name
+                entry["familyName"] = family_name.strip()
+                entry["givenName"] = given_name.strip()
         elif person_type == "contributor":
-            # Split string on uppercase characters
-            res = re.split(r"(?=[A-Z])", role_name)
-            # prevent 'PI' from turning into 'P I'
-            if "PI" in role_name:
-                first, sep, _ = role_name.partition("PI")
-                if "Co" in first:
-                    pretty_name = first + "-" + sep
-                else:
-                    pretty_name = first + " " + sep
-            # Remove empty strings and join with space or hypen depending on role_name
-            elif "Co" in role_name:
-                pattern = r"{}(?=[A-Z])".format(re.escape("Co"))
-                if bool(re.search(pattern, role_name)):
-                    pretty_name = "-".join(filter(None, res))
+            if isinstance(role_name, list):
+                pretty_name = []
+                for role in role_name:
+                    # Split string on uppercase characters
+                    res = re.split(r"(?=[A-Z])", role)
+                    # prevent 'PI' from turning into 'P I'
+                    if "PI" in role:
+                        first, sep, _ = role.partition("PI")
+                        if "Co" in first:
+                            separated_name = first + "-" + sep
+                        else:
+                            separated_name = first + " " + sep
+                    # Remove empty strings and join with space or hypen depending on role
+                    elif "Co" in role:
+                        pattern = r"{}(?=[A-Z])".format(re.escape("Co"))
+                        if bool(re.search(pattern, role)):
+                            separated_name = "-".join(filter(None, res))
+                        else:
+                            separated_name = " ".join(filter(None, res))
+                    else:
+                        separated_name = " ".join(filter(None, res))
+                    pretty_name.append(separated_name.strip())
+            else:
+                # Split string on uppercase characters
+                res = re.split(r"(?=[A-Z])", role_name)
+                # prevent 'PI' from turning into 'P I'
+                if "PI" in role_name:
+                    first, sep, _ = role_name.partition("PI")
+                    if "Co" in first:
+                        pretty_name = first + "-" + sep
+                    else:
+                        pretty_name = first + " " + sep
+                # Remove empty strings and join with space or hypen depending on role_name
+                elif "Co" in role_name:
+                    pattern = r"{}(?=[A-Z])".format(re.escape("Co"))
+                    if bool(re.search(pattern, role_name)):
+                        pretty_name = "-".join(filter(None, res))
+                    else:
+                        pretty_name = " ".join(filter(None, res))
                 else:
                     pretty_name = " ".join(filter(None, res))
-            else:
-                pretty_name = " ".join(filter(None, res))
+                pretty_name = pretty_name.strip()
             # most basic format for contributor item
             entry = {
                 "@type": ["Role", "DefinedTerm"],
@@ -1583,8 +1628,8 @@ def person_format(
             }
 
             if (given_name and family_name) and item_type == "Person":
-                entry["contributor"]["familyName"] = family_name
-                entry["contributor"]["givenName"] = given_name
+                entry["contributor"]["familyName"] = family_name.strip()
+                entry["contributor"]["givenName"] = given_name.strip()
 
             if first_entry:
                 entry["inDefinedTermSet"]["@type"] = "DefinedTermSet"
@@ -1828,9 +1873,9 @@ def get_instrument(
             if "src/soso/strategies/spase/" in path:
                 # being called by testing function = change directory to xml file in tests folder
                 # only uncomment these lines if using snapshot creation script
-                # if "soso-spase/" in path:
-                # record = abs_path + item.replace("spase://", "") + ".xml"
-                # else:
+                #if "soso-spase/" in path:
+                #    record = abs_path + item.replace("spase://", "") + ".xml"
+                #else:
                 # if called by CI
                 *_, file_name = item.rpartition("/")
                 record = abs_path + "tests/data/spase/" + f"spase-{file_name}" + ".xml"
@@ -2313,15 +2358,37 @@ def get_metadata_license(metadata: etree.ElementTree) -> Union[str, None]:
     """
     :param metadata: The metadata object as an XML tree.
 
-    :returns: The metadata license of the SPASE record.
+    :returns: The metadata license(s) of the SPASE record.
     """
-    metadata_license = None
+
+    """<MetadataRightsList>
+            <Rights>
+                <SchemeURI>https://spdx.org/licenses/</SchemeURI>
+                <RightsIdentifierScheme>SPDX</RightsIdentifierScheme>
+                <RightsIdentifier>CC0-1.0</RightsIdentifier>
+                <RightsURI>https://spdx.org/licenses/CC0-1.0.html</RightsURI>
+                <RightsName>Creative Commons Zero v1.0 Universal</RightsName>
+                <Note>CC0 1.0 Universal is the Creative Commons license applicable 
+                    to all publicly available SPASE metadata descriptions</Note>
+            </Rights>
+        </MetadataRightsList>"""
+    metadata_license = []
+    desired_root = None
     root = metadata.getroot()
-    attributes = root.attrib
-    # key looks like this: {http://www.w3.org/2001/XMLSchema-instance}rights
-    for key, val in attributes.items():
-        if "rights" in key:
-            metadata_license = val
+    for elt in root.iter(tag=etree.Element):
+        if elt.tag.endswith("MetadataRightsList"):
+            desired_root = elt
+    if desired_root is not None:
+        for elt in desired_root.iter(tag=etree.Element):
+            if elt.tag.endswith("Rights"):
+                target_child = elt
+                for child in target_child:
+                    if child.tag.endswith("RightsName"):
+                        metadata_license.append(child.text)
+        if not metadata_license:
+            metadata_license = None
+    else:
+        metadata_license = None
     return metadata_license
 
 
@@ -2376,7 +2443,9 @@ def process_authors(
     else:
         # determine if authors are a consortium
         with open(
-            "./src/soso/strategies/spase/spase-ignoreCreatorSplit.txt",
+            importlib.resources.files("soso.strategies.spase").joinpath(
+                "spase-ignoreCreatorSplit.txt"
+            ),
             "r",
             encoding="utf-8",
         ) as f:
@@ -2809,11 +2878,11 @@ def get_relation(
                     spase_license = test_spase.get_license()
                     # to ensure snapshot matches when running in local env
                     # uncomment if creating snapshot
-                    # if "soso-spase" in file:
-                    # creators = test_spase.get_creator(
-                    # **{"placeholder": "so that snapshot matches"}
+                    #if "soso-spase" in file:
+                    #    creators = test_spase.get_creator(
+                    #    **{"placeholder": "so that snapshot matches"}
                     #    )
-                    # else:
+                    #else:
                     creators = test_spase.get_creator()
                     if creators is None:
                         creators = "No creators were found. View record for contacts."
