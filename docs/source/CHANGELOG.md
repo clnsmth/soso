@@ -2,6 +2,22 @@
 
 
 
+## v0.7.0 (2025-11-26)
+
+
+### Build system
+
+* build: address CVEs ([`37254a9`](https://github.com/clnsmth/soso/commit/37254a9b7061a9d80bfaf868c930148dd0bef258)) 
+* build: address CVEs ([`9f4d1df`](https://github.com/clnsmth/soso/commit/9f4d1dfa0e57ce5ab556d1473ec93416b5f43fe2)) 
+
+### Features
+
+* feat: update for SPASE 2.7.1 and other minor fixes ([`c92fb2c`](https://github.com/clnsmth/soso/commit/c92fb2c07377980ef72db5d7b7e0a384e17e2d85)) 
+
+### Refactoring
+
+* refactor: apply formatting to c92fb2c ([`339f14e`](https://github.com/clnsmth/soso/commit/339f14ef18f894dc35f601e31b3c9c276cfa41f5)) 
+
 ## v0.6.2 (2025-10-31)
 
 
