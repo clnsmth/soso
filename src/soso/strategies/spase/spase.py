@@ -752,7 +752,7 @@ class SPASE(StrategyInterface):
                     author_str, given_name, family_name = name_splitter(person)
                     # get additional info (if any)
                     # uncomment if making snapshot and also add '**kwargs: dict' as parameter
-                    #if not kwargs:
+                    # if not kwargs:
                     orcid_id, affiliation, ror = get_orcid_and_affiliation(
                         person, self.file
                     )
@@ -792,7 +792,7 @@ class SPASE(StrategyInterface):
                                 if person == val:
                                     matching_contact = True
                                     # uncomment if making snapshot
-                                    #if not kwargs:
+                                    # if not kwargs:
                                     orcid_id, affiliation, ror = (
                                         get_orcid_and_affiliation(key, self.file)
                                     )
@@ -843,7 +843,7 @@ class SPASE(StrategyInterface):
                                     if person == val:
                                         matching_contact = True
                                         # uncomment if making snapshot
-                                        #if not kwargs:
+                                        # if not kwargs:
                                         orcid_id, affiliation, ror = (
                                             get_orcid_and_affiliation(key, self.file)
                                         )
@@ -1172,7 +1172,7 @@ class SPASE(StrategyInterface):
         # commenting out observatories because of the email with Baptiste and Donny
         instruments = get_instrument(self.metadata, self.file)
         # only uncomment if trying to generate snapshot spase.json
-        #instruments = get_instrument(
+        # instruments = get_instrument(
         #    self.metadata, self.file, **{"testing": "soso-spase/tests/data/spase/"}
         #    )
         # observatories = get_observatory(self.metadata, self.file)
@@ -1873,9 +1873,9 @@ def get_instrument(
             if "src/soso/strategies/spase/" in path:
                 # being called by testing function = change directory to xml file in tests folder
                 # only uncomment these lines if using snapshot creation script
-                #if "soso-spase/" in path:
+                # if "soso-spase/" in path:
                 #    record = abs_path + item.replace("spase://", "") + ".xml"
-                #else:
+                # else:
                 # if called by CI
                 *_, file_name = item.rpartition("/")
                 record = abs_path + "tests/data/spase/" + f"spase-{file_name}" + ".xml"
@@ -2878,11 +2878,11 @@ def get_relation(
                     spase_license = test_spase.get_license()
                     # to ensure snapshot matches when running in local env
                     # uncomment if creating snapshot
-                    #if "soso-spase" in file:
+                    # if "soso-spase" in file:
                     #    creators = test_spase.get_creator(
                     #    **{"placeholder": "so that snapshot matches"}
                     #    )
-                    #else:
+                    # else:
                     creators = test_spase.get_creator()
                     if creators is None:
                         creators = "No creators were found. View record for contacts."
