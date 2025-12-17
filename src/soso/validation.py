@@ -1,5 +1,6 @@
 """The validation module."""
 
+import warnings
 from importlib import resources
 import pathlib
 import pyshacl.validate
@@ -26,20 +27,25 @@ def validate(data_graph: str, shacl_graph: str = None) -> dict:
     if not shacl_graph:
         shacl_graph = _get_shacl_file_path()
     shape_file = _resolve_shacl_shape(shacl_graph)
-    conforms, _, results_text = pyshacl.validate(
-        data_graph=data_graph,
-        shacl_graph=shape_file,
-        data_graph_format="json-ld",
-        shacl_graph_format="turtle",
-        inference="none",
-        debug=False,
-    )
-    return {
-        "data_graph": data_graph,
-        "shacl_graph": shape_file,
-        "conforms": conforms,
-        "report": results_text,
-    }
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", category=DeprecationWarning, module="rdflib|pyshacl"
+        )
+        conforms, _, results_text = pyshacl.validate(
+            data_graph=data_graph,
+            shacl_graph=shape_file,
+            data_graph_format="json-ld",
+            shacl_graph_format="turtle",
+            inference="none",
+            debug=False,
+        )
+        return {
+            "data_graph": data_graph,
+            "shacl_graph": shape_file,
+            "conforms": conforms,
+            "report": results_text,
+        }
 
 
 def _get_shacl_file_path() -> pathlib.Path:
