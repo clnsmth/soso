@@ -213,14 +213,17 @@ def main(folder: str, additional_license_info: bool = None) -> None:
                 searched.append(record)
 
                 # additional schema.org properties not supported by SOSO
-                kwargs = {
-                    "temporal": temporal,
-                    "alternateName": alternate_name,
-                    "inLanguage": in_language,
-                    "mentions": mentions,
-                    "isPartOf": is_part_of,
-                    "measurementMethod": measurement_method,
-                }
+                kwargs = {"inLanguage": in_language}
+                if temporal is not None:
+                    kwargs["temporal"] = temporal
+                if alternate_name is not None:
+                    kwargs["alternateName"] = alternate_name
+                if mentions is not None:
+                    kwargs["mentions"] = mentions
+                if is_part_of is not None:
+                    kwargs["isPartOf"] = is_part_of
+                if measurement_method is not None:
+                    kwargs["measurementMethod"] = measurement_method
                 if additional_license_info:
                     kwargs["subjectOf"] = subject_of
 
