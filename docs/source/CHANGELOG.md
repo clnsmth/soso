@@ -2,6 +2,22 @@
 
 
 
+## v0.7.1 (2026-01-30)
+
+
+### Bug fixes
+
+* fix: remove null kwargs appearances in JSON output ([`4f2de82`](https://github.com/clnsmth/soso/commit/4f2de82a7607123d232bffbbfb8e628a11a45d81)) 
+
+### Build system
+
+* build: update environment ([`adacd8b`](https://github.com/clnsmth/soso/commit/adacd8b901e9c8638efc03a87b80301b2e2d6ba0)) 
+* build: address CVEs ([`93d2b69`](https://github.com/clnsmth/soso/commit/93d2b691e38f3736716cb7cc53f43a2d1c0b9fed)) 
+
+### Refactoring
+
+* refactor: add warning suppression to validation utility ([`d07a6cb`](https://github.com/clnsmth/soso/commit/d07a6cbc9db3477e7afd18a7e26e8083f35201d7)) 
+
 ## v0.7.0 (2025-11-26)
 
 
