@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "soso"
-version = "0.7.1"
+version = "1.0.0"
 description = "For Converting Metadata Records into Science On Schema.Org Markup"
 authors = ["Colin Smith <colin.smith@wisc.edu>", "Zach Boquet", "Rebecca Ringuette"]
 maintainers = ["Colin Smith <colin.smith@wisc.edu>", "Zach Boquet"]

@@ -2,6 +2,24 @@
 
 
 
+## v1.0.0 (2026-02-18)
+
+
+### Bug fixes
+
+* fix: validate SPDX license URL host and path ([`17e1aed`](https://github.com/clnsmth/soso/commit/17e1aed1a2879f3e8ebbfca9b4a63f5ac52a0309)) 
+* fix: use strict host validation for SPDX identifiers ([`7b48a76`](https://github.com/clnsmth/soso/commit/7b48a76c0bf82b9d78f99a88da764a0f860f5681)) 
+* fix: loosen version constraints for dependencies ([`f66bb03`](https://github.com/clnsmth/soso/commit/f66bb03cdb9e7ab3fb0bd4713013b4d71ddf9494)) 
+* fix: import pyshacl instead of specific function ([`2038e83`](https://github.com/clnsmth/soso/commit/2038e83df7bdde3c723e2fabfac880b2d38126b8)) 
+
+### Build system
+
+* build: update environment ([`c1b4c18`](https://github.com/clnsmth/soso/commit/c1b4c185a2bd6674757dc07238591699791ec56b)) 
+
+### Continuous integration
+
+* ci: define explicit permissions for CI/CD pipeline ([`21b8c3b`](https://github.com/clnsmth/soso/commit/21b8c3b5569faaa23a68d81c9a2bfca43338fbb5)) 
+
 ## v0.7.1 (2026-01-30)
 
 
