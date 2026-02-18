@@ -3,7 +3,6 @@
 from typing import Union
 from urllib.parse import urlparse
 from lxml import etree
-from urllib.parse import urlparse
 from soso.interface import StrategyInterface
 from soso.utilities import (
     delete_null_values,
@@ -12,6 +11,7 @@ from soso.utilities import (
     is_url,
     guess_mime_type_with_fallback,
 )
+
 
 class EML(StrategyInterface):
     """Define the conversion strategy for EML (Ecological Metadata Language).

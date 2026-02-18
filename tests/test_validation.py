@@ -17,16 +17,14 @@ def temp_shacl_file(tmp_path):
     yields the file path to the test, and relies on pytest's `tmp_path` for cleanup.
     """
     file_path = tmp_path / "temp_shape.ttl"
-    file_path.write_text(
-        """
+    file_path.write_text("""
         @prefix sh: <http://www.w3.org/ns/shacl#> .
         @prefix ex: <http://example.org/> .
 
         ex:DatasetShape
             a sh:NodeShape ;
             sh:targetClass ex:Dataset .
-        """
-    )
+        """)
     yield str(file_path)
 
 

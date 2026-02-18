@@ -613,7 +613,7 @@ class SPASE(StrategyInterface):
         #   spase:PublicationInfo/spase:PublicationDate
         # OR spase:ResourceHeader/spase:RevisionHistory/spase:ReleaseDate
         # Using schema:DateTime as defined in: https://schema.org/DateTime
-        (_, _, pub_date, _, _, _, _, _) = get_authors(self.metadata)
+        _, _, pub_date, _, _, _, _, _ = get_authors(self.metadata)
         date_published = None
         _, revisions = get_dates(self.metadata)
         if pub_date == "":
@@ -893,7 +893,7 @@ class SPASE(StrategyInterface):
         #   plus the additional properties if available: affiliation and identifier (ORCiD ID),
         #       which are pulled from SMWG Person SPASE records
         # Using schema:Person as defined in: https://schema.org/Person
-        (*_, contributors, _, backups, contacts_list) = get_authors(self.metadata)
+        *_, contributors, _, backups, contacts_list = get_authors(self.metadata)
         contributor = []
         first_contrib = True
         # holds role values that are not initially considered for contributor var
@@ -2972,7 +2972,7 @@ def update_log(cwd: str, addition: str, log_file_name: str) -> None:
 
 
 def make_trial_start_and_stop(
-    temp_covg: Union[str, Dict]
+    temp_covg: Union[str, Dict],
 ) -> Union[tuple[str, str], None]:
     """
     Creates a test end time for the dataset based on the TemporalDescription found in
