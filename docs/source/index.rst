@@ -3,9 +3,9 @@ soso
 
 Release v\ |version|. (:ref:`Installation <quickstart>`)
 
-.. image:: https://www.repostatus.org/badges/latest/wip.svg
-    :target: https://www.repostatus.org/#wip
-    :alt: Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.
+.. image:: https://www.repostatus.org/badges/latest/active.svg
+   :alt: Project Status: Active – The project has reached a stable, usable state and is being actively developed.
+   :target: https://www.repostatus.org/#active
 
 .. image:: https://github.com/clnsmth/soso/actions/workflows/ci-cd.yml/badge.svg
     :target: https://github.com/clnsmth/soso/actions/workflows/ci-cd.yml
