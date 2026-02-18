@@ -2,6 +2,7 @@
 
 from typing import Union
 from lxml import etree
+from urllib.parse import urlparse
 from soso.interface import StrategyInterface
 from soso.utilities import (
     delete_null_values,
@@ -10,7 +11,6 @@ from soso.utilities import (
     is_url,
     guess_mime_type_with_fallback,
 )
-
 
 class EML(StrategyInterface):
     """Define the conversion strategy for EML (Ecological Metadata Language).
@@ -702,8 +702,12 @@ def get_checksum(data_entity_element: etree._Element) -> Union[list, None]:
     """
     checksum = []
     for item in data_entity_element.xpath(".//physical/authentication"):
-        if item.get("method") is not None and "spdx.org" in item.get("method"):
-            algorithm = item.get("method").split("#")[-1]
+        method = item.get("method")
+        if method is None:
+            continue
+        parsed_method = urlparse(method)
+        if parsed_method.hostname == "spdx.org":
+            algorithm = parsed_method.fragment or method.split("#")[-1]
             res = {
                 "@type": "spdx:Checksum",
                 "spdx:checksumValue": item.text,
