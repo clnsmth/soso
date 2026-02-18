@@ -1,6 +1,7 @@
 """The EML strategy module."""
 
 from typing import Union
+from urllib.parse import urlparse
 from lxml import etree
 from urllib.parse import urlparse
 from soso.interface import StrategyInterface
@@ -297,9 +298,19 @@ class EML(StrategyInterface):
 
     def get_license(self) -> Union[str, None]:
         license_url = self.metadata.findtext(".//dataset/licensed/url")
-        if license_url and "spdx.org" in license_url and ".html" in license_url:
-            license_url = license_url[:-5]
-            return delete_null_values(license_url)
+        if not license_url:
+            return None
+
+        parsed = urlparse(license_url)
+        # Accept only SPDX license URLs served directly from spdx.org over HTTP(S),
+        # with a path ending in ".html", then normalize by stripping the suffix.
+        if (
+            parsed.scheme in ("http", "https")
+            and parsed.hostname == "spdx.org"
+            and parsed.path.endswith(".html")
+        ):
+            normalized = license_url[:-5]
+            return delete_null_values(normalized)
         return None
 
     def get_was_revision_of(self) -> None:
