@@ -9,20 +9,20 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
-pyshacl = ">=0.26.0"
-requests = ">=2.32.0"
-lxml = ">=5.0.0"
-daiquiri = ">=3.0.0"
+pyshacl = ">=0.26.0,<0.31"
+requests = "^2.32.0"
+lxml = ">=5.0.0,<7.0.0"
+daiquiri = "^3.0.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = ">=8.0.0"
-pytest-cov = ">=5.0.0"
-sphinx = ">=7.0.0"
-sphinx-autoapi = ">=3.0.0"
-myst-parser = ">=3.0.0"
-pylint = ">=3.0.0"
-black = ">=24.0.0"
-python-semantic-release = ">=9.0.0"
+pytest = ">=8.0.0,<10.0.0"
+pytest-cov = ">=5.0.0,<8.0.0"
+sphinx = ">=7.0.0,<10.0.0"
+sphinx-autoapi = "^3.0.0"
+myst-parser = ">=3.0.0,<6.0.0"
+pylint = ">=3.0.0,<5.0.0"
+black = ">=24.0.0,<27.0.0"
+python-semantic-release = ">=9.0.0,<11.0.0"
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:tool.poetry.version"] # version location
