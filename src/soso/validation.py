@@ -3,7 +3,7 @@
 import warnings
 from importlib import resources
 import pathlib
-import pyshacl.validate
+import pyshacl
 
 
 def validate(data_graph: str, shacl_graph: str = None) -> dict:
