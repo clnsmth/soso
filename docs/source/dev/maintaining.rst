@@ -30,9 +30,7 @@ Here are steps to help with your pull request review:
 5. Check for compliance with our :ref:`commit-messages` style.
 6. Submit the review.
 
-If collaboration on the pull request is needed, create a `feature branch` in GitHub, change the base branch of the pull request from `development` to the newly created `feature branch`, and merge. This allows the maintainer to lend a helpful hand.
-
-When a pull request passes review, it is ready to be merged into the `development` branch (see :ref:`merging-features-into-development`).
+When a pull request passes review, it is ready to be merged into the `main` branch.
 
 Git and GitHub
 --------------
@@ -42,7 +40,7 @@ We use a combination of git and GitHub features to version control and manage va
 Branch Management
 ~~~~~~~~~~~~~~~~~
 
-The `main` branch always reflects the current stable release, a `development` branch is used for incorporating new features, and `feature` branches implement changes. The `development` branch is always in a releasable state.
+The `main` branch is the releasable state. New work happens on `feature` branches and is rebased and merged into `main` via pull requests. Releases are cut from `main` using the :ref:`cd-workflow`.
 
 .. _feature-branches:
 
@@ -51,59 +49,15 @@ Feature Branches
 
 Any sort of change, including new features, documentation, refactors, and fixes, should be done on a `feature branch` to facilitate iterative collaboration. It can be helpful when feature branch names reference the issue and describes the feature, for example, ``30-release-workflow``.
 
-.. _merging-features-into-development:
+Releases
+^^^^^^^^
 
-Merging Features into Development
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-When a feature is complete and ready for integration with the project, it should be merged into `development` following these steps:
-
-1. Pull the remote `feature branch` into your local repository.
-2. Rebase the `feature branch` onto the `development` branch.
-3. Force push your local `feature branch` to the remote `feature branch`.
-4. Ensure the :ref:`ci-workflow` passes.
-5. Squash merge the `feature branch` into `development` using the GitHub pull request interface, and following the Angular commit style mentioned in the :ref:`commit-messages` guidelines. To do this:
-    i. Edit the commit message header.
-    ii. Preserve the commit message body as is (now a squashed set of commits).
-    iii. Add keywords in the `commit message footer`_ to close out or mention any related GitHub issues.
-    iv. Merge the pull request.
-
-.. _commit message footer: https://github.com/angular/angular/blob/convert/CONTRIBUTING.md#commit-message-footer
-
-If at this point, part of the feature was forgotten, don't restore the `feature branch`, rather open a new pull request on `development`, and iterate back through the contributor process.
-
-Merging Development into Main
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-When it's time to create a new release, a project maintainer, with repository write access, will merge the `development` branch into `main` locally, and then push to the remote, which will then kick-start the automated release workflow (see :ref:`cd-workflow`). This approach to merging, is taken in order to preserve a linear commit history and to retain the Angular styled commit messages required by `Python Semantic Release`_.
-
-Here's a sequence of steps for merging `development` into `main` and creating a new release:
-
-1. Open a pull request from the `development` branch to `main`.
-2. Check that the :ref:`ci-workflow` and other requirements pass.
-3. Get a pull request review from another maintainer (if possible).
-4. *Do not merge in GitHub!* Instead follow these steps:
-    i. Pull the remote `development` and `main` branches into your local repository.
-    ii. Merge the `development` branch into `main`.
-    iii. Push your local `main` branch to the remote.
-5. Ensure both the :ref:`ci-workflow` and :ref:`cd-workflow` complete successfully.
-6. Ensure the docs build and deploy successfully on `readthedocs.io`_.
-7. Check the pull request has been merged and closed out.
-8. Pull the remote `main` and `development` branches back into your local repository. This will keep your local branches in sync with the remote, which the semantic release made modifications to during the release process.
-
-.. _readthedocs.io: https://soso.readthedocs.io/en/latest/
-.. _Python Semantic Release: https://python-semantic-release.readthedocs.io/en/latest/
-.. _hot-fixes:
-
-Hot Fixes
-^^^^^^^^^
-
-Hotfixes should always be implemented in a `feature branch`, which is merged into `development`, and then merged into `main` using the approaches outlined above. Implementing a hotfix in `main` and merging into `development` will create problems in the commit history.
+When it's time to create a new release, a project maintainer with repository write access, will manually dispatch the :ref:`cd-workflow`, which will run a series of automated tasks.
 
 Branch Protection Rules
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-GitHub branch protection rules are used to help ensure the integrity of the codebase. The following rules are enforced on the `development` and `main` branches:
+GitHub branch protection rules are used to help ensure the integrity of the codebase. The following rules are enforced on the `main` branch:
 
 * Require a pull request approval before merging
 * Require status checks to pass before merging
@@ -116,7 +70,9 @@ GitHub branch protection rules are used to help ensure the integrity of the code
 Secrets
 ~~~~~~~
 
-A GitHub repository secret, containing the personal access token of one of the maintainers with write access, is required for the :ref:`cd-workflow` to complete. This token should be added to the project's repository secrets with the name ``RELEASE_TOKEN``. This authentication is used by `Python Semantic Release`_ to commit changes created during the release proces to the `main` branch, which are then merged into the `development` branch. This latter step ensures the two branches remain synchronized.
+A GitHub repository secret, containing the personal access token of one of the maintainers with write access, is required for the :ref:`cd-workflow` to complete. This token should be added to the project's repository secrets with the name ``RELEASE_TOKEN``. This authentication is used by `Python Semantic Release`_ to commit changes created during the release proces to the `main` branch.
+
+.. _Python Semantic Release: https://python-semantic-release.readthedocs.io/en/latest/
 
 Workflows
 ~~~~~~~~~
@@ -128,7 +84,7 @@ GitHub Actions are used for continuous integration and delivery.
 CI Workflow
 ^^^^^^^^^^^
 
-The CI workflow is run on each pull request and push to the `development` and `main` branches. It performs the following steps:
+The CI workflow is run on each pull request and push to `main` branch. It performs the following steps:
 
 1. Formats code in *src/* and *tests/* using `Black`_. This check is strictly enforced and will fail the workflow.
 2. Analyzes code in *src/* and *tests/* using the project's `Pylint`_ configuration (see :ref:`code-format-and-analysis`). This check is not strictly enforced and will not fail the workflow. However, generally, Pylint recommendations should be followed.
@@ -144,17 +100,17 @@ The CI workflow is run on each pull request and push to the `development` and `m
 CD Workflow
 ^^^^^^^^^^^
 
-The CD workflow is run on push to the `main` branch for releases. It performs the following steps:
+The CD workflow is run via workflow dispatch for releases. It performs the following steps:
 
 1. Runs `Python Semantic Release`_ to build the changelog, convert the distributions, bump the version number, and tag the release.
-2. Merges changes in the `main` branch back into `development` to keep the branches synchronized.
+2. Releases the package to PyPI.
 
 .. _developing-features-as-a-maintainer:
 
 Developing Features as a Maintainer
 -----------------------------------
 
-As a maintainer, when developing a new feature, you don't have to fork the project repository to your personal GitHub, and submit pull requests via that route. Rather, you may create a `feature branch` in the project's remote repository, and submit a pull request to `development` from there.
+As a maintainer, when developing a new feature, you don't have to fork the project repository to your personal GitHub, and submit pull requests via that route. Rather, you may create a `feature branch` in the project's remote repository, and submit a pull request from there.
 
 Dependency and Environment Management
 -------------------------------------

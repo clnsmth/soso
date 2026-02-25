@@ -1,7 +1,8 @@
 # soso
 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
-![example workflow](https://github.com/clnsmth/soso/actions/workflows/ci-cd.yml/badge.svg)
+![CI](https://github.com/clnsmth/soso/actions/workflows/ci.yml/badge.svg)
+![CD](https://github.com/clnsmth/soso/actions/workflows/cd.yml/badge.svg)
 [![codecov](https://codecov.io/github/clnsmth/soso/graph/badge.svg?token=2J4MNIXCTD)](https://codecov.io/github/clnsmth/soso)
 [![DOI](https://zenodo.org/badge/666558073.svg)](https://zenodo.org/badge/latestdoi/666558073)
 ![PyPI - Version](https://img.shields.io/pypi/v/soso?color=blue)
