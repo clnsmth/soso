@@ -36,7 +36,7 @@ Steps for Submitting Code
 Here are a sequence of steps to help with your code contribution:
 
 1. Fork the project repository on GitHub.
-2. Create a `feature branch` from the `development` branch.
+2. Create a `feature branch` from the `main` branch.
 3. Install the package by running ``poetry install`` at the command line.
 4. Verify that all tests pass on your system by running ``poetry run pytest`` at the command line. In case of failures, conduct a thorough investigation. If you require assistance in diagnosing the issue, follow the guidelines for filing :ref:`bug-reports`.
 5. Construct test cases that effectively illustrate the bug or feature.
@@ -44,9 +44,8 @@ Here are a sequence of steps to help with your code contribution:
 7. Re-run the complete test suite to ensure the success of all tests.
 8. Format and analyze your code according to our :ref:`code-format-and-analysis` guidelines.
 9. Ensure the docs build following the :ref:`documentation-contributions` guidelines.
-10. Check that the sdist and wheels build by running ``poetry build`` at the command line.
-11. Commit your work following our :ref:`commit-messages` guidelines.
-12. Submit a GitHub Pull Request to the `development` branch of the upstream repository.
+10. Commit your work following our :ref:`commit-messages` guidelines.
+11. Submit a GitHub Pull Request to the `main` branch of the upstream repository.
 
 .. _reStructuredText: https://thomas-cokelaer.info/tutorials/sphinx/docstring_python.html
 .. _pytest: https://docs.pytest.org/en/latest/

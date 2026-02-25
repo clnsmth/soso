@@ -7,9 +7,13 @@ Release v\ |version|. (:ref:`Installation <quickstart>`)
    :alt: Project Status: Active – The project has reached a stable, usable state and is being actively developed.
    :target: https://www.repostatus.org/#active
 
-.. image:: https://github.com/clnsmth/soso/actions/workflows/ci-cd.yml/badge.svg
-    :target: https://github.com/clnsmth/soso/actions/workflows/ci-cd.yml
-    :alt: CI/CD pipeline status
+.. image:: https://github.com/clnsmth/soso/actions/workflows/ci.yml/badge.svg
+    :target: https://github.com/clnsmth/soso/actions/workflows/ci.yml
+    :alt: CI pipeline status
+
+.. image:: https://github.com/clnsmth/soso/actions/workflows/cd.yml/badge.svg
+    :target: https://github.com/clnsmth/soso/actions/workflows/cd.yml
+    :alt: CD pipeline status
 
 .. image:: https://codecov.io/github/clnsmth/soso/graph/badge.svg?token=2J4MNIXCTD
     :target: https://codecov.io/github/clnsmth/soso
