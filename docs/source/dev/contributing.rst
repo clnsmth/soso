@@ -37,7 +37,7 @@ Here are a sequence of steps to help with your code contribution:
 
 1. Fork the project repository on GitHub.
 2. Create a `feature branch` from the `main` branch.
-3. Install the package by running ``uv sync`` at the command line.
+3. Install the package by running ``uv sync --extra dev`` at the command line.
 4. Verify that all tests pass on your system by running ``uv run pytest`` at the command line. In case of failures, conduct a thorough investigation. If you require assistance in diagnosing the issue, follow the guidelines for filing :ref:`bug-reports`.
 5. Construct test cases that effectively illustrate the bug or feature.
 6. Implement your changes, including any relevant documentation updates following our :ref:`documentation-contributions` guidelines.

@@ -28,7 +28,7 @@ dependencies = [
     "daiquiri>=3.0.0,<4",
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
     "pytest>=8.0.0,<10.0.0",
     "pytest-cov>=5.0.0,<8.0.0",

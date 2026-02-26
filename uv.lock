@@ -1071,7 +1071,7 @@ dependencies = [
     { name = "requests" },
 ]
 
-[package.dev-dependencies]
+[package.optional-dependencies]
 dev = [
     { name = "myst-parser" },
     { name = "pytest" },
@@ -1088,20 +1088,17 @@ dev = [
 requires-dist = [
     { name = "daiquiri", specifier = ">=3.0.0,<4" },
     { name = "lxml", specifier = ">=5.0.0,<7.0.0" },
+    { name = "myst-parser", marker = "extra == 'dev'", specifier = ">=3.0.0,<6.0.0" },
     { name = "pyshacl", specifier = ">=0.26.0,<0.31" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0,<10.0.0" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0.0,<8.0.0" },
+    { name = "python-semantic-release", marker = "extra == 'dev'", specifier = ">=9.0.0,<11.0.0" },
     { name = "requests", specifier = ">=2.32.0,<3" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.15.3,<1.0.0" },
+    { name = "sphinx", marker = "extra == 'dev'", specifier = ">=7.0.0,<10.0.0" },
+    { name = "sphinx-autoapi", marker = "extra == 'dev'", specifier = ">=3.0.0,<4" },
 ]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "myst-parser", specifier = ">=3.0.0,<6.0.0" },
-    { name = "pytest", specifier = ">=8.0.0,<10.0.0" },
-    { name = "pytest-cov", specifier = ">=5.0.0,<8.0.0" },
-    { name = "python-semantic-release", specifier = ">=9.0.0,<11.0.0" },
-    { name = "ruff", specifier = ">=0.15.3,<1.0.0" },
-    { name = "sphinx", specifier = ">=7.0.0,<10.0.0" },
-    { name = "sphinx-autoapi", specifier = ">=3.0.0,<4" },
-]
+provides-extras = ["dev"]
 
 [[package]]
 name = "sphinx"
