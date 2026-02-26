@@ -189,7 +189,7 @@ def generate_citation_from_doi(url: str, style: str, locale: str) -> Union[str, 
 
         return response.text
     except requests.exceptions.RequestException as citation_error:
-        print(f"An error occurred while generating the citation: " f"{citation_error}")
+        print(f"An error occurred while generating the citation: {citation_error}")
         return None
 
 
@@ -249,14 +249,13 @@ def is_html(text: str) -> bool:
 _CUSTOM_MIMETYPES_INSTANCE = None
 
 
-# pylint: disable=global-statement
 def _get_custom_mimetypes_instance():
     """
     Creates and returns a sandboxed MimeTypes instance loaded ONLY
     with our custom, bundled mime.types file. Returns None if the
     file can't be found.
     """
-    global _CUSTOM_MIMETYPES_INSTANCE
+    global _CUSTOM_MIMETYPES_INSTANCE  # noqa: PLW0603
     if _CUSTOM_MIMETYPES_INSTANCE is not None:
         return _CUSTOM_MIMETYPES_INSTANCE
 

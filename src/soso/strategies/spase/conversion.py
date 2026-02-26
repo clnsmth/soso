@@ -15,10 +15,6 @@ from soso.strategies.spase.spase import (
     get_problematic_records,
 )
 
-# pylint: disable=too-many-locals
-# pylint: disable=raise-missing-from
-# pylint: disable=too-many-statements
-
 
 def get_paths(entry: str, paths: list) -> list:
     """Takes the absolute path of a SPASE record directory to be walked
@@ -185,7 +181,7 @@ def main(folder: str, additional_license_info: bool = None) -> None:
         for r, record in enumerate(spase_paths):
             if record not in searched:
                 # print name and number of record being scraped
-                status_message = f"\r\033[KExtracting metadata from record {r+1}"
+                status_message = f"\r\033[KExtracting metadata from record {r + 1}"
                 status_message += f" of {len(spase_paths)}"
                 print(status_message, end="")
                 # print(record)
@@ -231,9 +227,9 @@ def main(folder: str, additional_license_info: bool = None) -> None:
                 creation = convert(file=record, strategy="SPASE")
                 updated_dict = json.loads(creation)
                 # add sosa ontology to json "@context"
-                updated_dict["@context"][
-                    "sosa"
-                ] = "https://w3c.github.io/sdw-sosa-ssn/ssn/#SOSA"
+                updated_dict["@context"]["sosa"] = (
+                    "https://w3c.github.io/sdw-sosa-ssn/ssn/#SOSA"
+                )
                 # update json to include nonSOSO-supported fields
                 updated_dict.update(kwargs)
 

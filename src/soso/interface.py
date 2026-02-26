@@ -30,7 +30,7 @@ class StrategyInterface:
         metadata: Any = None,
         file: str = None,
         schema_version: str = None,
-        **kwargs: dict
+        **kwargs: dict,
     ):
         """Return the strategy attributes."""
         self.metadata = metadata

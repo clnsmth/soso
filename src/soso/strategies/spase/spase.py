@@ -14,22 +14,6 @@ from lxml import etree
 from soso.interface import StrategyInterface
 from soso.utilities import delete_null_values
 
-# pylint: disable=duplicate-code
-# pylint: disable=too-many-lines
-# pylint: disable=too-many-locals
-# pylint: disable=too-many-nested-blocks
-# pylint: disable=too-many-branches
-# pylint: disable=too-many-statements
-# pylint: disable=no-member
-# pylint: disable=pointless-string-statement
-# pylint: disable=too-many-arguments
-# pylint: disable=too-many-positional-arguments
-# pylint: disable=consider-using-f-string
-# pylint: disable=consider-using-dict-items
-# pylint: disable=consider-iterating-dictionary
-# pylint: disable=no-else-return
-# pylint: disable=consider-using-with
-
 
 # create temp file which holds problematic records encountered during script
 # Create a named temporary file which is deleted via garbage collection
@@ -508,9 +492,9 @@ class SPASE(StrategyInterface):
                 if len(prod_keys) > 1:
                     multiple = True
                 # let user know of product key names in description
-                entry["target"][
-                    "description"
-                ] += f" using these product key(s): {str(prod_keys)}"
+                entry["target"]["description"] += (
+                    f" using these product key(s): {str(prod_keys)}"
+                )
                 # if link is a hapi link, provide the hapi interface
                 #   web service to download data
                 if "/hapi" in k:
@@ -543,9 +527,9 @@ class SPASE(StrategyInterface):
                             )
                     else:
                         prod_keys[0] = prod_keys[0].replace('"', "")
-                        entry["target"][
-                            "urlTemplate"
-                        ] = f"{k}/data?id={prod_keys[0]}&time.min={{start}}&time.max={{end}}"
+                        entry["target"]["urlTemplate"] = (
+                            f"{k}/data?id={prod_keys[0]}&time.min={{start}}&time.max={{end}}"
+                        )
                     entry["target"]["description"] = (
                         "Download dataset labeled by id in CSV format based on "
                         "the requested start and end dates"
@@ -1634,9 +1618,9 @@ def person_format(
             if first_entry:
                 entry["inDefinedTermSet"]["@type"] = "DefinedTermSet"
                 entry["inDefinedTermSet"]["name"] = "SPASE Role"
-                entry["inDefinedTermSet"][
-                    "url"
-                ] = "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Role"
+                entry["inDefinedTermSet"]["url"] = (
+                    "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Role"
+                )
 
         if item_type == "Person":
             if orcid_id:
@@ -2719,7 +2703,6 @@ def get_resource_id(metadata: etree.ElementTree, namespaces: Dict) -> Union[str,
     root = metadata.getroot()
     desired_root = None
     dataset_id = None
-    # pylint: disable=too-many-boolean-expressions
     for elt in root.iter(tag=etree.Element):
         if (
             elt.tag.endswith("NumericalData")

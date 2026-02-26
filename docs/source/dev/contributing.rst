@@ -37,8 +37,8 @@ Here are a sequence of steps to help with your code contribution:
 
 1. Fork the project repository on GitHub.
 2. Create a `feature branch` from the `main` branch.
-3. Install the package by running ``poetry install`` at the command line.
-4. Verify that all tests pass on your system by running ``poetry run pytest`` at the command line. In case of failures, conduct a thorough investigation. If you require assistance in diagnosing the issue, follow the guidelines for filing :ref:`bug-reports`.
+3. Install the package by running ``uv sync --extra dev`` at the command line.
+4. Verify that all tests pass on your system by running ``uv run pytest`` at the command line. In case of failures, conduct a thorough investigation. If you require assistance in diagnosing the issue, follow the guidelines for filing :ref:`bug-reports`.
 5. Construct test cases that effectively illustrate the bug or feature.
 6. Implement your changes, including any relevant documentation updates following our :ref:`documentation-contributions` guidelines.
 7. Re-run the complete test suite to ensure the success of all tests.
@@ -61,17 +61,16 @@ Code Format and Analysis
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Our project uses a couple tools to ensure the code base has a consistent
-style and format as it grows. We use `Black`_ for code formatting and `Pylint`_ for static code analysis. Both can be run from the command line::
+style and format as it grows. We use `ruff`_ for code formatting and static code analysis. Both can be run from the command line::
 
-    poetry run black src/ tests/
-    poetry run pylint src/ tests/
+    uv run ruff format src/ tests/
+    uv run ruff check src/ tests/
 
-.. _Black: https://black.readthedocs.io/en/stable/
-.. _Pylint: https://pylint.pycqa.org/en/latest/
+.. _ruff: https://docs.astral.sh/ruff/
 
 `Python Type Hints`_ are used to improve static code analysis and code clarity.
 
-*Note, Pylint exceptions may be allowed. If you believe there is a valid reason to deviate from Pylint's requirements for a specific piece of code, please open a GitHub issue to discuss and gain approval for the exception.*
+*Note, Ruff exceptions may be allowed. If you believe there is a valid reason to deviate from Ruff's requirements for a specific piece of code, please open a GitHub issue to discuss and gain approval for the exception.*
 
 .. _Python Type Hints: https://peps.python.org/pep-0484/
 
@@ -84,7 +83,7 @@ We greatly appreciate any efforts to enhance the project documentation! The docu
 
 Build the docs from the command line::
 
-    poetry run make --directory=docs clean html
+    uv run make --directory=docs clean html
 
 
 .. _reStructuredText: https://thomas-cokelaer.info/tutorials/sphinx/docstring_python.html
