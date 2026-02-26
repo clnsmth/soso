@@ -567,7 +567,7 @@ def test_get_is_part_of_returns_expected_value():
         assert get_is_part_of(
             spase,
             str(get_example_metadata_file_path("SPASE")).replace("\\", "/"),
-            **kwargs
+            **kwargs,
         ) == {
             "@id": "https://doi.org/10.48322/s9mg-he04",
             "@type": "Dataset",
@@ -648,7 +648,7 @@ def test_get_is_part_of_returns_expected_value():
         assert get_is_part_of(
             spase,
             str(get_example_metadata_file_path("SPASE")).replace("\\", "/"),
-            **kwargs
+            **kwargs,
         ) == {
             "@id": "https://doi.org/10.48322/s9mg-he04",
             "@type": "Dataset",
@@ -894,7 +894,7 @@ def test_get_relation_returns_expected_value():
         desired_root,
         ["Other"],
         str(get_example_metadata_file_path("SPASE")).replace("\\", "/"),
-        **kwargs
+        **kwargs,
     ) == (
         [
             {

@@ -508,9 +508,9 @@ class SPASE(StrategyInterface):
                 if len(prod_keys) > 1:
                     multiple = True
                 # let user know of product key names in description
-                entry["target"][
-                    "description"
-                ] += f" using these product key(s): {str(prod_keys)}"
+                entry["target"]["description"] += (
+                    f" using these product key(s): {str(prod_keys)}"
+                )
                 # if link is a hapi link, provide the hapi interface
                 #   web service to download data
                 if "/hapi" in k:
@@ -543,9 +543,9 @@ class SPASE(StrategyInterface):
                             )
                     else:
                         prod_keys[0] = prod_keys[0].replace('"', "")
-                        entry["target"][
-                            "urlTemplate"
-                        ] = f"{k}/data?id={prod_keys[0]}&time.min={{start}}&time.max={{end}}"
+                        entry["target"]["urlTemplate"] = (
+                            f"{k}/data?id={prod_keys[0]}&time.min={{start}}&time.max={{end}}"
+                        )
                     entry["target"]["description"] = (
                         "Download dataset labeled by id in CSV format based on "
                         "the requested start and end dates"
@@ -1634,9 +1634,9 @@ def person_format(
             if first_entry:
                 entry["inDefinedTermSet"]["@type"] = "DefinedTermSet"
                 entry["inDefinedTermSet"]["name"] = "SPASE Role"
-                entry["inDefinedTermSet"][
-                    "url"
-                ] = "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Role"
+                entry["inDefinedTermSet"]["url"] = (
+                    "https://spase-group.org/data/model/spase-latest/spase-latest_xsd.htm#Role"
+                )
 
         if item_type == "Person":
             if orcid_id:

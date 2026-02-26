@@ -1,33 +1,55 @@
-[tool.poetry]
+[project]
 name = "soso"
 version = "1.0.0"
 description = "For Converting Metadata Records into Science On Schema.Org Markup"
-authors = ["Colin Smith <colin.smith@wisc.edu>", "Zach Boquet", "Rebecca Ringuette"]
-maintainers = ["Colin Smith <colin.smith@wisc.edu>", "Zach Boquet"]
-license = "MIT"
+authors = [
+    { name = "Colin Smith", email = "colin.smith@wisc.edu" },
+    { name = "Zach Boquet" },
+    { name = "Rebecca Ringuette" },
+]
+requires-python = ">=3.11,<4.0"
 readme = "README.md"
+license = "MIT"
+maintainers = [
+    { name = "Colin Smith", email = "colin.smith@wisc.edu" },
+    { name = "Zach Boquet" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+    "pyshacl>=0.26.0,<0.31",
+    "requests>=2.32.0,<3",
+    "lxml>=5.0.0,<7.0.0",
+    "daiquiri>=3.0.0,<4",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.11,<4.0"
-pyshacl = ">=0.26.0,<0.31"
-requests = "^2.32.0"
-lxml = ">=5.0.0,<7.0.0"
-daiquiri = "^3.0.0"
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0,<10.0.0",
+    "pytest-cov>=5.0.0,<8.0.0",
+    "sphinx>=7.0.0,<10.0.0",
+    "sphinx-autoapi>=3.0.0,<4",
+    "myst-parser>=3.0.0,<6.0.0",
+    "python-semantic-release>=9.0.0,<11.0.0",
+    "ruff>=0.15.3,<1.0.0",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = ">=8.0.0,<10.0.0"
-pytest-cov = ">=5.0.0,<8.0.0"
-sphinx = ">=7.0.0,<10.0.0"
-sphinx-autoapi = "^3.0.0"
-myst-parser = ">=3.0.0,<6.0.0"
-pylint = ">=3.0.0,<5.0.0"
-black = ">=24.0.0,<27.0.0"
-python-semantic-release = ">=9.0.0,<11.0.0"
+[tool.uv]
+default-groups = "all"
+
+[build-system]
+requires = ["uv_build>=0.9.3,<0.10.0"]
+build-backend = "uv_build"
 
 [tool.semantic_release]
-version_toml = ["pyproject.toml:tool.poetry.version"] # version location
+version_toml = ["pyproject.toml:project.version"] # version location
 branch = "main"                             # branch to make releases of
-build_command = "poetry build"              # build dists
+build_command = "uv build"              # build dists
 dist_path = "dist/"                         # where to put dists
 upload_to_release = true                    # auto-convert GitHub release
 upload_to_pypi = false                      # don't auto-upload to PyPI
@@ -36,11 +58,3 @@ patch_without_tag = false                    # patch release by default
 
 [tool.semantic_release.changelog]
 template_dir = "docs/source/_templates/"     # changelog template directory
-
-
-[tool.pylint.'MESSAGES.CONTROL']
-disable = "too-many-public-methods,c-extension-no-member"
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"

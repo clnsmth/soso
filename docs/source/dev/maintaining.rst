@@ -24,7 +24,7 @@ Pull request review facilitates refinement of a contribution before it's incorpo
 Here are steps to help with your pull request review:
 
 1. Start a GitHub review on the pull request.
-2. Check that the :ref:`ci-workflow` passes. Even if successful, check the workflow run logs for Pylint related messages. Though not required, we recommend these messages be addressed.
+2. Check that the :ref:`ci-workflow` passes. Even if successful, check the workflow run logs for Ruff related messages. Though not required, we recommend these messages be addressed.
 3. New features or bug-fixes should include tests demonstrating the change.
 4. Review the diffs of code and related documentation.
 5. Check for compliance with our :ref:`commit-messages` style.
@@ -86,13 +86,12 @@ CI Workflow
 
 The CI workflow is run on each pull request and push to `main` branch. It performs the following steps:
 
-1. Formats code in *src/* and *tests/* using `Black`_. This check is strictly enforced and will fail the workflow.
-2. Analyzes code in *src/* and *tests/* using the project's `Pylint`_ configuration (see :ref:`code-format-and-analysis`). This check is not strictly enforced and will not fail the workflow. However, generally, Pylint recommendations should be followed.
+1. Formats code in *src/* and *tests/* using `ruff`_. This check is strictly enforced and will fail the workflow.
+2. Analyzes code in *src/* and *tests/* using the project's `ruff`_ configuration (see :ref:`code-format-and-analysis`). This check is not strictly enforced and will not fail the workflow. However, generally, Ruff recommendations should be followed.
 3. Runs tests in *tests/* using `Pytest`_. This check is strictly enforced and will fail the workflow.
 4. Builds the documentation (see :ref:`documentation-contributions`). This check is strictly enforced and will fail the workflow.
 
-.. _Black: https://black.readthedocs.io/en/stable/
-.. _Pylint: https://pylint.pycqa.org/en/latest/
+.. _ruff: https://docs.astral.sh/ruff/
 .. _Pytest: https://docs.pytest.org/en/latest/
 
 .. _cd-workflow:
@@ -115,9 +114,9 @@ As a maintainer, when developing a new feature, you don't have to fork the proje
 Dependency and Environment Management
 -------------------------------------
 
-This project uses `Poetry`_ to manage dependencies for development and distribution. Poetry keeps track of necessary packages and their versions, ensuring a consistent development environment.
+This project uses `uv`_ to manage dependencies for development and distribution. uv keeps track of necessary packages and their versions, ensuring a consistent development environment.
 
-.. _Poetry: https://python-poetry.org/
+.. _uv: https://docs.astral.sh/uv/
 
 Keeping Current with Science On Schema.Org
 ------------------------------------------

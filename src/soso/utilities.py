@@ -189,7 +189,7 @@ def generate_citation_from_doi(url: str, style: str, locale: str) -> Union[str, 
 
         return response.text
     except requests.exceptions.RequestException as citation_error:
-        print(f"An error occurred while generating the citation: " f"{citation_error}")
+        print(f"An error occurred while generating the citation: {citation_error}")
         return None
 
 
