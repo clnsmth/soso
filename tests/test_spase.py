@@ -30,8 +30,6 @@ from soso.strategies.spase.spase import (
 )
 from soso.utilities import get_empty_metadata_file_path, get_example_metadata_file_path
 
-# pylint: disable=too-many-lines
-
 
 def test_get_schema_version_returns_expected_value():
     """Test that the get_schema_version function returns the expected value."""

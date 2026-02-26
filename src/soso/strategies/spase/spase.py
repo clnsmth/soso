@@ -14,22 +14,6 @@ from lxml import etree
 from soso.interface import StrategyInterface
 from soso.utilities import delete_null_values
 
-# pylint: disable=duplicate-code
-# pylint: disable=too-many-lines
-# pylint: disable=too-many-locals
-# pylint: disable=too-many-nested-blocks
-# pylint: disable=too-many-branches
-# pylint: disable=too-many-statements
-# pylint: disable=no-member
-# pylint: disable=pointless-string-statement
-# pylint: disable=too-many-arguments
-# pylint: disable=too-many-positional-arguments
-# pylint: disable=consider-using-f-string
-# pylint: disable=consider-using-dict-items
-# pylint: disable=consider-iterating-dictionary
-# pylint: disable=no-else-return
-# pylint: disable=consider-using-with
-
 
 # create temp file which holds problematic records encountered during script
 # Create a named temporary file which is deleted via garbage collection
@@ -2719,7 +2703,6 @@ def get_resource_id(metadata: etree.ElementTree, namespaces: Dict) -> Union[str,
     root = metadata.getroot()
     desired_root = None
     dataset_id = None
-    # pylint: disable=too-many-boolean-expressions
     for elt in root.iter(tag=etree.Element):
         if (
             elt.tag.endswith("NumericalData")

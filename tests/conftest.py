@@ -216,7 +216,7 @@ def is_url(url: str) -> bool:
         return False
 
 
-def is_property_type(results: Any, expected_types: list) -> bool:
+def is_property_type(results: Any, expected_types: list) -> bool:  # noqa: PLR0912
     """
     :param results: The results of a strategy method to check.
     :param expected_types: The expected types. See notes for supported types.
@@ -260,7 +260,6 @@ def is_property_type(results: Any, expected_types: list) -> bool:
         When type matching, the namespace prefix of an expected type is not
         used. Only the suffix is used.
     """
-    # pylint: disable=R0912
     # Prepare the results and expected_types for iteration
     if isinstance(results, dict) and results.get("@list") is not None:
         results = results.get("@list")  # Flatten @list to facilitate checking
@@ -317,7 +316,7 @@ def is_not_null(results: Any) -> bool:
     res = []
     for result in results:
         if isinstance(result, dict):  # schema:Thing is a dict
-            result = deepcopy(result)  # to avoid modifying the original
+            result = deepcopy(result)  # noqa: PLW2901, to avoid modifying the original
             result.pop("@type", None)  # @type is never null, so omit
             for key, value in list(result.items()):
                 if value is None:  # None has no length

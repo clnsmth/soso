@@ -15,10 +15,6 @@ from soso.strategies.spase.spase import (
     get_problematic_records,
 )
 
-# pylint: disable=too-many-locals
-# pylint: disable=raise-missing-from
-# pylint: disable=too-many-statements
-
 
 def get_paths(entry: str, paths: list) -> list:
     """Takes the absolute path of a SPASE record directory to be walked
