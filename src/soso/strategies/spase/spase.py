@@ -9,6 +9,7 @@ import importlib.resources
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Union, List, Dict
+from urllib.parse import urlparse
 import requests
 from lxml import etree
 from soso.interface import StrategyInterface
@@ -2597,8 +2598,11 @@ def verify_type(url: str) -> tuple[bool, bool, dict]:
         else:
             link = requests.head(url, timeout=30)
             # check to make sure doi resolved to an spase-metadata.org page
-            if "spase-metadata.org" in link.headers["location"]:
-                if "Data" in link.headers["location"]:
+            location = link.headers.get("location", "")
+            parsed = urlparse(location)
+            host = parsed.hostname
+            if host == "spase-metadata.org":
+                if "Data" in location:
                     is_dataset = True
             # if not, call DataCite API to check resourceTypeGeneral
             #   property associated w the record
