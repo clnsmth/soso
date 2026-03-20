@@ -12,6 +12,7 @@ from typing import Union, List, Dict
 from urllib.parse import urlparse
 import requests
 from lxml import etree
+from urllib.parse import urlparse
 from soso.interface import StrategyInterface
 from soso.utilities import delete_null_values
 
@@ -2575,6 +2576,17 @@ def process_authors(
     return author, author_role, contacts_list
 
 
+def _is_spase_metadata_host(url: str) -> bool:
+    """
+    Return True if the URL's hostname is spase-metadata.org or a subdomain of it.
+    """
+    parsed = urlparse(url)
+    host = parsed.hostname
+    if not host:
+        return False
+    return host == "spase-metadata.org" or host.endswith(".spase-metadata.org")
+
+
 def verify_type(url: str) -> tuple[bool, bool, dict]:
     """
     Verifies that the link found in AssociationID is to a dataset or journal article and acquires
@@ -2591,7 +2603,7 @@ def verify_type(url: str) -> tuple[bool, bool, dict]:
     is_article = False
     non_spase_info = {}
     if url is not None:
-        if "spase-metadata.org" in url:
+        if _is_spase_metadata_host(url):
             if "Data" in url:
                 is_dataset = True
         # case where url provided is a DOI
