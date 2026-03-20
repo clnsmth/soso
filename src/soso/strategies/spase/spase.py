@@ -9,6 +9,7 @@ import importlib.resources
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Union, List, Dict
+from urllib.parse import urlparse
 import requests
 from lxml import etree
 from urllib.parse import urlparse
@@ -2610,7 +2611,9 @@ def verify_type(url: str) -> tuple[bool, bool, dict]:
             link = requests.head(url, timeout=30)
             # check to make sure doi resolved to an spase-metadata.org page
             location = link.headers.get("location", "")
-            if _is_spase_metadata_host(location):
+            parsed = urlparse(location)
+            host = parsed.hostname
+            if host == "spase-metadata.org":
                 if "Data" in location:
                     is_dataset = True
             # if not, call DataCite API to check resourceTypeGeneral
