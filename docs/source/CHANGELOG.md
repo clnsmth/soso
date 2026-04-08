@@ -2,6 +2,33 @@
 
 
 
+## v1.0.1 (2026-04-08)
+
+
+### Bug fixes
+
+* fix: use URL parsing for location header validation ([`2da8a6a`](https://github.com/clnsmth/soso/commit/2da8a6ac80450f37a640455f9a2364b2913b74e8)) 
+* fix: address incomplete URL substring sanitization ([`e0adc36`](https://github.com/clnsmth/soso/commit/e0adc362a272f7b8765db002c6234a96bb1ae41d)) 
+
+### Build system
+
+* build(deps): bump requests in the uv group across 1 directory ([`3ee4651`](https://github.com/clnsmth/soso/commit/3ee46517a835207fbf6802347c1367ac98cc3578)) 
+* build: migrate to uv and ruff for tooling (#326) ([`2d73033`](https://github.com/clnsmth/soso/commit/2d7303387579a353b66b8558d1af2d95072a428e)) 
+* build: switch to Poetry-only dependency management ([`94ad668`](https://github.com/clnsmth/soso/commit/94ad668ed5b6996c280071a003e227d4b9c3a5a1)) 
+* build: refine package dependency constraints ([`5d4e569`](https://github.com/clnsmth/soso/commit/5d4e5690ca910c8dc0cf5c01f9b41bc6a83ebd28)) 
+
+### Continuous integration
+
+* ci: split ci/cd workflows and update workflow docs ([`4a5c401`](https://github.com/clnsmth/soso/commit/4a5c4014483b7d7a605232670fc1afa52c3cc98d)) 
+
+### Documentation
+
+* docs: update project status to active ([`0510fc9`](https://github.com/clnsmth/soso/commit/0510fc9910a5c46b208cce51bbfafc129a0820bf)) 
+
+### Refactoring
+
+* refactor: format code and address pylint issues ([`85e0d2d`](https://github.com/clnsmth/soso/commit/85e0d2dd92bb68eb790bd1ab2822e84d13df2b2e)) 
+
 ## v1.0.0 (2026-02-18)
 
 
