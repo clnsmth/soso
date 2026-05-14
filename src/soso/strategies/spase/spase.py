@@ -89,6 +89,7 @@ class SPASE(StrategyInterface):
                 or elt.tag.endswith("Observatory")
                 or elt.tag.endswith("Instrument")
                 or elt.tag.endswith("Collection")
+                or elt.tag.endswith("Catalog")
             ):
                 self.desired_root = elt
         # if want to see entire xml file as a string
@@ -117,7 +118,7 @@ class SPASE(StrategyInterface):
         )
         return delete_null_values(name)
 
-    def get_description(self) -> str:
+    def get_description(self) -> Union[List, str]:
         # Mapping: schema:description = spase:ResourceHeader/spase:Description
         desired_tag = self.desired_root.tag.split("}")
         spase_location = (
@@ -127,6 +128,19 @@ class SPASE(StrategyInterface):
             spase_location,
             namespaces=self.namespaces,
         )
+        # print(len(description))
+        # add check for very long descriptions (>5000 chars) and split these up
+        if description:
+            if len(description) > 5000:
+                # print("Long description found.")
+                split_desc = []
+                splits_required = (len(description) // 5000) + 1
+                # print(str(splits_required))
+                for _ in range(splits_required):
+                    # print("Splitting description")
+                    split_desc.append(description[:5000])
+                    description = description[5000:]
+                description = split_desc
         return delete_null_values(description)
 
     def get_url(self) -> str:
@@ -494,9 +508,11 @@ class SPASE(StrategyInterface):
                 if len(prod_keys) > 1:
                     multiple = True
                 # let user know of product key names in description
-                entry["target"]["description"] += (
-                    f" using these product key(s): {str(prod_keys)}"
-                )
+                # unneeded for HelioCloud API since productKey already in URL
+                if "api.heliocloud.org/cloudcatalog" not in k:
+                    entry["target"]["description"] += (
+                        f" using these product key(s): {str(prod_keys)}"
+                    )
                 # if link is a hapi link, provide the hapi interface
                 #   web service to download data
                 if "/hapi" in k:
@@ -819,7 +835,7 @@ class SPASE(StrategyInterface):
                         encoding="utf-8",
                     ) as f:
                         do_not_split = f.read()
-                    if ", " in person:
+                    if (", " in person) and ("Consortium" not in person):
                         # if file is not in list of ones to not have their creators split
                         if self.file.replace(home_dir, "") not in do_not_split:
                             family_name, _, given_name = person.partition(", ")
@@ -856,7 +872,7 @@ class SPASE(StrategyInterface):
                                 family_name,
                             )
                         creator.append(creator_entry)
-                    # no comma = organization = no givenName and familyName
+                    # no comma OR has 'Consortium' = organization = no givenName and familyName
                     else:
                         creator_entry = person_format(
                             "creator", author_role[0], person, "", ""
@@ -1230,7 +1246,12 @@ def get_authors(
     if file:
         file = file.replace("\\", "/")
     for elt in root.iter(tag=etree.Element):
-        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+        if (
+            elt.tag.endswith("NumericalData")
+            or elt.tag.endswith("DisplayData")
+            or elt.tag.endswith("Catalog")
+            or elt.tag.endswith("Collection")
+        ):
             desired_root = elt
 
     # traverse xml to extract needed info
@@ -1357,7 +1378,12 @@ def get_access_urls(metadata: etree.ElementTree) -> tuple[Dict, Dict]:
     desired_root = None
     root = metadata.getroot()
     for elt in root.iter(tag=etree.Element):
-        if elt.tag.endswith("NumericalData") or elt.tag.endswith("DisplayData"):
+        if (
+            elt.tag.endswith("NumericalData")
+            or elt.tag.endswith("DisplayData")
+            or elt.tag.endswith("Catalog")
+            or elt.tag.endswith("Collection")
+        ):
             desired_root = elt
 
     # get Formats before iteration due to order of elements in SPASE record
@@ -1465,6 +1491,7 @@ def get_dates(
             elt.tag.endswith("NumericalData")
             or elt.tag.endswith("DisplayData")
             or elt.tag.endswith("Collection")
+            or elt.tag.endswith("Catalog")
         ):
             desired_root = elt
     revision_history = []
@@ -1548,7 +1575,9 @@ def person_format(
     entry = None
     if name:
         # add check for organization
-        if ", " in name or ". " in name or (given_name and family_name) or "_" in name:
+        if (
+            ", " in name or ". " in name or (given_name and family_name) or "_" in name
+        ) and ("Consortium" not in name):
             item_type = "Person"
         else:
             item_type = "Organization"
@@ -2439,11 +2468,15 @@ def process_authors(
         # if file is not in list of ones to not have their creators split
         # and there are multiple authors
         if (
-            ("; " in author_str)
-            or ("., " in author_str)
-            or (" and " in author_str)
-            or (" & " in author_str)
-        ) and file not in do_not_split:
+            (
+                ("; " in author_str)
+                or ("., " in author_str)
+                or (" and " in author_str)
+                or (" & " in author_str)
+            )
+            and (file not in do_not_split)
+            and ("Consortium" not in author_str)
+        ):
             if ";" in author_str:
                 author = author_str.split("; ")
             elif ".," in author_str:
@@ -2547,7 +2580,11 @@ def process_authors(
             person = author_str.replace("'", "")
             if author_role == ["Author"]:
                 # if author is a person (assuming names contain a comma)
-                if ", " in person and file not in do_not_split:
+                if (
+                    (", " in person)
+                    and (file not in do_not_split)
+                    and ("Consortium" not in person)
+                ):
                     family_name, _, given_name = person.partition(", ")
                     # also used when there are 3+ comma separated orgs
                     #   listed as authors - not intended (how to fix?)
@@ -2560,7 +2597,11 @@ def process_authors(
                     author[0] = (f"{family_name}, {given_name}").strip()
                 else:
                     # handle case when assumption 'names have commas' fails
-                    if ". " in person and file not in do_not_split:
+                    if (
+                        (". " in person)
+                        and (file not in do_not_split)
+                        and ("Consortium" not in person)
+                    ):
                         given_name, _, family_name = person.partition(". ")
                         if " " in family_name:
                             initial, _, family_name = family_name.partition(" ")
@@ -2727,6 +2768,7 @@ def get_resource_id(metadata: etree.ElementTree, namespaces: Dict) -> Union[str,
             or elt.tag.endswith("Instrument")
             or elt.tag.endswith("Person")
             or elt.tag.endswith("Collection")
+            or elt.tag.endswith("Catalog")
         ):
             desired_root = elt
 
