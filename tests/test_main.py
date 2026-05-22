@@ -26,6 +26,17 @@ def test_convert_returns_context(strategy_names):
         assert "@context" in res
 
 
+def test_convert_returns_list_style_context(strategy_names):
+    """Test that the convert function returns the list-style JSON-LD context."""
+    for strategy in strategy_names:
+        res = loads(
+            convert(file=get_example_metadata_file_path(strategy), strategy=strategy)
+        )
+        assert isinstance(res["@context"], list)
+        assert res["@context"][0] == "https://schema.org/"
+        assert isinstance(res["@context"][1], dict)
+
+
 def test_convert_returns_expected_properties(strategy_names, soso_properties):
     """Test that the convert function returns the expected properties/keys."""
     for strategy in strategy_names:

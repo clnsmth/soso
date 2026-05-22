@@ -47,7 +47,7 @@ To perform a conversion, specify the file path of the metadata and the desired c
     >>> from soso.main import convert
     >>> r = convert(file='metadata.xml', strategy='EML')
     >>> r
-    '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
+    '{"@context": ["https://schema.org/", {"prov": "http://www. ..."}]'
 
 For a list of available strategies, please refer to the documentation of the `convert` function.
 
@@ -60,7 +60,7 @@ For example, the `url` property representing the landing page URL does not exist
     >>> kwargs = {'url': 'https://sample-data-repository.org/dataset/472032'}
     >>> r = convert(file='metadata.xml', strategy='EML', **kwargs)
     >>> r
-    '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
+    '{"@context": ["https://schema.org/", {"prov": "http://www. ..."}]'
 
 It's worth noting that this `kwargs` approach is not limited to supplying unmappable properties; it can be utilized to override any top-level SOSO property.
 

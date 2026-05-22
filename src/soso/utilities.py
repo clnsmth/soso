@@ -151,12 +151,21 @@ def delete_unused_vocabularies(graph: dict) -> dict:
     graph_copy = graph.copy()
     del graph_copy["@context"]
     graph_copy = dumps(graph_copy)
-    # Remove vocabularies whose keys are not in the graph, @vocab is preserved
-    for key in list(graph["@context"]):
-        if (
-            key != "@vocab" and key + ":" not in graph_copy
-        ):  # ":" is added to avoid partial matches
-            del graph["@context"][key]
+
+    context = graph.get("@context")
+    if not isinstance(context, list) or len(context) != 2:
+        return graph
+
+    schema_context, prefixes = context
+    if not isinstance(prefixes, dict):
+        return graph
+
+    cleaned_prefixes = {}
+    for key, value in prefixes.items():
+        if key + ":" in graph_copy:  # ":" is added to avoid partial matches
+            cleaned_prefixes[key] = value
+
+    graph["@context"] = [schema_context, cleaned_prefixes]
     return graph
 
 
