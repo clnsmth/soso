@@ -227,7 +227,8 @@ def main(folder: str, additional_license_info: bool = None) -> None:
                 creation = convert(file=record, strategy="SPASE")
                 updated_dict = json.loads(creation)
                 # add sosa ontology to json "@context"
-                updated_dict["@context"]["sosa"] = (
+                print(updated_dict["@context"])
+                updated_dict["@context"][1]["sosa"] = (
                     "https://w3c.github.io/sdw-sosa-ssn/ssn/#SOSA"
                 )
                 # update json to include nonSOSO-supported fields
