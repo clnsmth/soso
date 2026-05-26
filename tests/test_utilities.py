@@ -101,12 +101,14 @@ def test_clean_context():
     the @context."""
     # A context with a superset of vocabularies
     context = {
-        "@context": {
-            "@vocab": "https://schema.org/",
-            "prov": "http://www.w3.org/ns/prov#",
-            "provone": "http://purl.dataone.org/provone/2015/01/15/ontology#",
-            "rdfs": "https://www.w3.org/2001/sw/RDFCore/Schema/200212/",
-        }
+        "@context": [
+            "https://schema.org/",
+            {
+                "prov": "http://www.w3.org/ns/prov#",
+                "provone": "http://purl.dataone.org/provone/2015/01/15/ontology#",
+                "rdfs": "https://www.w3.org/2001/sw/RDFCore/Schema/200212/",
+            },
+        ]
     }
     # A graph using a subset of vocabularies. Note, rdfs is unused.
     graph = {
@@ -121,11 +123,13 @@ def test_clean_context():
     }
     # Define the expected cleaned graph
     cleaned_graph = {
-        "@context": {
-            "@vocab": "https://schema.org/",
-            "prov": "http://www.w3.org/ns/prov#",
-            "provone": "http://purl.dataone.org/provone/2015/01/15/ontology#",
-        },
+        "@context": [
+            "https://schema.org/",
+            {
+                "prov": "http://www.w3.org/ns/prov#",
+                "provone": "http://purl.dataone.org/provone/2015/01/15/ontology#",
+            },
+        ],
         "@type": "Dataset",
         "prov:wasGeneratedBy": {
             "@type": "provone:Execution",
@@ -134,8 +138,8 @@ def test_clean_context():
             "prov:used": {"@id": "https://doi.org/10.xxxx/Dataset-1"},
         },
     }
-    # Test that unused vocabularies are removed from the @context, except
-    # @vocab which is always kept.
+    # Test that unused vocabularies are removed from the @context while keeping
+    # the schema.org context entry.
     assert dumps(delete_unused_vocabularies(graph)) == dumps(cleaned_graph)
 
 
