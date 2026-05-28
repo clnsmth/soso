@@ -106,7 +106,7 @@ def test_clean_context():
             {
                 "prov": "http://www.w3.org/ns/prov#",
                 "provone": "http://purl.dataone.org/provone/2015/01/15/ontology#",
-                "rdfs": "https://www.w3.org/2001/sw/RDFCore/Schema/200212/",
+                "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
             },
         ]
     }

@@ -11,4 +11,4 @@ curie_map:
   schema: https://schema.org/
   sosa: https://w3c.github.io/sdw-sosa-ssn/ssn/#SOSA
   spdx: http://spdx.org/rdf/terms#
-  xsd: https://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html
+  xsd: http://www.w3.org/2001/XMLSchema#
