@@ -2,6 +2,24 @@
 
 
 
+## v1.1.0 (2026-05-28)
+
+
+### Bug fixes
+
+* fix(context): update rdfs, xsd, and gsqtime namespace URIs ([`21fc1c9`](https://github.com/clnsmth/soso/commit/21fc1c9d2cab9aa1bd122fb76b873deef076cfd1)) 
+* fix: align JSON-LD @context with SOSO guidance (#349) ([`94fb076`](https://github.com/clnsmth/soso/commit/94fb0764a5a47f929fdb3ccd1c5061c9c71b4c7c)) 
+
+### Build system
+
+* build: update environment ([`4671715`](https://github.com/clnsmth/soso/commit/46717156243b8ef2fd0b42d6fde6cfec41432ee3)) 
+* build: update environment ([`c509c7c`](https://github.com/clnsmth/soso/commit/c509c7ca978decdd4dbb031922dc11f42fdeddab)) 
+* build: update environment ([`1f14d62`](https://github.com/clnsmth/soso/commit/1f14d6285ed6eaf4faa3a8e493659557b52041cd)) 
+
+### Features
+
+* feat: improve indexability and other fixes ([`9ee6734`](https://github.com/clnsmth/soso/commit/9ee6734f0c5e15fe546d2f3927600a1f60cc8b23)) 
+
 ## v1.0.1 (2026-04-08)
 
 
