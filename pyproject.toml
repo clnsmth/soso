@@ -22,7 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-    "pyshacl>=0.26.0,<0.31",
+    "pyshacl>=0.40,<0.50",
     "requests>=2.32.0,<3",
     "lxml>=5.0.0,<7.0.0",
     "daiquiri>=3.0.0,<4",
