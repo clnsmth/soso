@@ -47,7 +47,7 @@ select = ["PL"]
 ignore = ["PLR2004", "PLR5501"]
 
 [tool.ruff.lint.per-file-ignores]
-"src/soso/strategies/spase/spase.py" = ["PLR0912", "PLW2901", "PLW2901", "PLR0915", "PLR0913", "PLC0206", "PLW0603"]
+"src/soso/strategies/spase/spase.py" = ["PLR0912", "PLW2901", "PLW2901", "PLR0915", "PLR0913", "PLC0206", "PLW0603", "PLR0917"]
 "src/soso/strategies/spase/conversion.py" = ["PLR0912", "PLR0915"]
 
 [build-system]
