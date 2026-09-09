@@ -21,7 +21,7 @@ To perform a conversion, specify the file path of the metadata and the desired c
     >>> from soso.main import convert
     >>> r = convert(file='metadata.xml', strategy='EML')
     >>> r
-    '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
+    '{"@context": ["https://schema.org/", {"prov": "http://www. ..."}]'
 
 For a list of available strategies, please refer to the documentation of the `convert` function.
 
@@ -36,7 +36,7 @@ For example, the `url` property representing the landing page URL does not exist
     >>> kwargs = {'url': 'https://sample-data-repository.org/dataset/472032'}
     >>> r = convert(file='metadata.xml', strategy='EML', **kwargs)
     >>> r
-    '{"@context": {"@vocab": "https://schema.org/", "prov": "http://www. ...}'
+    '{"@context": ["https://schema.org/", {"prov": "http://www. ..."}]'
 
 It's worth noting that this `kwargs` approach is not limited to supplying unmappable properties; it can be utilized to override any top-level SOSO property.
 
@@ -108,9 +108,8 @@ Notes
 
 **Adding Vocabularies**
 
-The `convert` function only recognizes vocabularies that are specified within its implementation. You can view the source code for more details on these vocabularies. If you add additional vocabularies to a SOSO graph using property overwrites and method overrides, these vocabularies will have to be defined within an embedded context.
+The `convert` function only recognizes vocabularies that are specified within its implementation. You can view the source code for more details on these vocabularies. If you add additional vocabularies after conversion, ensure the `@context` remains valid JSON-LD.
 
 **Leverage Partial Property Method Implementations**
 
-Before creating functions for unmappable properties, check for partial implementations that you can build upon and that can save you time. For instance, the `get_subject_of` method in the EML strategy is mostly complete; it only lacks the `contentUrl`.
-
+Before creating functions for unmappable properties, check for partial implementations that you can build upon and that can save you time. For instance, the `get_subject_of` method in the EML strategy can provide most of what is needed to create `subjectOf` for an EML dataset.

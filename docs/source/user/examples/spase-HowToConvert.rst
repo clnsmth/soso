@@ -43,7 +43,7 @@ The main script responsible for converting SPASE records to Schema.org JSONs is 
 
 You can run this script via the command line by following this blueprint: ``python <path to conversion.py> <folder> <additional_license_info>``.
 
-An example command following this blueprint would look like: ``python ./src/soso/conversion.py C:/Users/YourUsername/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion``
+An example command following this blueprint would look like: ``python ./src/soso/strategies/spase/conversion.py C:/Users/YourUsername/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion``
 
 The meaning of ``folder`` and ``additional_license_info`` (which is optional) is given below:
 
@@ -65,6 +65,6 @@ If your repository's metadata license is not *CC0-1.0*, *CC-BY-NC-3.0*, or *CC-B
 
 This ``additional_license_info`` must be a list of three items describing your repository's metadata license, as shown above. The ``<full name>`` and ``<identifier>`` items should be pulled from the `SPDX License List Page <https://spdx.org/licenses/>`_. The ``<url>`` can then be formed by adding 'https://spdx.org/licenses/' in front of the identifier value.
 
-An example command including this optional parameter would look like: ``python ./src/soso/conversion.py C:/Users/YourUsername/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion ["MIT License", "MIT", "https://spdx.org/licenses/MIT"]``
+An example command including this optional parameter would look like: ``python ./src/soso/strategies/spase/conversion.py C:/Users/YourUsername/NASA/NumericalData/MMS/4/HotPlasmaCompositionAnalyzer/Burst/Level2/Ion ["MIT License", "MIT", "https://spdx.org/licenses/MIT"]``
 
 Passing your repository's specific metadata license will allow for the `subjectOf <https://schema.org/subjectOf>`_ schema.org property to be richly populated.

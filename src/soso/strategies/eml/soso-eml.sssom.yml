@@ -12,7 +12,7 @@ curie_map:
   dbpedia: http://dbpedia.org/resource/
   eml: https://eml.ecoinformatics.org/eml-2.2.0
   ent: https://eml.ecoinformatics.org/entity-2.2.0
-  gsqtime: https://vocabs.gsq.digital/object?uri=http://linked.data.gov.au/def/trs
+  gsqtime: https://vocabs.gsq.digital/object?uri=http://linked.data.gov.au/def/trs/
   gstime: http://schema.geoschemas.org/contexts/temporal#
   icsc: http://resource.geosciml.org/clashttps://vocabs.ardc.edu.au/repository/api/lda/csiro/international-chronostratigraphic-chart/geologic-time-scale-2020/resource?uri=http://resource.geosciml.org/classifier/ics/ischart/Boundariessifier/ics/ischart/
   md: https://eml.ecoinformatics.org/methods-2.2.0
@@ -23,7 +23,7 @@ curie_map:
   prov: http://www.w3.org/ns/prov#
   provone: http://purl.dataone.org/provone/2015/01/15/ontology#
   rc: https://eml.ecoinformatics.org/resource-2.2.0
-  rdfs: https://www.w3.org/2001/sw/RDFCore/Schema/200212/
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
   res: https://eml.ecoinformatics.org/resource-2.2.0
   schema: https://schema.org/
   sem: https://eml.ecoinformatics.org/semantics-2.2.0
@@ -36,5 +36,5 @@ curie_map:
   txt: https://eml.ecoinformatics.org/text-2.2.0
   unit: https://eml.ecoinformatics.org/unitTypeDefinitions-2.2.0
   xs: http://www.w3.org/2001/XMLSchema/
-  xsd: https://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html
+  xsd: http://www.w3.org/2001/XMLSchema#
   xsi: http://www.w3.org/2001/XMLSchema-instance/
