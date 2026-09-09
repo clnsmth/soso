@@ -480,6 +480,63 @@ class SPASE(StrategyInterface):
             )
             multiple = False
 
+            # map encoding to equivalent MIME Types
+            match encoding:
+                case "AVI":
+                    encoding = "application/x-troff-msvideo/"
+                case "Binary":
+                    encoding = "application/vnd.debian.binary-package/"
+                case "CDF":
+                    encoding = "application/x-cdf/"
+                case "CEF" | "CEF1" | "CEF2" | "RINEX2" | "RINEX3" | "Text.ASCII":
+                    encoding = "text/asciidoc/"
+                case "CSV":
+                    encoding = "application/csv/"
+                case "Excel":
+                    encoding = "application/msexcel/"
+                case "FITS":
+                    encoding = "application/fits/"
+                case "GIF":
+                    encoding = "image/gif/"
+                case "HDF":
+                    encoding = "application/x-hdf/"
+                case "HDF4":
+                    encoding = "application/x-hdf4/"
+                case "HDF5":
+                    encoding = "application/x-hdf5/"
+                case "HTML":
+                    encoding = "text/html/"
+                case "IDL":
+                    encoding = "text/x-idl/"
+                case "JPEG":
+                    encoding = "image/jpeg/"
+                case "JSON" | "TFCat":
+                    encoding = "application/json/"
+                case "MATLAB_4" | "MATLAB_6" | "MATLAB_7":
+                    encoding = "application/matlab-mat"
+                case "MPEG":
+                    encoding = "video/mpeg/"
+                case "NetCDF":
+                    encoding = "application/x-netcdf/"
+                case "PDF":
+                    encoding = "application/pdf/"
+                case "PDS3" | "PDS4" | "XML":
+                    encoding = "application/xml/"
+                case "PNG":
+                    encoding = "image/png/"
+                case "Postscript":
+                    encoding = "application/postscript/"
+                case "QuickTime":
+                    encoding = "video/quicktime/"
+                case "TIFF":
+                    encoding = "image/tiff/"
+                case "VOTable":
+                    encoding = "application/x-votable+xml/"
+                case _:
+                    print(
+                        "Content type cannot be mapped to MIME type. Leaving as-is."
+                    )  # This underscore is the "catch-all" default
+
             # most basic format for a potentialAction item
             entry = {
                 "@type": "SearchAction",
