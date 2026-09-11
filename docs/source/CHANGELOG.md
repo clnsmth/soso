@@ -2,6 +2,22 @@
 
 
 
+## v1.2.0 (2026-09-11)
+
+
+### Build system
+
+* build: update environment ([`f3d68fa`](https://github.com/clnsmth/soso/commit/f3d68fa6d8c579318013da7cef2fab8bb0ed373e)) 
+* build: update pySHACL to 0.40.0 ([`d2fbb0a`](https://github.com/clnsmth/soso/commit/d2fbb0a95e1f725fc42877101044f2b98a7a4748)) 
+
+### Chores
+
+* chore(lint): ignore PLR0917 positional argument rule in spase.py ([`3efbbfa`](https://github.com/clnsmth/soso/commit/3efbbfa8e3657996018cef4275536d638a05b59b)) 
+
+### Features
+
+* feat: Add MIME Type Mapping (#354) ([`47cae46`](https://github.com/clnsmth/soso/commit/47cae46d5a84ba55f2c639b70cc969e3b750338e)) 
+
 ## v1.1.0 (2026-05-28)
 
 

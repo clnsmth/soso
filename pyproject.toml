@@ -1,6 +1,6 @@
 [project]
 name = "soso"
-version = "1.1.0"
+version = "1.2.0"
 description = "For Converting Metadata Records into Science On Schema.Org Markup"
 authors = [
     { name = "Colin Smith", email = "colin.smith@wisc.edu" },
