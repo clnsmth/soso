@@ -116,6 +116,8 @@ Dependency and Environment Management
 
 This project uses `uv`_ to manage dependencies for development and distribution. uv keeps track of necessary packages and their versions, ensuring a consistent development environment.
 
+As an open-source library distributed on PyPI, dependencies are defined as abstract version ranges in ``pyproject.toml`` without committing ``uv.lock``. Maintainers do not need to export or maintain environment or requirements files. GitHub Dependabot runs weekly scans directly against ``pyproject.toml`` and opens pull requests when declared version ranges permit known vulnerabilities.
+
 .. _uv: https://docs.astral.sh/uv/
 
 Keeping Current with Science On Schema.Org
