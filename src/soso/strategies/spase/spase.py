@@ -483,55 +483,55 @@ class SPASE(StrategyInterface):
             # map encoding to equivalent MIME Types
             match encoding:
                 case "AVI":
-                    encoding = "application/x-troff-msvideo/"
+                    encoding = "application/x-troff-msvideo"
                 case "Binary":
-                    encoding = "application/vnd.debian.binary-package/"
+                    encoding = "application/vnd.debian.binary-package"
                 case "CDF":
-                    encoding = "application/x-cdf/"
+                    encoding = "application/x-cdf"
                 case "CEF" | "CEF1" | "CEF2" | "RINEX2" | "RINEX3" | "Text.ASCII":
-                    encoding = "text/asciidoc/"
+                    encoding = "text/asciidoc"
                 case "CSV":
-                    encoding = "application/csv/"
+                    encoding = "application/csv"
                 case "Excel":
-                    encoding = "application/msexcel/"
+                    encoding = "application/msexcel"
                 case "FITS":
-                    encoding = "application/fits/"
+                    encoding = "application/fits"
                 case "GIF":
-                    encoding = "image/gif/"
+                    encoding = "image/gif"
                 case "HDF":
-                    encoding = "application/x-hdf/"
+                    encoding = "application/x-hdf"
                 case "HDF4":
-                    encoding = "application/x-hdf4/"
+                    encoding = "application/x-hdf4"
                 case "HDF5":
-                    encoding = "application/x-hdf5/"
+                    encoding = "application/x-hdf5"
                 case "HTML":
-                    encoding = "text/html/"
+                    encoding = "text/html"
                 case "IDL":
-                    encoding = "text/x-idl/"
+                    encoding = "text/x-idl"
                 case "JPEG":
-                    encoding = "image/jpeg/"
+                    encoding = "image/jpeg"
                 case "JSON" | "TFCat":
-                    encoding = "application/json/"
+                    encoding = "application/json"
                 case "MATLAB_4" | "MATLAB_6" | "MATLAB_7":
                     encoding = "application/matlab-mat"
                 case "MPEG":
-                    encoding = "video/mpeg/"
+                    encoding = "video/mpeg"
                 case "NetCDF":
-                    encoding = "application/x-netcdf/"
+                    encoding = "application/x-netcdf"
                 case "PDF":
-                    encoding = "application/pdf/"
+                    encoding = "application/pdf"
                 case "PDS3" | "PDS4" | "XML":
-                    encoding = "application/xml/"
+                    encoding = "application/xml"
                 case "PNG":
-                    encoding = "image/png/"
+                    encoding = "image/png"
                 case "Postscript":
-                    encoding = "application/postscript/"
+                    encoding = "application/postscript"
                 case "QuickTime":
-                    encoding = "video/quicktime/"
+                    encoding = "video/quicktime"
                 case "TIFF":
-                    encoding = "image/tiff/"
+                    encoding = "image/tiff"
                 case "VOTable":
-                    encoding = "application/x-votable+xml/"
+                    encoding = "application/x-votable+xml"
                 case _:
                     print(
                         "Content type cannot be mapped to MIME type. Leaving as-is."
