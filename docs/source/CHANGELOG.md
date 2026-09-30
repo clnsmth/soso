@@ -2,6 +2,17 @@
 
 
 
+## v1.2.1 (2026-09-30)
+
+
+### Bug fixes
+
+* fix: Update MIME Type Mapping ([`ef77f42`](https://github.com/clnsmth/soso/commit/ef77f426934a36070221d9139188a4b58153df4b)) 
+
+### Continuous integration
+
+* ci: configure range-based scans and untrack uv.lock (#355) ([`5958afa`](https://github.com/clnsmth/soso/commit/5958afaccec38e721092b322812f2ef0514a74b9)) 
+
 ## v1.2.0 (2026-09-11)
 
 
